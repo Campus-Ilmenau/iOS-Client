@@ -35,9 +35,34 @@ struct MensaMealDetailView: View {
                         }
                     }
 
+                    if !meal.categories.isEmpty {
+                        DetailSection(title: "Kategorien", icon: "tag.fill") {
+                            chipGrid(for: meal.categories, tint: .green)
+                        }
+                    }
+
+                    if !meal.additives.isEmpty {
+                        DetailSection(title: "Inhaltsstoffe", icon: "leaf.circle.fill") {
+                            chipGrid(for: meal.additives, tint: .purple)
+                        }
+                    }
+
                     if !meal.allergies.isEmpty {
                         DetailSection(title: "Allergene", icon: "exclamationmark.triangle.fill") {
                             chipGrid(for: meal.allergies, tint: .orange)
+                        }
+                    }
+
+                    if !meal.components.isEmpty {
+                        DetailSection(title: "Komponenten", icon: "list.bullet") {
+                            componentsList
+                        }
+                    }
+
+                    if let co2 = meal.co2GramPerPortion {
+                        DetailSection(title: "Umwelt", icon: "globe.europe.africa.fill") {
+                            Text("≈ \(Int(co2)) g CO₂ pro Portion")
+                                .font(.body)
                         }
                     }
 
@@ -107,6 +132,31 @@ struct MensaMealDetailView: View {
         }
     }
 
+    private var componentsList: some View {
+        VStack(spacing: 0) {
+            ForEach(meal.components) { component in
+                DisclosureGroup(component.name) {
+                    if component.codes.isEmpty {
+                        Text("Keine weiteren Angaben")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 4)
+                    } else {
+                        chipGrid(for: component.codes, tint: .blue)
+                            .padding(.top, 4)
+                    }
+                }
+                .font(.subheadline)
+
+                if component.id != meal.components.last?.id {
+                    Divider()
+                        .padding(.vertical, 8)
+                }
+            }
+        }
+    }
+
     private func chipGrid(for items: [String], tint: Color) -> some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 8)], alignment: .leading, spacing: 8) {
             ForEach(items, id: \.self) { item in
@@ -162,6 +212,14 @@ private struct DetailSection<Content: View>: View {
             price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
             allergies: ["Gluten", "Ei"],
             badges: ["Vegetarisch"],
+            additives: ["Konservierungsstoff"],
+            categories: ["Kinderessen"],
+            co2GramPerPortion: 850,
+            components: [
+                MensaMealComponent(name: "Hähnchenschnitzel", codes: ["Gluten"]),
+                MensaMealComponent(name: "Pommes Frites", codes: []),
+                MensaMealComponent(name: "Salat", codes: ["Ei"])
+            ],
             canteenName: "Mensa Ehrenberg",
             date: Date()
         )

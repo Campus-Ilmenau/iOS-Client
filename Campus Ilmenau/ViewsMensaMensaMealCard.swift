@@ -105,6 +105,13 @@ struct MensaMealCard: View {
             price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
             allergies: ["Gluten", "Ei"],
             badges: ["Vegetarisch"],
+            additives: ["Konservierungsstoff"],
+            categories: ["Kinderessen"],
+            co2GramPerPortion: 850,
+            components: [
+                MensaMealComponent(name: "Hähnchenschnitzel", codes: ["Gluten"]),
+                MensaMealComponent(name: "Pommes Frites", codes: [])
+            ],
             canteenName: "Mensa Ehrenberg",
             date: Date()
         )

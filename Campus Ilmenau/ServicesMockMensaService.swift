@@ -55,6 +55,14 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
                 allergies: ["Gluten", "Ei"],
                 badges: [],
+                additives: ["Konservierungsstoff"],
+                categories: ["Kinderessen"],
+                co2GramPerPortion: 850,
+                components: [
+                    MensaMealComponent(name: "Hähnchenschnitzel", codes: ["Gluten"]),
+                    MensaMealComponent(name: "Pommes Frites", codes: []),
+                    MensaMealComponent(name: "Salat", codes: ["Ei"])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             ),
@@ -66,6 +74,14 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 3.20, staff: 4.40, guest: 5.60, currency: "€"),
                 allergies: ["Gluten", "Milch"],
                 badges: ["Vegetarisch"],
+                additives: [],
+                categories: ["Regional"],
+                co2GramPerPortion: 420,
+                components: [
+                    MensaMealComponent(name: "Lasagneblätter", codes: ["Gluten"]),
+                    MensaMealComponent(name: "Tomatensauce", codes: []),
+                    MensaMealComponent(name: "Mozzarella", codes: ["Milch"])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             ),
@@ -77,6 +93,14 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 2.80, staff: 4.00, guest: 5.20, currency: "€"),
                 allergies: [],
                 badges: ["Vegan", "Bio"],
+                additives: [],
+                categories: ["Bio", "Regional"],
+                co2GramPerPortion: 180,
+                components: [
+                    MensaMealComponent(name: "Linseneintopf", codes: []),
+                    MensaMealComponent(name: "Kokosmilch", codes: []),
+                    MensaMealComponent(name: "Basmatireis", codes: [])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             ),
@@ -88,6 +112,12 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 0.80, staff: 1.00, guest: 1.20, currency: "€"),
                 allergies: ["Milch"],
                 badges: ["Vegetarisch"],
+                additives: [],
+                categories: ["Kinderessen"],
+                co2GramPerPortion: 90,
+                components: [
+                    MensaMealComponent(name: "Kartoffelpüree", codes: ["Milch"])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             ),
@@ -99,6 +129,13 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 1.20, staff: 1.50, guest: 1.80, currency: "€"),
                 allergies: [],
                 badges: ["Vegan"],
+                additives: [],
+                categories: ["Regional"],
+                co2GramPerPortion: 60,
+                components: [
+                    MensaMealComponent(name: "Gemischter Salat", codes: []),
+                    MensaMealComponent(name: "Balsamico-Dressing", codes: [])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             ),
@@ -110,6 +147,13 @@ class MockMensaService: MensaService {
                 price: MensaMealPrice(student: 1.50, staff: 1.90, guest: 2.30, currency: "€"),
                 allergies: ["Gluten", "Ei", "Milch"],
                 badges: ["Vegetarisch"],
+                additives: ["Farbstoff"],
+                categories: ["Kinderessen"],
+                co2GramPerPortion: 310,
+                components: [
+                    MensaMealComponent(name: "Apfelstrudel", codes: ["Gluten", "Ei"]),
+                    MensaMealComponent(name: "Vanillesauce", codes: ["Milch"])
+                ],
                 canteenName: "Mensa Ehrenberg",
                 date: today
             )

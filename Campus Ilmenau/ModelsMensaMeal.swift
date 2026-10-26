@@ -16,8 +16,19 @@ struct MensaMeal: Identifiable {
     let price: MensaMealPrice
     let allergies: [String]
     let badges: [String]
+    let additives: [String]
+    let categories: [String]
+    let co2GramPerPortion: Double?
+    let components: [MensaMealComponent]
     let canteenName: String
     let date: Date
+}
+
+/// Eine Komponente eines Gerichts (z.B. "Reis", "Soße") mit ihren eigenen Zusatz-/Allergen-Codes
+struct MensaMealComponent: Identifiable {
+    let id = UUID()
+    let name: String
+    let codes: [String]
 }
 
 /// Preise eines Gerichts nach Personengruppe

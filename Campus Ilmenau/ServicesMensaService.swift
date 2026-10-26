@@ -102,6 +102,12 @@ class MensaService: ObservableObject {
                     ),
                     allergies: apiMeal.allergenCodes.compactMap { $0.name },
                     badges: determineBadges(from: apiMeal),
+                    additives: apiMeal.additiveCodes.compactMap { $0.name },
+                    categories: apiMeal.symbolCodes.compactMap { $0.name },
+                    co2GramPerPortion: apiMeal.co2GramPerPortion,
+                    components: apiMeal.components.map { component in
+                        MensaMealComponent(name: component.name, codes: component.codes.compactMap { $0.name })
+                    },
                     canteenName: apiMeal.canteen.name,
                     date: apiMeal.date
                 )
