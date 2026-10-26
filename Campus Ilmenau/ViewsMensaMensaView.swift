@@ -134,7 +134,7 @@ struct MensaView: View {
             }
         }
         .navigationTitle("Mensa")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
