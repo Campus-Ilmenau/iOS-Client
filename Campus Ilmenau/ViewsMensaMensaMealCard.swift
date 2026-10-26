@@ -9,8 +9,21 @@ import SwiftUI
 
 struct MensaMealCard: View {
     let meal: MensaMeal
-    
+    @State private var showDetail = false
+
     var body: some View {
+        Button {
+            showDetail = true
+        } label: {
+            cardContent
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showDetail) {
+            MensaMealDetailView(meal: meal)
+        }
+    }
+
+    private var cardContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Kategorie
             HStack {
