@@ -11,12 +11,46 @@ struct MensaView: View {
     @StateObject private var mensaService = MensaService()
     @State private var currentCanteenIndex = 0
     @State private var dragOffset: CGSize = .zero
-    
+    @State private var showFilterSheet = false
+    @State private var filterStates: [String: MealFilterState] = [:]
+
+    // Gerichte nach aktiven Filtern (Badges/Allergene) gefiltert
+    private var filteredMeals: [MensaMeal] {
+        guard !filterStates.isEmpty else { return mensaService.meals }
+        return mensaService.meals.filter { meal in
+            let attributes = Set(meal.badges).union(meal.allergies)
+            for (attribute, state) in filterStates {
+                switch state {
+                case .any:
+                    continue
+                case .include:
+                    if !attributes.contains(attribute) { return false }
+                case .exclude:
+                    if attributes.contains(attribute) { return false }
+                }
+            }
+            return true
+        }
+    }
+
     // Gruppiere Meals nach Mensa
     private var mealsByCanteen: [(canteen: String, meals: [MensaMeal])] {
-        let grouped = Dictionary(grouping: mensaService.meals, by: { $0.canteenName })
+        let grouped = Dictionary(grouping: filteredMeals, by: { $0.canteenName })
         return grouped.map { (canteen: $0.key, meals: $0.value) }
             .sorted { $0.canteen < $1.canteen }
+    }
+
+    // Verfügbare Attribute für die Filter-Sheet-Sektionen
+    private var availableBadges: [String] {
+        Set(mensaService.meals.flatMap(\.badges)).sorted()
+    }
+
+    private var availableAllergies: [String] {
+        Set(mensaService.meals.flatMap(\.allergies)).sorted()
+    }
+
+    private var activeFilterCount: Int {
+        filterStates.values.filter { $0 != .any }.count
     }
     
     var body: some View {
@@ -101,6 +135,30 @@ struct MensaView: View {
         }
         .navigationTitle("Mensa")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showFilterSheet = true
+                } label: {
+                    Image(systemName: activeFilterCount > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showFilterSheet) {
+            MensaFilterSheet(
+                filterStates: $filterStates,
+                availableBadges: availableBadges,
+                availableAllergies: availableAllergies
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        .onChange(of: mealsByCanteen.count) { _, newCount in
+            if currentCanteenIndex >= newCount {
+                currentCanteenIndex = max(0, newCount - 1)
+            }
+        }
         .task {
             do {
                 try await mensaService.fetchTodaysMeals()
