@@ -55,27 +55,23 @@ struct MensaMealCard: View {
                     .foregroundStyle(.secondary)
             }
             
-            // Preis und Allergien
-            HStack {
-                // Preis (Studierende)
-                Text(meal.price.studentFormatted)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.orange)
-                
-                Spacer()
-                
-                // Allergien
-                if !meal.allergies.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.yellow)
-                        
-                        Text(meal.allergies.joined(separator: ", "))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+            // Preise (Studierende / Mitarbeiter / Gäste)
+            HStack(spacing: 0) {
+                priceColumn(label: "Studierende", value: meal.price.studentFormatted, isPrimary: true)
+                priceColumn(label: "Mitarbeiter", value: meal.price.staffFormatted, isPrimary: false)
+                priceColumn(label: "Gäste", value: meal.price.guestFormatted, isPrimary: false)
+            }
+
+            // Allergien
+            if !meal.allergies.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+
+                    Text(meal.allergies.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -83,6 +79,19 @@ struct MensaMealCard: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+
+    private func priceColumn(label: String, value: String, isPrimary: Bool) -> some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(isPrimary ? .subheadline : .caption)
+                .fontWeight(.bold)
+                .foregroundStyle(isPrimary ? .orange : .secondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
