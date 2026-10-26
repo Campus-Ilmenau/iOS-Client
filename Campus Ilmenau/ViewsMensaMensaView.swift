@@ -13,6 +13,8 @@ struct MensaView: View {
     @State private var dragOffset: CGSize = .zero
     @State private var showFilterSheet = false
     @State private var filterStates: [String: MealFilterState] = MensaFilterStore.load()
+    @State private var selectedDate = Date()
+    @State private var showDatePicker = false
 
     // Gerichte nach aktiven Filtern (Badges/Allergene) gefiltert
     private var filteredMeals: [MensaMeal] {
@@ -65,9 +67,30 @@ struct MensaView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text(todayFormatted)
+                    Button {
+                        showDatePicker = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(formattedSelectedDate)
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                        }
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    }
+                    .popover(isPresented: $showDatePicker) {
+                        DatePicker(
+                            "Datum",
+                            selection: $selectedDate,
+                            in: Calendar.current.startOfDay(for: Date())...,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.graphical)
+                        .labelsHidden()
+                        .frame(minWidth: 320, minHeight: 360)
+                        .padding()
+                        .presentationCompactAdaptation(.popover)
+                    }
                 }
                 .padding(.top)
                 
@@ -162,12 +185,22 @@ struct MensaView: View {
         .onChange(of: filterStates) { _, newValue in
             MensaFilterStore.save(newValue)
         }
-        .task {
-            do {
-                try await mensaService.fetchTodaysMeals()
-            } catch {
-                print("Fehler beim Laden: \(error)")
+        .onChange(of: selectedDate) { _, newDate in
+            showDatePicker = false
+            Task {
+                await loadMeals(for: newDate)
             }
+        }
+        .task {
+            await loadMeals(for: selectedDate)
+        }
+    }
+
+    private func loadMeals(for date: Date) async {
+        do {
+            try await mensaService.fetchMeals(date: date)
+        } catch {
+            print("Fehler beim Laden: \(error)")
         }
     }
     
@@ -229,11 +262,11 @@ struct MensaView: View {
         dragOffset = .zero
     }
     
-    private var todayFormatted: String {
+    private var formattedSelectedDate: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "de_DE")
         formatter.dateFormat = "EEEE, dd. MMMM yyyy"
-        return formatter.string(from: Date())
+        return formatter.string(from: selectedDate)
     }
 }
 
