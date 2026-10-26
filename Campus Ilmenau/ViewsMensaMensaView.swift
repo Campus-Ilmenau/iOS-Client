@@ -12,7 +12,7 @@ struct MensaView: View {
     @State private var currentCanteenIndex = 0
     @State private var dragOffset: CGSize = .zero
     @State private var showFilterSheet = false
-    @State private var filterStates: [String: MealFilterState] = [:]
+    @State private var filterStates: [String: MealFilterState] = MensaFilterStore.load()
 
     // Gerichte nach aktiven Filtern (Badges/Allergene) gefiltert
     private var filteredMeals: [MensaMeal] {
@@ -158,6 +158,9 @@ struct MensaView: View {
             if currentCanteenIndex >= newCount {
                 currentCanteenIndex = max(0, newCount - 1)
             }
+        }
+        .onChange(of: filterStates) { _, newValue in
+            MensaFilterStore.save(newValue)
         }
         .task {
             do {

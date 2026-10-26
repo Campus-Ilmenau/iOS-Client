@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Tri-state filter for a single meal attribute (z.B. "Vegan" oder "Gluten")
-enum MealFilterState: String, CaseIterable, Identifiable {
+enum MealFilterState: String, CaseIterable, Identifiable, Codable {
     case exclude
     case any
     case include
@@ -37,6 +37,25 @@ enum MealFilterState: String, CaseIterable, Identifiable {
         case .any: return "Egal"
         case .include: return "Einschließen"
         }
+    }
+}
+
+/// Persistiert die aktiven Speiseplan-Filter in UserDefaults, damit sie geräteweit
+/// über Tage hinweg erhalten bleiben und nicht täglich neu gesetzt werden müssen.
+enum MensaFilterStore {
+    private static let key = "MensaFilterStates"
+
+    static func load() -> [String: MealFilterState] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let decoded = try? JSONDecoder().decode([String: MealFilterState].self, from: data) else {
+            return [:]
+        }
+        return decoded
+    }
+
+    static func save(_ filterStates: [String: MealFilterState]) {
+        guard let data = try? JSONEncoder().encode(filterStates) else { return }
+        UserDefaults.standard.set(data, forKey: key)
     }
 }
 
