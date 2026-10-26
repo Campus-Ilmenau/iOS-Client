@@ -1,0 +1,47 @@
+# Git Attributes für Campus Ilmenau
+
+# Source code
+*.swift text diff=swift
+*.h text diff=objc
+*.m text diff=objc
+*.mm text diff=objc
+
+# Xcode project files
+*.pbxproj text merge=union
+*.xcworkspacedata text merge=union
+*.xcscheme text merge=union
+
+# Documentation
+*.md text
+*.txt text
+LICENSE text
+
+# Assets - Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.wav binary
+*.pdf binary
+*.ttf binary
+*.otf binary
+
+# Xcode archives
+*.xcarchive binary
+*.ipa binary
+*.dSYM binary
+
+# Plists
+*.plist text
+*.strings text
+
+# JSON
+*.json text
+
+# YAML
+*.yml text
+*.yaml text

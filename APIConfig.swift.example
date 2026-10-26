@@ -1,0 +1,33 @@
+//
+//  APIConfig.swift.example
+//  Campus Ilmenau
+//
+//  Beispiel-Datei für API-Konfiguration
+//  NICHT in Git committen! Kopieren Sie diese Datei zu APIConfig.swift
+//
+
+import Foundation
+
+struct APIConfig {
+    // Mensa API
+    static let mensaAPIKey = "YOUR_MENSA_API_KEY_HERE"
+    static let mensaBaseURL = "https://api.example.com/mensa"
+    
+    // TU Ilmenau Services
+    static let tuIlmenauAPIKey = "YOUR_TU_API_KEY_HERE"
+    static let tuIlmenauBaseURL = "https://api.tu-ilmenau.de"
+    
+    // Optional: Stundenplan-Service
+    static let stundenplanAPIKey = "YOUR_STUNDENPLAN_API_KEY_HERE"
+    
+    // Optional: ÖPNV-Integration
+    static let oepnvAPIKey = "YOUR_OEPNV_API_KEY_HERE"
+    
+    // Optional: Weather API
+    static let weatherAPIKey = "YOUR_WEATHER_API_KEY_HERE"
+}
+
+// ANLEITUNG:
+// 1. Kopieren Sie diese Datei zu "APIConfig.swift"
+// 2. Ersetzen Sie die Placeholder mit echten API-Keys
+// 3. APIConfig.swift ist bereits in .gitignore und wird NICHT committed

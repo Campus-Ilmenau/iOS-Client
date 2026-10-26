@@ -1,0 +1,115 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+      
+    - name: Show available simulators
+      run: xcrun simctl list devices available
+    
+    - name: Build for Simulator
+      run: |
+        xcodebuild clean build \
+          -project "Campus Ilmenau.xcodeproj" \
+          -scheme "Campus Ilmenau" \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO
+    
+    - name: Run Tests
+      run: |
+        xcodebuild test \
+          -project "Campus Ilmenau.xcodeproj" \
+          -scheme "Campus Ilmenau" \
+          -sdk iphonesimulator \
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest" \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO
+      continue-on-error: true
+  
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Check for accidentally committed secrets
+      run: |
+        echo "Checking for accidentally committed secrets..."
+        
+        # Check for Team IDs
+        if git grep -i "DEVELOPMENT_TEAM" -- ':!.github' ':!*.md'; then
+          echo "❌ ERROR: DEVELOPMENT_TEAM found in code!"
+          exit 1
+        fi
+        
+        # Check for Provisioning Profiles
+        if find . -name "*.mobileprovision" -o -name "*.provisionprofile" | grep -v ".git"; then
+          echo "❌ ERROR: Provisioning profiles found!"
+          exit 1
+        fi
+        
+        # Check for Certificates
+        if find . -name "*.p12" -o -name "*.cer" | grep -v ".git"; then
+          echo "❌ ERROR: Certificates found!"
+          exit 1
+        fi
+        
+        # Check for API Keys
+        if find . -name "*.p8" | grep -v ".git"; then
+          echo "❌ ERROR: App Store Connect API Keys found!"
+          exit 1
+        fi
+        
+        echo "✅ Security check passed!"
+    
+    - name: Check for sensitive files
+      run: |
+        echo "Checking for sensitive configuration files..."
+        
+        if find . -name "GoogleService-Info.plist" | grep -v ".git"; then
+          echo "⚠️  WARNING: Firebase config found - ensure it's in .gitignore"
+        fi
+        
+        if find . -name "*secret*" -o -name "*Secret*" | grep -v ".git" | grep -v ".md"; then
+          echo "⚠️  WARNING: Files with 'secret' in name found"
+        fi
+        
+        echo "✅ Sensitive file check completed!"
+
+  swift-lint:
+    name: SwiftLint
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Install SwiftLint
+      run: brew install swiftlint
+      
+    - name: Run SwiftLint
+      run: swiftlint lint --reporter github-actions-logging
+      continue-on-error: true

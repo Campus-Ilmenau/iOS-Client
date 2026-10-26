@@ -1,0 +1,61 @@
+# SwiftLint Konfiguration für Campus Ilmenau
+
+disabled_rules:
+  - trailing_whitespace
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - explicit_init
+  - first_where
+  - sorted_first_last
+
+excluded:
+  - Pods
+  - Carthage
+  - .build
+  - DerivedData
+
+# Zeilenlänge
+line_length:
+  warning: 120
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+# Funktionslänge
+function_body_length:
+  warning: 50
+  error: 100
+
+# Type Body Length
+type_body_length:
+  warning: 300
+  error: 500
+
+# File Length
+file_length:
+  warning: 500
+  error: 1000
+
+# Identifier Name
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - x
+    - y
+    - z
+
+# Benutzerdefinierte Regeln
+custom_rules:
+  no_print_statements:
+    name: "No Print Statements"
+    regex: "print\\("
+    message: "Verwenden Sie os_log oder Logger statt print()"
+    severity: warning

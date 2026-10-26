@@ -1,0 +1,121 @@
+# GitLab CI/CD Configuration für Campus Ilmenau
+# 
+# Diese Datei definiert automatische Build- und Test-Prozesse
+# Hinweis: Erfordert einen macOS Runner mit Xcode
+
+stages:
+  - validate
+  - build
+  - test
+
+variables:
+  # Anpassen an Ihren Projekt- und Scheme-Namen
+  XCODE_PROJECT: "Campus Ilmenau.xcodeproj"
+  SCHEME_NAME: "Campus Ilmenau"
+  IOS_SDK: "iphoneos"
+  SIMULATOR_SDK: "iphonesimulator"
+  
+# Validierung der Code-Qualität
+validate:swift-lint:
+  stage: validate
+  tags:
+    - macos
+  script:
+    - echo "Code-Validierung..."
+    # SwiftLint könnte hier integriert werden
+    # - swiftlint
+  only:
+    - merge_requests
+    - main
+  allow_failure: true
+
+# Build für Simulator (schneller, kein Signing erforderlich)
+build:simulator:
+  stage: build
+  tags:
+    - macos
+  script:
+    - echo "Building für iOS Simulator..."
+    - xcodebuild clean build 
+      -project "$XCODE_PROJECT" 
+      -scheme "$SCHEME_NAME" 
+      -sdk "$SIMULATOR_SDK" 
+      -destination "platform=iOS Simulator,name=iPhone 15,OS=latest"
+      CODE_SIGNING_ALLOWED=NO
+      CODE_SIGNING_REQUIRED=NO
+  only:
+    - merge_requests
+    - main
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 week
+
+# Tests ausführen
+test:unit:
+  stage: test
+  tags:
+    - macos
+  script:
+    - echo "Running Unit Tests..."
+    - xcodebuild test 
+      -project "$XCODE_PROJECT" 
+      -scheme "$SCHEME_NAME" 
+      -sdk "$SIMULATOR_SDK" 
+      -destination "platform=iOS Simulator,name=iPhone 15,OS=latest"
+      CODE_SIGNING_ALLOWED=NO
+      CODE_SIGNING_REQUIRED=NO
+  only:
+    - merge_requests
+    - main
+  allow_failure: true
+
+# Security Check - Prüft auf versehentlich committete Secrets
+validate:security-check:
+  stage: validate
+  tags:
+    - macos
+  script:
+    - echo "Checking for accidentally committed secrets..."
+    - |
+      # Prüfe auf Team-IDs
+      if git diff --cached | grep -i "DEVELOPMENT_TEAM"; then
+        echo "ERROR: DEVELOPMENT_TEAM found in changes!"
+        exit 1
+      fi
+    - |
+      # Prüfe auf Provisioning Profiles
+      if find . -name "*.mobileprovision" -o -name "*.provisionprofile" | grep -v ".git"; then
+        echo "ERROR: Provisioning profiles found!"
+        exit 1
+      fi
+    - |
+      # Prüfe auf Zertifikate
+      if find . -name "*.p12" -o -name "*.cer" | grep -v ".git"; then
+        echo "ERROR: Certificates found!"
+        exit 1
+      fi
+    - echo "Security check passed!"
+  only:
+    - merge_requests
+    - main
+
+# Hinweis: Für echte Device-Builds benötigen Sie:
+# - Einen selbst-gehosteten macOS Runner
+# - Konfigurierte Signing-Identitäten auf dem Runner
+# - Geschützte GitLab CI/CD Variablen für Zertifikate
+
+# build:device:
+#   stage: build
+#   tags:
+#     - macos
+#   script:
+#     - echo "Building für iOS Device..."
+#     - xcodebuild clean archive 
+#       -project "$XCODE_PROJECT" 
+#       -scheme "$SCHEME_NAME" 
+#       -sdk "$IOS_SDK" 
+#       -archivePath build/CampusIlmenau.xcarchive
+#   only:
+#     - tags
+#   when: manual
