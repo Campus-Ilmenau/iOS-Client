@@ -94,7 +94,12 @@ class MensaService: ObservableObject {
                     category: apiMeal.mealGroup ?? "Gericht",
                     name: apiMeal.title,
                     description: formatComponents(apiMeal.components),
-                    price: formatPrice(apiMeal.price),
+                    price: MensaMealPrice(
+                        student: apiMeal.price?.student,
+                        staff: apiMeal.price?.staff,
+                        guest: apiMeal.price?.guest,
+                        currency: apiMeal.price?.currency ?? "€"
+                    ),
                     allergies: apiMeal.allergenCodes.compactMap { $0.name },
                     badges: determineBadges(from: apiMeal),
                     canteenName: apiMeal.canteen.name,
@@ -165,14 +170,6 @@ class MensaService: ObservableObject {
         
         components?.queryItems = queryItems
         return components?.url
-    }
-    
-    private func formatPrice(_ price: APIPrice?) -> String {
-        guard let price = price,
-              let studentPrice = price.student else {
-            return "Preis nicht verfügbar"
-        }
-        return String(format: "%.2f %@", studentPrice, price.currency)
     }
     
     private func formatComponents(_ components: [APIComponent]) -> String? {

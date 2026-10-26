@@ -17,7 +17,16 @@ struct MensaMealDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     header
-                    priceCard
+
+                    DetailSection(title: "Preise", icon: "eurosign.circle.fill") {
+                        VStack(spacing: 10) {
+                            priceRow(label: "Studierende", value: meal.price.studentFormatted, isPrimary: true)
+                            Divider()
+                            priceRow(label: "Mitarbeiter:innen", value: meal.price.staffFormatted, isPrimary: false)
+                            Divider()
+                            priceRow(label: "Gäste", value: meal.price.guestFormatted, isPrimary: false)
+                        }
+                    }
 
                     if let description = meal.description {
                         DetailSection(title: "Beschreibung", icon: "text.alignleft") {
@@ -82,22 +91,20 @@ struct MensaMealDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var priceCard: some View {
+    private func priceRow(label: String, value: String, isPrimary: Bool) -> some View {
         HStack {
-            Label("Preis", systemImage: "eurosign.circle.fill")
+            Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .fontWeight(isPrimary ? .semibold : .regular)
+                .foregroundStyle(isPrimary ? .primary : .secondary)
 
             Spacer()
 
-            Text(meal.price)
-                .font(.title2)
+            Text(value)
+                .font(isPrimary ? .headline : .subheadline)
                 .fontWeight(.bold)
-                .foregroundStyle(.orange)
+                .foregroundStyle(isPrimary ? .orange : .secondary)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func chipGrid(for items: [String], tint: Color) -> some View {
@@ -152,7 +159,7 @@ private struct DetailSection<Content: View>: View {
             category: "Hauptgericht 1",
             name: "Hähnchenschnitzel",
             description: "mit Pommes Frites und Salat",
-            price: "3,50 €",
+            price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
             allergies: ["Gluten", "Ei"],
             badges: ["Vegetarisch"],
             canteenName: "Mensa Ehrenberg",

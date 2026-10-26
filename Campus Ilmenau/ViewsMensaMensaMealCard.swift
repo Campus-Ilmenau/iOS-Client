@@ -57,8 +57,8 @@ struct MensaMealCard: View {
             
             // Preis und Allergien
             HStack {
-                // Preis
-                Text(meal.price)
+                // Preis (Studierende)
+                Text(meal.price.studentFormatted)
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.orange)
@@ -93,7 +93,7 @@ struct MensaMealCard: View {
             category: "Hauptgericht 1",
             name: "Hähnchenschnitzel",
             description: "mit Pommes Frites und Salat",
-            price: "3,50 €",
+            price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
             allergies: ["Gluten", "Ei"],
             badges: ["Vegetarisch"],
             canteenName: "Mensa Ehrenberg",
