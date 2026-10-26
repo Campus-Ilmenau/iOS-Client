@@ -1,0 +1,91 @@
+//
+//  MensaMealCard.swift
+//  Campus Ilmenau
+//
+//  Created by Kai Gothe on 26.10.26.
+//
+
+import SwiftUI
+
+struct MensaMealCard: View {
+    let meal: MensaMeal
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Kategorie
+            HStack {
+                Text(meal.category)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                
+                Spacer()
+                
+                // Badges (Vegan, Bio, etc.)
+                HStack(spacing: 4) {
+                    ForEach(meal.badges, id: \.self) { badge in
+                        BadgeView(text: badge)
+                    }
+                }
+            }
+            
+            // Name des Gerichts
+            Text(meal.name)
+                .font(.headline)
+                .fontWeight(.bold)
+            
+            // Beschreibung (falls vorhanden)
+            if let description = meal.description {
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            
+            // Preis und Allergien
+            HStack {
+                // Preis
+                Text(meal.price)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.orange)
+                
+                Spacer()
+                
+                // Allergien
+                if !meal.allergies.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.yellow)
+                        
+                        Text(meal.allergies.joined(separator: ", "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+}
+
+#Preview {
+    MensaMealCard(
+        meal: MensaMeal(
+            id: "meal_preview_1",
+            category: "Hauptgericht 1",
+            name: "Hähnchenschnitzel",
+            description: "mit Pommes Frites und Salat",
+            price: "3,50 €",
+            allergies: ["Gluten", "Ei"],
+            badges: ["Vegetarisch"],
+            canteenName: "Mensa Ehrenberg",
+            date: Date()
+        )
+    )
+    .padding()
+}
