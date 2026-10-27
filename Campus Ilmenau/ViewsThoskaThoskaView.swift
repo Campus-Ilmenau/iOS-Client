@@ -14,9 +14,7 @@ struct ThoskaView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Image(systemName: "creditcard.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(balanceColor)
+            ThoskaCardView(balance: reader.balance)
 
             if let balance = reader.balance {
                 VStack(spacing: 8) {
@@ -26,10 +24,6 @@ struct ThoskaView: View {
 
                     Text("Letzte Buchung: \(String(format: "%.2f €", balance.lastTransaction))")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    Text("Karten-ID: \(balance.cardId)")
-                        .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Text(balance.scannedAt, style: .time)
