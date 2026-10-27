@@ -188,7 +188,8 @@ class MensaService: ObservableObject {
         
         if meal.flags.vegan {
             badges.append("Vegan")
-        } else if meal.flags.vegetarian {
+        }
+        if meal.flags.vegetarian {
             badges.append("Vegetarisch")
         }
         
