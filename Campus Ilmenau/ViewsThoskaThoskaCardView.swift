@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 import CoreMotion
 
 /// Visuelle Nachbildung der physischen Thoska-Karte der TU Ilmenau.
@@ -13,21 +14,127 @@ struct ThoskaCardView: View {
     let balance: ThoskaBalance?
 
     @StateObject private var tilt = DeviceTiltObserver()
+    @GestureState private var dragTranslation: CGSize = .zero
+    @State private var isFlipped = false
+
+    private let maxDragTiltDegrees: Double = 16
 
     var body: some View {
-        HStack(spacing: 0) {
-            sideStripe
-            mainContent
+        ZStack {
+            frontFace
+                .opacity(isFlipped ? 0 : 1)
+            backFace
+                .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                .opacity(isFlipped ? 1 : 0)
         }
         .frame(width: 300, height: 189)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.3), radius: 14, x: 0, y: 10)
-        .rotation3DEffect(.degrees(tilt.pitchDegrees), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
-        .rotation3DEffect(.degrees(tilt.rollDegrees), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
+        .rotation3DEffect(.degrees(pitchDegrees), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
+        .rotation3DEffect(.degrees(rollDegrees), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
         .animation(.easeOut(duration: 0.15), value: tilt.rollDegrees)
         .animation(.easeOut(duration: 0.15), value: tilt.pitchDegrees)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: dragTranslation)
+        .animation(.spring(response: 0.8, dampingFraction: 0.75), value: isFlipped)
+        .gesture(
+            DragGesture()
+                .updating($dragTranslation) { value, state, _ in
+                    state = value.translation
+                }
+        )
+        .onTapGesture(count: 2) {
+            isFlipped = false
+        }
         .onAppear { tilt.start() }
         .onDisappear { tilt.stop() }
+        .onChange(of: balance?.scannedAt) { _, newValue in
+            if newValue != nil {
+                isFlipped = true
+            }
+        }
+    }
+
+    /// Kombiniert den Neigungssensor-Wert mit dem Beitrag einer Finger-Wisch-Geste über die Karte.
+    private var pitchDegrees: Double {
+        tilt.pitchDegrees - clamp(Double(dragTranslation.height) / 6, max: maxDragTiltDegrees)
+    }
+
+    private var rollDegrees: Double {
+        let flip = isFlipped ? 180.0 : 0.0
+        let wobble = tilt.rollDegrees + clamp(Double(dragTranslation.width) / 6, max: maxDragTiltDegrees)
+        return flip + wobble
+    }
+
+    private func clamp(_ value: Double, max: Double) -> Double {
+        Swift.min(Swift.max(value, -max), max)
+    }
+
+    // MARK: - Vorderseite
+
+    private var frontFace: some View {
+        HStack(spacing: 0) {
+            sideStripe
+            mainContent
+        }
+    }
+
+    // MARK: - Rückseite mit Guthaben
+
+    private var backFace: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color.black.opacity(0.85))
+                .frame(height: 28)
+
+            VStack(spacing: 8) {
+                Spacer(minLength: 4)
+
+                Text("Guthaben")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.2, green: 0.32, blue: 0.56))
+
+                Text(balance.map { String(format: "%.2f €", $0.balance) } ?? "–")
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                    .foregroundStyle(backBalanceColor)
+
+                if let balance {
+                    VStack(spacing: 2) {
+                        Text("Letzte Buchung: \(String(format: "%.2f €", balance.lastTransaction))")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                        Text("Karten-ID \(balance.cardId.uppercased())")
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer(minLength: 4)
+
+                barcode
+                    .padding(.bottom, 10)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color.white)
+    }
+
+    private var barcode: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<28, id: \.self) { index in
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: index % 3 == 0 ? 2 : 1, height: 22)
+            }
+        }
+    }
+
+    private var backBalanceColor: Color {
+        guard let euro = balance?.balance else { return .blue }
+        switch euro {
+        case ..<2: return .red
+        case 2..<5: return .orange
+        default: return .green
+        }
     }
 
     // MARK: - Linker Streifen mit "thoska+"
