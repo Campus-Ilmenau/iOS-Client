@@ -6,11 +6,44 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ThoskaView: View {
     @StateObject private var reader = ThoskaCardReader()
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \ThoskaBalanceRecord.scannedAt) private var historyRecords: [ThoskaBalanceRecord]
+
+    @AppStorage("thoskaHistoryTrackingEnabled") private var isHistoryTrackingEnabled = false
+    @State private var pendingBalance: ThoskaBalance?
+    @State private var showSaveConfirmation = false
 
     var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                scanSection
+                    .frame(minHeight: UIScreen.main.bounds.height * 0.82)
+
+                Divider()
+
+                ThoskaHistoryView(records: historyRecords)
+            }
+        }
+        .navigationTitle("Thoska")
+        .navigationBarTitleDisplayMode(.large)
+        .onChange(of: reader.balance?.scannedAt) { _, newValue in
+            guard newValue != nil, isHistoryTrackingEnabled, let balance = reader.balance else { return }
+            pendingBalance = balance
+            showSaveConfirmation = true
+        }
+        .alert("Datensatz übernehmen?", isPresented: $showSaveConfirmation, presenting: pendingBalance) { balance in
+            Button("Ja") { save(balance) }
+            Button("Nein", role: .cancel) { }
+        } message: { balance in
+            Text("Soll das ausgelesene Guthaben von \(String(format: "%.2f €", balance.balance)) in die Verlaufs-Auswertung aufgenommen werden?")
+        }
+    }
+
+    private var scanSection: some View {
         VStack(spacing: 24) {
             Spacer()
 
@@ -45,6 +78,11 @@ struct ThoskaView: View {
 
             Spacer()
 
+            Toggle(isOn: $isHistoryTrackingEnabled) {
+                Label("Verlauf aufzeichnen", systemImage: "chart.line.uptrend.xyaxis")
+            }
+            .padding(.horizontal)
+
             Button {
                 reader.scan()
             } label: {
@@ -56,8 +94,10 @@ struct ThoskaView: View {
             .padding(.horizontal)
             .padding(.bottom, 32)
         }
-        .navigationTitle("Thoska")
-        .navigationBarTitleDisplayMode(.large)
+    }
+
+    private func save(_ balance: ThoskaBalance) {
+        modelContext.insert(ThoskaBalanceRecord(balance))
     }
 
     private var balanceColor: Color {
@@ -74,4 +114,5 @@ struct ThoskaView: View {
     NavigationStack {
         ThoskaView()
     }
+    .modelContainer(for: ThoskaBalanceRecord.self, inMemory: true)
 }
