@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import CoreNFC
 
 /// Guthaben, das von einer Thoska-Chipkarte per NFC ausgelesen wurde.
@@ -45,16 +46,25 @@ final class ThoskaCardReader: NSObject, ObservableObject {
     private static let applicationIdentifier: [UInt8] = [0x5F, 0x84, 0x15]
     private static let balanceFileId: UInt8 = 0x01
 
+    /// Hält die laufende Session am Leben — ohne diese Referenz würde ARC sie
+    /// direkt nach Rückkehr aus scan() wieder freigeben.
+    private var activeSession: NFCTagReaderSession?
+
     func scan() {
         guard NFCTagReaderSession.readingAvailable else {
             errorMessage = ThoskaCardReaderError.nfcNotAvailable.localizedDescription
             return
         }
 
+        guard let session = NFCTagReaderSession(pollingOption: .iso14443, delegate: self, queue: nil) else {
+            errorMessage = ThoskaCardReaderError.nfcNotAvailable.localizedDescription
+            return
+        }
+
         errorMessage = nil
         isScanning = true
+        activeSession = session
 
-        let session = NFCTagReaderSession(pollingOption: .iso14443, delegate: self, queue: nil)
         session.alertMessage = "Halte deine Thoska-Karte an die Rückseite des iPhones."
         session.begin()
     }
@@ -66,6 +76,7 @@ extension ThoskaCardReader: NFCTagReaderSessionDelegate {
     nonisolated func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
         Task { @MainActor in
             isScanning = false
+            activeSession = nil
             if let readerError = error as? NFCReaderError,
                readerError.code == .readerSessionInvalidationErrorUserCanceled {
                 return
