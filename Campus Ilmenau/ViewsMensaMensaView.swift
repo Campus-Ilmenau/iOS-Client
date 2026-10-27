@@ -16,6 +16,22 @@ struct MensaView: View {
     @State private var filterStates: [String: MealFilterState] = MensaFilterStore.load()
     @State private var selectedDate = Date()
     @State private var showDatePicker = false
+    @State private var loadingMessage = MensaView.funLoadingMessages.randomElement() ?? "Lade Speiseplan …"
+
+    private static let funLoadingMessages = [
+        "Ich schau mal im Kühlschrank nach …",
+        "Die Chicken Nuggets verbrennen gerade …",
+        "Die Mikrowelle ist gleich fertig …",
+        "Kartoffeln werden geschält …",
+        "Der Koch wird aus dem Mittagsschlaf geweckt …",
+        "Die Soße wird noch abgeschmeckt …",
+        "Es wird nach dem Salat gesucht …",
+        "Pommes werden gewendet …",
+        "Teller werden poliert …",
+        "Der Herd wird angezündet …",
+        "Es wird noch schnell nachgewürzt …",
+        "Die Köche waschen sich die Hände …"
+    ]
 
     // Gerichte nach aktiven Filtern (Badges/Allergene) gefiltert
     private var filteredMeals: [MensaMeal] {
@@ -110,8 +126,14 @@ struct MensaView: View {
                 
                 // Swipeable Mensa Cards
                 if mensaService.isLoading {
-                    ProgressView("Lade Speiseplan...")
+                    ProgressView(loadingMessage)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .task {
+                            while !Task.isCancelled {
+                                try? await Task.sleep(for: .seconds(1.8))
+                                loadingMessage = Self.funLoadingMessages.randomElement() ?? loadingMessage
+                            }
+                        }
                 } else if !mealsByCanteen.isEmpty {
                     ZStack {
                         ForEach(mealsByCanteen.indices, id: \.self) { index in
@@ -215,6 +237,7 @@ struct MensaView: View {
     }
 
     private func loadMeals(for date: Date) async {
+        loadingMessage = Self.funLoadingMessages.randomElement() ?? loadingMessage
         do {
             try await mensaService.fetchMeals(date: date)
         } catch {
