@@ -12,6 +12,7 @@ struct ThoskaView: View {
     @StateObject private var reader = ThoskaCardReader()
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ThoskaBalanceRecord.scannedAt) private var historyRecords: [ThoskaBalanceRecord]
+    @Query private var cardNames: [ThoskaCardName]
 
     @AppStorage("thoskaHistoryTrackingEnabled") private var isHistoryTrackingEnabled = false
     @State private var pendingBalance: ThoskaBalance?
@@ -25,7 +26,7 @@ struct ThoskaView: View {
 
                 Divider()
 
-                ThoskaHistoryView(records: historyRecords)
+                ThoskaHistoryView(records: historyRecords, cardNames: cardNames, onRename: renameCard)
             }
         }
         .navigationTitle("Thoska")
@@ -98,6 +99,21 @@ struct ThoskaView: View {
 
     private func save(_ balance: ThoskaBalance) {
         modelContext.insert(ThoskaBalanceRecord(balance))
+
+        if !cardNames.contains(where: { $0.cardId == balance.cardId }) {
+            modelContext.insert(ThoskaCardName(cardId: balance.cardId, name: balance.cardId))
+        }
+    }
+
+    private func renameCard(cardId: String, newName: String) {
+        let trimmedName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        if let existing = cardNames.first(where: { $0.cardId == cardId }) {
+            existing.name = trimmedName
+        } else {
+            modelContext.insert(ThoskaCardName(cardId: cardId, name: trimmedName))
+        }
     }
 
     private var balanceColor: Color {
@@ -114,5 +130,5 @@ struct ThoskaView: View {
     NavigationStack {
         ThoskaView()
     }
-    .modelContainer(for: ThoskaBalanceRecord.self, inMemory: true)
+    .modelContainer(for: [ThoskaBalanceRecord.self, ThoskaCardName.self], inMemory: true)
 }

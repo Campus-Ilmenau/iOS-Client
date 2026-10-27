@@ -14,6 +14,6 @@ struct Campus_IlmenauApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: ThoskaBalanceRecord.self)
+        .modelContainer(for: [ThoskaBalanceRecord.self, ThoskaCardName.self])
     }
 }
