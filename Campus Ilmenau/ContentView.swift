@@ -99,15 +99,15 @@ struct ContentView: View {
         
         switch hour {
         case 0..<6:
-            return "Gute Nacht! 🌙"
+            return "Gute Nacht!"
         case 6..<12:
-            return "Guten Morgen! ☀️"
+            return "Guten Morgen!"
         case 12..<18:
-            return "Guten Tag! 👋"
+            return "Guten Tag!"
         case 18..<22:
-            return "Guten Abend! 🌆"
+            return "Guten Abend!"
         default:
-            return "Gute Nacht! 🌙"
+            return "Gute Nacht!"
         }
     }
     
