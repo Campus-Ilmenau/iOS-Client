@@ -11,6 +11,7 @@ struct MensaView: View {
     @StateObject private var mensaService = MensaService()
     @State private var currentCanteenIndex = 0
     @State private var dragOffset: CGSize = .zero
+    @State private var isHorizontalDragging = false
     @State private var showFilterSheet = false
     @State private var filterStates: [String: MealFilterState] = MensaFilterStore.load()
     @State private var selectedDate = Date()
@@ -117,19 +118,36 @@ struct MensaView: View {
                             if shouldShowCard(at: index) {
                                 MensaCard(
                                     canteenName: mealsByCanteen[index].canteen,
-                                    meals: mealsByCanteen[index].meals
+                                    meals: mealsByCanteen[index].meals,
+                                    disablesInteraction: isHorizontalDragging && index == currentCanteenIndex
                                 )
                                 .offset(x: offsetFor(index: index))
                                 .scaleEffect(scaleFor(index: index))
                                 .opacity(opacityFor(index: index))
                                 .zIndex(zIndexFor(index: index))
-                                .gesture(
+                                .simultaneousGesture(
                                     index == currentCanteenIndex ?
                                     DragGesture()
                                         .onChanged { value in
+                                            // Nur reagieren, wenn die Geste eindeutig horizontal ist,
+                                            // damit vertikales Scrollen der Gerichte-Liste nicht blockiert wird.
+                                            guard abs(value.translation.width) > abs(value.translation.height) else { return }
                                             dragOffset = value.translation
+                                            // Verhindert, dass ein Meal-Tap während des Swipes auslöst.
+                                            isHorizontalDragging = true
                                         }
                                         .onEnded { value in
+                                            // Flag erst einen Tick später zurücksetzen: Der Tap-Handler der
+                                            // Meal-Buttons wertet ihn für denselben Loslass-Event noch aus,
+                                            // da Button und DragGesture dieselbe Touch-Up-Geste unabhängig
+                                            // voneinander auswerten (keine garantierte Reihenfolge).
+                                            DispatchQueue.main.async {
+                                                isHorizontalDragging = false
+                                            }
+                                            guard abs(value.translation.width) > abs(value.translation.height) else {
+                                                dragOffset = .zero
+                                                return
+                                            }
                                             handleSwipe(value.translation)
                                         }
                                     : nil
@@ -275,7 +293,8 @@ struct MensaView: View {
 struct MensaCard: View {
     let canteenName: String
     let meals: [MensaMeal]
-    
+    var disablesInteraction: Bool = false
+
     var body: some View {
         VStack(spacing: 0) {
             // Header mit Mensa-Name
@@ -303,11 +322,12 @@ struct MensaCard: View {
             ScrollView {
                 LazyVStack(spacing: 12) {
                     ForEach(meals) { meal in
-                        MensaMealCard(meal: meal)
+                        MensaMealCard(meal: meal, disablesInteraction: disablesInteraction)
                     }
                 }
                 .padding()
             }
+            .allowsHitTesting(!disablesInteraction)
         }
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 24))

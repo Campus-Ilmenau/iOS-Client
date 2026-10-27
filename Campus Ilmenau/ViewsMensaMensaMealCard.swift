@@ -9,10 +9,15 @@ import SwiftUI
 
 struct MensaMealCard: View {
     let meal: MensaMeal
+    var disablesInteraction: Bool = false
     @State private var showDetail = false
 
     var body: some View {
         Button {
+            // Unterdrückt den Tap, falls er durch einen horizontalen
+            // Mensa-Swipe ausgelöst wurde (die Karte folgt dabei dem Finger,
+            // weshalb der Button-eigene Tap-Erkenner das sonst nicht bemerkt).
+            guard !disablesInteraction else { return }
             showDetail = true
         } label: {
             cardContent
