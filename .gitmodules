@@ -1,0 +1,4 @@
+[submodule "Design"]
+	path = Design
+	url = git@gitlab.abo-online-dev.de:campus-ilmenau/campus-ilmenau-ci.git
+	branch = design/logo-refresh
