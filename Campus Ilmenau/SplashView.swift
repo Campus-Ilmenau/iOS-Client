@@ -7,32 +7,40 @@ import SwiftUI
 
 struct SplashView: View {
     var scale: CGFloat
-    var opacity: Double
+    var goatOpacity: Double
+    var backgroundFade: Double
 
     // Entspricht dem Farbverlauf des App-Icons, damit der Übergang vom
     // statischen System-Launch-Screen nahtlos wirkt.
-    private let backgroundTop = Color(red: 0.98, green: 0.47, blue: 0.04)
-    private let backgroundBottom = Color(red: 1.0, green: 0.73, blue: 0.0)
+    private let brandTop = Color(.brandOrange)
+    private let brandBottom = Color(.brandYellow)
 
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [backgroundTop, backgroundBottom],
+                colors: [brandTop, brandBottom],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+
+            // Blendet am Ende zur echten (hell/dunkel-adaptiven) App-Hintergrundfarbe
+            // über, bevor das Overlay entfernt wird – sonst springt die Farbe im
+            // Dark Mode hart von Orange auf Schwarz.
+            Color(.background)
+                .ignoresSafeArea()
+                .opacity(backgroundFade)
 
             Image("LaunchGoat")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 220)
                 .scaleEffect(scale)
+                .opacity(goatOpacity)
         }
-        .opacity(opacity)
     }
 }
 
 #Preview {
-    SplashView(scale: 1, opacity: 1)
+    SplashView(scale: 1, goatOpacity: 1, backgroundFade: 0)
 }
