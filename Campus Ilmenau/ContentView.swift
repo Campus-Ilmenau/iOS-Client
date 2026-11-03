@@ -18,32 +18,32 @@ struct ContentView: View {
     private let dashboardItems: [DashboardItem] = [
         DashboardItem(
             title: "Mensa Essen",
-            color: .orange,
+            color: Color(.brandOrange),
             destination: MensaView()
         ),
         DashboardItem(
             title: "Thoska Guthaben",
-            color: .blue,
+            color: Color(.blue),
             destination: ThoskaView()
         ),
         DashboardItem(
             title: "Stundenplan",
-            color: .green,
+            color: Color(.green),
             destination: StundenplanView()
         ),
         DashboardItem(
             title: "Bibliothek",
-            color: .purple,
+            color: Color(.brandDusk),
             destination: BibliothekView()
         ),
         DashboardItem(
             title: "Campus Karte",
-            color: .red,
+            color: Color(.danger),
             destination: CampusMapView()
         ),
         DashboardItem(
             title: "ÖPNV",
-            color: .teal,
+            color: Color(.brandNight),
             destination: OEPNVView()
         )
     ]
@@ -81,7 +81,7 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 20)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(.background))
         }
         .onReceive(timer) { _ in
             currentDate = Date()

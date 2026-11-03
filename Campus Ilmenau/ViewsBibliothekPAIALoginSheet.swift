@@ -36,7 +36,7 @@ struct PAIALoginSheet: View {
                 if let errorMessage {
                     Section {
                         Text(errorMessage)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color(.danger))
                     }
                 }
             }

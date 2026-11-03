@@ -72,7 +72,7 @@ struct MensaMealCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.caption)
-                        .foregroundStyle(.yellow)
+                        .foregroundStyle(Color(.brandYellow))
 
                     Text(meal.allergies.joined(separator: ", "))
                         .font(.caption)
@@ -81,9 +81,9 @@ struct MensaMealCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.surface))
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .shadow(color: Color(.brandNight).opacity(0.05), radius: 5, x: 0, y: 2)
     }
 
     private func priceColumn(label: String, value: String, isPrimary: Bool) -> some View {
@@ -94,7 +94,7 @@ struct MensaMealCard: View {
             Text(value)
                 .font(isPrimary ? .subheadline : .caption)
                 .fontWeight(.bold)
-                .foregroundStyle(isPrimary ? .orange : .secondary)
+                .foregroundStyle(isPrimary ? Color(.accent) : Color.secondary)
         }
         .frame(maxWidth: .infinity)
     }

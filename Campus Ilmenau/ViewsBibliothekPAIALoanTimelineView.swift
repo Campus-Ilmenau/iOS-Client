@@ -45,10 +45,10 @@ struct PAIALoanTimelineView: View {
     }
 
     private var urgencyColor: Color {
-        guard let daysRemaining else { return .black }
-        if daysRemaining <= 3 { return .red }
-        if daysRemaining <= 5 { return .orange }
-        return .black
+        guard let daysRemaining else { return Color(.textPrimary) }
+        if daysRemaining <= 3 { return Color(.danger) }
+        if daysRemaining <= 5 { return Color(.accent) }
+        return Color(.textPrimary)
     }
 
     /// Erstausleihe + eine Verlängerung = ein weiterer Punkt im Cluster.
@@ -59,14 +59,14 @@ struct PAIALoanTimelineView: View {
     }
 
     private var endDotColor: Color {
-        progress >= 1 ? urgencyColor : Color(.systemGray4)
+        progress >= 1 ? urgencyColor : Color(.separator)
     }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Color(.systemGray5))
+                    .fill(Color(.surfaceSecondary))
                     .frame(height: 4)
 
                 // Zwischen den Cluster-Punkten liegt immer vollständig vergangene

@@ -44,7 +44,7 @@ struct PAIALoanItemRow: View {
             rowContent
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
-                .background(Color(.systemBackground))
+                .background(Color(.surface))
                 .offset(x: currentOffset)
                 .simultaneousGesture(dragGesture)
         }
@@ -122,14 +122,14 @@ struct PAIALoanItemRow: View {
                     Text("Verlängern")
                         .font(.caption2.weight(.semibold))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(.onBlue))
                 .frame(width: SwipeMetrics.actionWidth)
                 .frame(maxHeight: .infinity)
             }
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.blue)
+        .background(Color(.blue))
         .opacity(canRenew ? 1 : 0)
     }
 
@@ -169,7 +169,7 @@ struct PAIALoanItemRow: View {
                         if let endtime = item.endtime {
                             Text("Fällig: \(endtime, style: .date)")
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(isOverdue(endtime) ? .red : .secondary)
+                                .foregroundStyle(isOverdue(endtime) ? Color(.danger) : Color.secondary)
                         }
                     }
                 }
@@ -195,15 +195,15 @@ struct PAIALoanItemRow: View {
     private var statusColor: Color {
         switch item.status {
         case .held:
-            return isOverdue(item.endtime) ? .red : .blue
+            return isOverdue(item.endtime) ? Color(.danger) : Color(.blue)
         case .provided:
-            return .green
+            return Color(.green)
         case .reserved, .ordered:
-            return .orange
+            return Color(.accent)
         case .rejected:
-            return .red
+            return Color(.danger)
         case .none:
-            return .gray
+            return Color(.textTertiary)
         }
     }
 

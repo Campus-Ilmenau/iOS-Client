@@ -12,7 +12,7 @@ struct OEPNVView: View {
         VStack {
             Image(systemName: "bus.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(.teal)
+                .foregroundStyle(Color(.accent))
             Text("ÖPNV")
                 .font(.title)
                 .padding()

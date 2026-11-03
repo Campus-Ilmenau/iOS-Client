@@ -21,7 +21,7 @@ struct DashboardTile: View {
                 Text(item.title)
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(.onBlue))
                     .padding(12)
                     .multilineTextAlignment(.trailing)
             }

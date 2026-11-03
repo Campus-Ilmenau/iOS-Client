@@ -37,19 +37,19 @@ struct MensaMealDetailView: View {
 
                     if !meal.categories.isEmpty {
                         DetailSection(title: "Kategorien", icon: "tag.fill") {
-                            chipGrid(for: meal.categories, tint: .green)
+                            chipGrid(for: meal.categories, tint: Color(.green))
                         }
                     }
 
                     if !meal.additives.isEmpty {
                         DetailSection(title: "Inhaltsstoffe", icon: "leaf.circle.fill") {
-                            chipGrid(for: meal.additives, tint: .purple)
+                            chipGrid(for: meal.additives, tint: Color(.textSecondary))
                         }
                     }
 
                     if !meal.allergies.isEmpty {
                         DetailSection(title: "Allergene", icon: "exclamationmark.triangle.fill") {
-                            chipGrid(for: meal.allergies, tint: .orange)
+                            chipGrid(for: meal.allergies, tint: Color(.accent))
                         }
                     }
 
@@ -78,7 +78,7 @@ struct MensaMealDetailView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(.background))
             .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -128,7 +128,7 @@ struct MensaMealDetailView: View {
             Text(value)
                 .font(isPrimary ? .headline : .subheadline)
                 .fontWeight(.bold)
-                .foregroundStyle(isPrimary ? .orange : .secondary)
+                .foregroundStyle(isPrimary ? Color(.accent) : Color.secondary)
         }
     }
 
@@ -143,7 +143,7 @@ struct MensaMealDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 4)
                     } else {
-                        chipGrid(for: component.codes, tint: .blue)
+                        chipGrid(for: component.codes, tint: Color(.blue))
                             .padding(.top, 4)
                     }
                 }
@@ -197,7 +197,7 @@ private struct DetailSection<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.surface))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

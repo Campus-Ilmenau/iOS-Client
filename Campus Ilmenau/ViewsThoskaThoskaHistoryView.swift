@@ -128,7 +128,7 @@ private struct CardHistorySummaryRow: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color(.surface))
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)

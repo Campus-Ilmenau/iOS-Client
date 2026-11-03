@@ -12,7 +12,7 @@ struct StundenplanView: View {
         VStack {
             Image(systemName: "calendar")
                 .font(.system(size: 60))
-                .foregroundStyle(.green)
+                .foregroundStyle(Color(.accent))
             Text("Stundenplan")
                 .font(.title)
                 .padding()

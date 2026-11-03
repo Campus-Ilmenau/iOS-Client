@@ -74,7 +74,7 @@ struct MensaView: View {
     
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground)
+            Color(.background)
                 .ignoresSafeArea()
             
             VStack(spacing: 16) {
@@ -116,7 +116,7 @@ struct MensaView: View {
                     HStack(spacing: 8) {
                         ForEach(mealsByCanteen.indices, id: \.self) { index in
                             Capsule()
-                                .fill(index == currentCanteenIndex ? Color.orange : Color.gray.opacity(0.3))
+                                .fill(index == currentCanteenIndex ? Color(.accent) : Color(.textTertiary).opacity(0.3))
                                 .frame(height: 4)
                                 .frame(maxWidth: .infinity)
                         }
@@ -324,7 +324,7 @@ struct MensaCard: View {
             VStack(spacing: 8) {
                 Image(systemName: "fork.knife.circle.fill")
                     .font(.system(size: 40))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color(.accent))
                 
                 Text(canteenName)
                     .font(.title2)
@@ -335,7 +335,7 @@ struct MensaCard: View {
             .padding(.vertical, 24)
             .background(
                 LinearGradient(
-                    colors: [Color.orange.opacity(0.1), Color.orange.opacity(0.05)],
+                    colors: [Color(.accent).opacity(0.1), Color(.accent).opacity(0.05)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -352,9 +352,9 @@ struct MensaCard: View {
             }
             .allowsHitTesting(!disablesInteraction)
         }
-        .background(Color(.systemBackground))
+        .background(Color(.surface))
         .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .shadow(color: Color(.brandNight).opacity(0.15), radius: 20, x: 0, y: 10)
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
     }

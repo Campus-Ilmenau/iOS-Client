@@ -72,7 +72,7 @@ struct ThoskaView: View {
             if let errorMessage = reader.errorMessage {
                 Text(errorMessage)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(.danger))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
@@ -117,11 +117,11 @@ struct ThoskaView: View {
     }
 
     private var balanceColor: Color {
-        guard let euro = reader.balance?.balance else { return .blue }
+        guard let euro = reader.balance?.balance else { return Color(.blue) }
         switch euro {
-        case ..<2: return .red
-        case 2..<5: return .orange
-        default: return .green
+        case ..<2: return Color(.danger)
+        case 2..<5: return Color(.accent)
+        default: return Color(.green)
         }
     }
 }

@@ -25,9 +25,9 @@ enum MealFilterState: String, CaseIterable, Identifiable, Codable {
 
     var tintColor: Color {
         switch self {
-        case .exclude: return .red
-        case .any: return .secondary
-        case .include: return .green
+        case .exclude: return Color(.danger)
+        case .any: return Color(.textSecondary)
+        case .include: return Color(.green)
         }
     }
 
@@ -136,7 +136,7 @@ private struct MealAttributeFilterRow: View {
                             .font(.caption)
                             .fontWeight(.bold)
                             .frame(width: 28, height: 28)
-                            .foregroundStyle(state == option ? .white : option.tintColor)
+                            .foregroundStyle(state == option ? Color(.onBlue) : option.tintColor)
                             .background(state == option ? option.tintColor : option.tintColor.opacity(0.12))
                             .clipShape(Circle())
                     }

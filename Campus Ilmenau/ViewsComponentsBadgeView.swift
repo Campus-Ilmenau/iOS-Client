@@ -14,23 +14,34 @@ struct BadgeView: View {
         Text(text)
             .font(.caption2)
             .fontWeight(.semibold)
-            .foregroundStyle(.white)
+            .foregroundStyle(badgeForeground)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(badgeColor)
             .clipShape(Capsule())
     }
     
+    private var badgeForeground: Color {
+        switch text.lowercased() {
+        case "vegan":
+            return Color(.onGreen)
+        case "vegetarisch":
+            return Color(.textPrimary)
+        default:
+            return Color(.onBlue)
+        }
+    }
+
     private var badgeColor: Color {
         switch text.lowercased() {
         case "vegan":
-            return .green
+            return Color(.green)
         case "vegetarisch":
-            return .mint
+            return Color(.greenSoft)
         case "bio":
-            return .brown
+            return Color(.brandDusk)
         default:
-            return .blue
+            return Color(.blue)
         }
     }
 }

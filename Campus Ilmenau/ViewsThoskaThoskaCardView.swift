@@ -29,7 +29,7 @@ struct ThoskaCardView: View {
         }
         .frame(width: 300, height: 189)
         .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: .black.opacity(0.3), radius: 14, x: 0, y: 10)
+        .shadow(color: Color(.brandNight).opacity(0.3), radius: 14, x: 0, y: 10)
         .rotation3DEffect(.degrees(pitchDegrees), axis: (x: 1, y: 0, z: 0), perspective: 0.6)
         .rotation3DEffect(.degrees(rollDegrees), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
         .animation(.easeOut(duration: 0.15), value: tilt.rollDegrees)
@@ -83,7 +83,7 @@ struct ThoskaCardView: View {
     private var backFace: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(Color.black.opacity(0.85))
+                .fill(Color(.brandNight).opacity(0.85))
                 .frame(height: 28)
 
             VStack(spacing: 8) {
@@ -91,7 +91,7 @@ struct ThoskaCardView: View {
 
                 Text("Guthaben")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.2, green: 0.32, blue: 0.56))
+                    .foregroundStyle(Color(.blue))
 
                 Text(balance.map { String(format: "%.2f €", $0.balance) } ?? "–")
                     .font(.system(size: 34, weight: .heavy, design: .rounded))
@@ -115,25 +115,25 @@ struct ThoskaCardView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Color.white)
+        .background(Color(.onBlue))
     }
 
     private var barcode: some View {
         HStack(spacing: 2) {
             ForEach(0..<28, id: \.self) { index in
                 Rectangle()
-                    .fill(Color.black)
+                    .fill(Color(.brandNight))
                     .frame(width: index % 3 == 0 ? 2 : 1, height: 22)
             }
         }
     }
 
     private var backBalanceColor: Color {
-        guard let euro = balance?.balance else { return .blue }
+        guard let euro = balance?.balance else { return Color(.blue) }
         switch euro {
-        case ..<2: return .red
-        case 2..<5: return .orange
-        default: return .green
+        case ..<2: return Color(.danger)
+        case 2..<5: return Color(.accent)
+        default: return Color(.green)
         }
     }
 
@@ -142,13 +142,13 @@ struct ThoskaCardView: View {
     private var sideStripe: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(red: 0.95, green: 0.58, blue: 0.14), Color(red: 0.99, green: 0.82, blue: 0.28)],
+                colors: [Color(.brandOrange), Color(.brandYellow)],
                 startPoint: .top,
                 endPoint: .bottom
             )
             Text("thoska+")
                 .font(.system(size: 19, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(.onBlue))
                 .fixedSize()
                 .rotationEffect(.degrees(-90))
         }
@@ -161,7 +161,7 @@ struct ThoskaCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Rectangle()
-                .fill(Color(red: 0.96, green: 0.76, blue: 0.2))
+                .fill(Color(.brandYellow))
                 .frame(height: 4)
                 .padding(.top, 6)
 
@@ -175,7 +175,7 @@ struct ThoskaCardView: View {
                 .padding(.horizontal, 10)
                 .padding(.bottom, 10)
         }
-        .background(Color.white)
+        .background(Color(.onBlue))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -183,7 +183,7 @@ struct ThoskaCardView: View {
         HStack(alignment: .top) {
             Text("Studienausweis")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color(red: 0.2, green: 0.32, blue: 0.56))
+                .foregroundStyle(Color(.blue))
 
             Spacer()
 
@@ -197,7 +197,7 @@ struct ThoskaCardView: View {
                         .font(.system(size: 12, weight: .heavy))
                 }
             }
-            .foregroundStyle(Color(red: 0.1, green: 0.25, blue: 0.58))
+            .foregroundStyle(Color(.blue))
         }
         .padding([.top, .horizontal], 10)
     }
@@ -205,15 +205,15 @@ struct ThoskaCardView: View {
     private var photoAndId: some View {
         HStack(alignment: .top, spacing: 10) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color(.systemGray5))
+                .fill(Color(.surfaceSecondary))
                 .frame(width: 46, height: 58)
                 .overlay(
                     Image(systemName: "person.fill")
                         .resizable()
                         .scaledToFit()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(.onBlue))
                         .padding(8)
-                        .background(Color(.systemGray3))
+                        .background(Color(.textTertiary))
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                 )
 
@@ -234,10 +234,10 @@ struct ThoskaCardView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(balance != nil ? "Guthaben" : "Semesterticket")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Color(red: 0.1, green: 0.25, blue: 0.58))
+                .foregroundStyle(Color(.blue))
             Text(footerSubtitle)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color(red: 0.1, green: 0.25, blue: 0.58).opacity(0.75))
+                .foregroundStyle(Color(.blue).opacity(0.75))
         }
     }
 

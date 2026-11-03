@@ -12,7 +12,7 @@ struct CampusMapView: View {
         VStack {
             Image(systemName: "map.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(.red)
+                .foregroundStyle(Color(.danger))
             Text("Campus Karte")
                 .font(.title)
                 .padding()

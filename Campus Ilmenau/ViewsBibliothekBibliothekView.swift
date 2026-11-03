@@ -55,7 +55,7 @@ struct BibliothekView: View {
                 Image(systemName: "bell")
                 if !service.notifications.isEmpty {
                     Circle()
-                        .fill(.red)
+                        .fill(Color(.danger))
                         .frame(width: 8, height: 8)
                         .offset(x: 4, y: -4)
                 }
@@ -76,7 +76,7 @@ struct BibliothekView: View {
         VStack(spacing: 16) {
             Image(systemName: "books.vertical.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(.purple)
+                .foregroundStyle(Color(.accent))
             Text("Bibliothek")
                 .font(.title)
             Text("Melde dich an, um deine ausgeliehenen Medien zu sehen.")
@@ -96,7 +96,7 @@ struct BibliothekView: View {
             if let errorMessage = service.errorMessage {
                 Section {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(.danger))
                 }
             }
 
