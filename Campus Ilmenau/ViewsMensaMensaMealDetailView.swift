@@ -7,221 +7,419 @@
 
 import SwiftUI
 
-/// Modal mit allen Details zu einem Gericht.
+/// Gericht-Detail, per Push geöffnet. Liest die Preisgruppe und merkt Favoriten lokal auf dem Gerät.
 struct MensaMealDetailView: View {
     let meal: MensaMeal
+    var canteens: [Canteen] = []
+
+    @AppStorage(MensaPriceGroup.storageKey) private var priceGroup: MensaPriceGroup = .studierende
+    @State private var isFavorite: Bool
+
+    init(meal: MensaMeal, canteens: [Canteen] = []) {
+        self.meal = meal
+        self.canteens = canteens
+        self._isFavorite = State(initialValue: MensaFavoriteStore().isFavorite(meal))
+    }
+
+    var body: some View {
+        MensaMealDetailContent(
+            meal: meal,
+            priceGroup: priceGroup,
+            canteens: canteens,
+            isFavorite: Binding(
+                get: { isFavorite },
+                set: { newValue in
+                    isFavorite = newValue
+                    MensaFavoriteStore().setFavorite(newValue, for: meal)
+                }
+            )
+        )
+    }
+}
+
+/// Oberfläche des Details ohne eigene Datenhaltung, damit sie sich in Previews in jeder Variante zeigen lässt.
+struct MensaMealDetailContent: View {
+    let meal: MensaMeal
+    let priceGroup: MensaPriceGroup
+    let canteens: [Canteen]
+    @Binding var isFavorite: Bool
+
     @Environment(\.dismiss) private var dismiss
+    @State private var expandedComponents: Set<UUID> = []
+    @State private var showsHours = false
+
+    private static let headerHeight: CGFloat = 250
+    private static let overlap: CGFloat = 36
+
+    private var venueName: String {
+        MensaVenue.allCases.first { $0.matches(canteenName: meal.canteenName) }?.displayName ?? meal.canteenName
+    }
+
+    private var kicker: String {
+        let category = meal.category.isEmpty ? "Gericht" : meal.category
+        return "\(venueName) · \(category) · \(MensaFormatting.dayLabel(meal.date))"
+    }
+
+    var body: some View {
+        // Die Safe-Area-Höhe oben muss außerhalb von `ignoresSafeArea` gelesen werden, sonst ist sie 0
+        // und die Tasten liegen auf der Statusleiste.
+        GeometryReader { proxy in
+            let top = proxy.safeAreaInsets.top
+            ZStack(alignment: .top) {
+                // Kopf mit zwei Bändern, steht fest und reicht bis an den oberen Bildschirmrand.
+                DiagonalBands(.header, height: Self.headerHeight) { EmptyView() }
+                    .ignoresSafeArea(edges: .top)
+
+                // Die Karte ragt 36 pt in den Kopf. Der Inhalt beginnt unter der Statusleiste,
+                // der Kopf misst 250 pt vom Bildschirmrand.
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: max(0, Self.headerHeight - Self.overlap - top))
+                    ScrollView {
+                        content
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 24)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                }
+
+                HStack {
+                    roundButton(systemImage: "chevron.left", label: "Zurück zum Speiseplan") { dismiss() }
+                    Spacer()
+                    roundButton(
+                        systemImage: isFavorite ? "heart.fill" : "heart",
+                        label: isFavorite ? "Favorit entfernen" : "Als Favorit merken",
+                        tint: isFavorite ? Color(.danger) : Color(.brandNight)
+                    ) { isFavorite.toggle() }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+        }
+        .background(Color(.background).ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(isPresented: $showsHours) {
+            MensaOpeningHoursView(canteens: canteens)
+        }
+    }
+
+    // MARK: - Inhalt
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            titleCard
+            priceSection
+            if !meal.uniqueAllergies.isEmpty {
+                chipSection("Allergene", icon: "exclamationmark.triangle", items: meal.uniqueAllergies)
+            }
+            if !meal.uniqueAdditives.isEmpty {
+                chipSection("Zusatzstoffe", icon: "testtube.2", items: meal.uniqueAdditives)
+            }
+            if !meal.components.isEmpty {
+                componentsSection
+            }
+            if let co2 = meal.co2GramPerPortion {
+                sectionHead("Umwelt", icon: "leaf")
+                Card {
+                    Text("≈ \(co2.formatted(.number.precision(.fractionLength(0)).locale(Locale(identifier: "de_DE")))) g CO₂ pro Portion")
+                        .font(.body)
+                        .foregroundStyle(Color(.textPrimary))
+                }
+            }
+            actions
+            footer
+        }
+    }
+
+    private var titleCard: some View {
+        Card(verticalPadding: 18) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Im Mockup steht das Label weiß im Kopf, dort liegt es aber teils auf Grün und teils auf dem Hintergrund
+                // und ist nicht lesbar. Deshalb steht es hier als Kategorie-Zeile wie in der Liste.
+                Text(kicker)
+                    .font(.caption.weight(.bold))
+                    .textCase(.uppercase)
+                    .tracking(0.72)
+                    .foregroundStyle(Color(.textTertiary))
+                    .padding(.bottom, 4)
+
+                Text(meal.name)
+                    .display(size: 26, relativeTo: .title)
+                    .foregroundStyle(Color(.textPrimary))
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+
+                if let description = meal.description, !description.isEmpty {
+                    Text(description)
+                        .font(.body)
+                        .foregroundStyle(Color(.textSecondary))
+                        .padding(.top, 6)
+                }
+
+                if !meal.detailChips.isEmpty {
+                    ChipFlowLayout(spacing: 6) {
+                        ForEach(meal.detailChips, id: \.self) { chip in
+                            Chip(LocalizedStringKey(chip.title), variant: chip.variant)
+                        }
+                    }
+                    .padding(.top, 12)
+                }
+            }
+        }
+    }
+
+    // MARK: - Preis
+
+    private var priceSection: some View {
+        let others = MensaPriceGroup.allCases.filter { $0 != priceGroup }
+        return VStack(alignment: .leading, spacing: 0) {
+            sectionHead("Preis", icon: "tag")
+            Card(verticalPadding: 14) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(priceGroup.title)
+                        .font(.footnote)
+                        .foregroundStyle(Color(.textTertiary))
+                    Text(meal.price.formatted(for: priceGroup))
+                        .display(size: 40, relativeTo: .largeTitle)
+                        .foregroundStyle(Color(.textPrimary))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        .padding(.bottom, 10)
+                    ForEach(others) { group in
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text(group.title)
+                                .foregroundStyle(Color(.textSecondary))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(meal.price.formatted(for: group))
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(Color(.textPrimary))
+                        }
+                        .padding(.vertical, 11)
+                        .overlay(alignment: .top) {
+                            Rectangle().fill(Color(.separator)).frame(height: 1)
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: - Chips
+
+    private func chipSection(_ title: LocalizedStringKey, icon: String, items: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            sectionHead(title, icon: icon)
+            Card {
+                ChipFlowLayout(spacing: 6) {
+                    ForEach(items, id: \.self) { item in
+                        Chip(LocalizedStringKey(item), variant: .neutral)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Bestandteile
+
+    private var componentsSection: some View {
+        let infos = meal.componentInfos
+        return VStack(alignment: .leading, spacing: 0) {
+            sectionHead("Bestandteile", icon: "list.bullet")
+            Card(verticalPadding: 0) {
+                VStack(spacing: 0) {
+                    ForEach(Array(infos.enumerated()), id: \.element.id) { index, info in
+                        componentRow(info, isFirst: index == 0)
+                    }
+                }
+            }
+        }
+    }
+
+    private func componentRow(_ info: MensaComponentInfo, isFirst: Bool) -> some View {
+        let isExpanded = expandedComponents.contains(info.id)
+        return VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.snappy(duration: 0.2)) {
+                    if isExpanded { expandedComponents.remove(info.id) } else { expandedComponents.insert(info.id) }
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Text(info.name)
+                        .font(.body)
+                        .foregroundStyle(Color(.textPrimary))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color(.textTertiary))
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .accessibilityHidden(true)
+                }
+                .frame(minHeight: 48)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(isExpanded ? "aufgeklappt" : "zugeklappt")
+
+            if isExpanded {
+                Text(info.infoText)
+                    .font(.footnote)
+                    .foregroundStyle(Color(.textSecondary))
+                    .padding(.bottom, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .overlay(alignment: .top) {
+            if !isFirst { Rectangle().fill(Color(.separator)).frame(height: 1) }
+        }
+    }
+
+    // MARK: - Abschluss
+
+    private var actions: some View {
+        VStack(spacing: 10) {
+            PrimaryButton(isFavorite ? "Als Favorit gemerkt ✓" : "Als Favorit merken") {
+                isFavorite.toggle()
+            }
+            SecondaryButton("Öffnungszeiten der Mensa") {
+                showsHours = true
+            }
+        }
+        .padding(.top, 22)
+    }
+
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("\(venueName) · \(MensaFormatting.fullDate(meal.date))")
+            Text("Angaben laut Speiseplan des Studierendenwerks. Ohne Gewähr.")
+        }
+        .font(.caption)
+        .foregroundStyle(Color(.textTertiary))
+        .padding(.horizontal, 2)
+        .padding(.top, 14)
+    }
+
+    // MARK: - Bausteine
+
+    private func sectionHead(_ title: LocalizedStringKey, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(Color(.textTertiary))
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.body.bold())
+                .foregroundStyle(Color(.textPrimary))
+        }
+        .padding(.horizontal, 2)
+        .padding(.top, 22)
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    private func roundButton(
+        systemImage: String,
+        label: LocalizedStringKey,
+        tint: Color = Color(.brandNight),
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 44, height: 44)
+                .background(Color(.onBlue).opacity(0.92), in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+// MARK: - Previews
+
+private extension MensaMeal {
+    static var previewFull: MensaMeal {
+        MensaMeal(
+            id: "detail-full",
+            category: "Essen 1",
+            name: "Linsen-Dal",
+            description: "Basmatireis, Mango-Chutney",
+            price: MensaMealPrice(student: 2.9, staff: 4.4, guest: 5.8, currency: "€"),
+            allergies: ["Sellerie", "Senf"],
+            badges: ["Vegan", "Vegetarisch"],
+            additives: ["Antioxidationsmittel"],
+            categories: ["Regional", "Kinderessen"],
+            co2GramPerPortion: 420,
+            components: [
+                MensaMealComponent(name: "Linsen-Dal", codes: ["Sellerie", "Vegan", "Vegetarisch"]),
+                MensaMealComponent(name: "Basmatireis", codes: ["Ohne Zusatzstoffe", "Vegan"]),
+                MensaMealComponent(name: "Mango-Chutney", codes: ["Senf", "Antioxidationsmittel", "Vegan"])
+            ],
+            canteenName: "Mensa Ehrenberg",
+            date: Calendar.current.date(from: DateComponents(year: 2026, month: 10, day: 29)) ?? .now
+        )
+    }
+
+    /// Ohne Beschreibung, Allergene, Zusatzstoffe, Bestandteile und CO₂, ohne Gästepreis.
+    static var previewShort: MensaMeal {
+        MensaMeal(
+            id: "detail-short",
+            category: "Aktionstheke",
+            name: "Pasta Arrabbiata",
+            description: nil,
+            price: MensaMealPrice(student: 2.6, staff: 3.9, guest: nil, currency: "€"),
+            allergies: [],
+            badges: ["Vegan"],
+            additives: [],
+            categories: [],
+            co2GramPerPortion: nil,
+            components: [],
+            canteenName: "Mensa Ehrenberg",
+            date: .now
+        )
+    }
+}
+
+private struct DetailPreview: View {
+    let meal: MensaMeal
+    var group: MensaPriceGroup = .studierende
+    @State private var isFavorite = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    header
-
-                    DetailSection(title: "Preise", icon: "eurosign.circle.fill") {
-                        VStack(spacing: 10) {
-                            priceRow(label: "Studierende", value: meal.price.studentFormatted, isPrimary: true)
-                            Divider()
-                            priceRow(label: "Mitarbeiter:innen", value: meal.price.staffFormatted, isPrimary: false)
-                            Divider()
-                            priceRow(label: "Gäste", value: meal.price.guestFormatted, isPrimary: false)
-                        }
-                    }
-
-                    if let description = meal.description {
-                        DetailSection(title: "Beschreibung", icon: "text.alignleft") {
-                            Text(description)
-                                .font(.body)
-                        }
-                    }
-
-                    if !meal.categories.isEmpty {
-                        DetailSection(title: "Kategorien", icon: "tag.fill") {
-                            chipGrid(for: meal.categories, tint: Color(.green))
-                        }
-                    }
-
-                    if !meal.additives.isEmpty {
-                        DetailSection(title: "Inhaltsstoffe", icon: "leaf.circle.fill") {
-                            chipGrid(for: meal.additives, tint: Color(.textSecondary))
-                        }
-                    }
-
-                    if !meal.allergies.isEmpty {
-                        DetailSection(title: "Allergene", icon: "exclamationmark.triangle.fill") {
-                            chipGrid(for: meal.allergies, tint: Color(.accent))
-                        }
-                    }
-
-                    if !meal.components.isEmpty {
-                        DetailSection(title: "Komponenten", icon: "list.bullet") {
-                            componentsList
-                        }
-                    }
-
-                    if let co2 = meal.co2GramPerPortion {
-                        DetailSection(title: "Umwelt", icon: "globe.europe.africa.fill") {
-                            Text("≈ \(Int(co2)) g CO₂ pro Portion")
-                                .font(.body)
-                        }
-                    }
-
-                    DetailSection(title: "Mensa", icon: "fork.knife.circle.fill") {
-                        Text(meal.canteenName)
-                            .font(.body)
-                    }
-
-                    DetailSection(title: "Datum", icon: "calendar") {
-                        Text(formattedDate)
-                            .font(.body)
-                    }
-                }
-                .padding()
-            }
-            .background(Color(.background))
-            .navigationTitle("Details")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fertig") {
-                        dismiss()
-                    }
-                }
-            }
+            MensaMealDetailContent(meal: meal, priceGroup: group, canteens: [], isFavorite: $isFavorite)
         }
-    }
-
-    // MARK: - Subviews
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(meal.category)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-
-            Text(meal.name)
-                .font(.title2)
-                .fontWeight(.bold)
-
-            if !meal.badges.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(meal.badges, id: \.self) { badge in
-                        BadgeView(text: badge)
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func priceRow(label: String, value: String, isPrimary: Bool) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .fontWeight(isPrimary ? .semibold : .regular)
-                .foregroundStyle(isPrimary ? .primary : .secondary)
-
-            Spacer()
-
-            Text(value)
-                .font(isPrimary ? .headline : .subheadline)
-                .fontWeight(.bold)
-                .foregroundStyle(isPrimary ? Color(.accent) : Color.secondary)
-        }
-    }
-
-    private var componentsList: some View {
-        VStack(spacing: 0) {
-            ForEach(meal.components) { component in
-                DisclosureGroup(component.name) {
-                    if component.codes.isEmpty {
-                        Text("Keine weiteren Angaben")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, 4)
-                    } else {
-                        chipGrid(for: component.codes, tint: Color(.blue))
-                            .padding(.top, 4)
-                    }
-                }
-                .font(.subheadline)
-
-                if component.id != meal.components.last?.id {
-                    Divider()
-                        .padding(.vertical, 8)
-                }
-            }
-        }
-    }
-
-    private func chipGrid(for items: [String], tint: Color) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 8)], alignment: .leading, spacing: 8) {
-            ForEach(items, id: \.self) { item in
-                Text(item)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(tint.opacity(0.15))
-                    .foregroundStyle(tint)
-                    .clipShape(Capsule())
-            }
-        }
-    }
-
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
-        formatter.dateFormat = "EEEE, dd. MMMM yyyy"
-        return formatter.string(from: meal.date)
     }
 }
 
-/// Eine Detail-Sektion mit Icon-Titel und beliebigem Inhalt.
-private struct DetailSection<Content: View>: View {
-    let title: String
-    let icon: String
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: icon)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-
-            content
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color(.surface))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
+#Preview("Gericht vollständig – Light") {
+    DetailPreview(meal: .previewFull).preferredColorScheme(.light)
 }
 
-#Preview {
-    MensaMealDetailView(
-        meal: MensaMeal(
-            id: "meal_preview_1",
-            category: "Hauptgericht 1",
-            name: "Hähnchenschnitzel",
-            description: "mit Pommes Frites und Salat",
-            price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
-            allergies: ["Gluten", "Ei"],
-            badges: ["Vegetarisch"],
-            additives: ["Konservierungsstoff"],
-            categories: ["Kinderessen"],
-            co2GramPerPortion: 850,
-            components: [
-                MensaMealComponent(name: "Hähnchenschnitzel", codes: ["Gluten"]),
-                MensaMealComponent(name: "Pommes Frites", codes: []),
-                MensaMealComponent(name: "Salat", codes: ["Ei"])
-            ],
-            canteenName: "Mensa Ehrenberg",
-            date: Date()
-        )
-    )
+#Preview("Gericht vollständig – Dark") {
+    DetailPreview(meal: .previewFull).preferredColorScheme(.dark)
+}
+
+#Preview("Gericht knapp – Light") {
+    DetailPreview(meal: .previewShort).preferredColorScheme(.light)
+}
+
+#Preview("Gericht knapp – Dark") {
+    DetailPreview(meal: .previewShort).preferredColorScheme(.dark)
+}
+
+#Preview("Preisgruppe Bedienstete – Light") {
+    DetailPreview(meal: .previewFull, group: .bedienstete).preferredColorScheme(.light)
+}
+
+#Preview("Preisgruppe Bedienstete – Dark") {
+    DetailPreview(meal: .previewFull, group: .bedienstete).preferredColorScheme(.dark)
+}
+
+#Preview("Gericht – Große Schrift") {
+    DetailPreview(meal: .previewFull)
+        .dynamicTypeSize(.xxxLarge)
 }

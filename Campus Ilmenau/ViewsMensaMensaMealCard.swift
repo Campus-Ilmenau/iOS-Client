@@ -7,119 +7,112 @@
 
 import SwiftUI
 
+/// Gericht in der Liste nach dem Design: Kategorie, Name mit Preis der Preisgruppe, Beschreibung, Chips, Allergene.
+/// Die Karte ist reine Darstellung; das Öffnen (Push) übernimmt der Aufrufer.
 struct MensaMealCard: View {
     let meal: MensaMeal
-    var disablesInteraction: Bool = false
-    @State private var showDetail = false
+    @AppStorage(MensaPriceGroup.storageKey) private var priceGroup: MensaPriceGroup = .studierende
 
     var body: some View {
-        Button {
-            // Unterdrückt den Tap, falls er durch einen horizontalen
-            // Mensa-Swipe ausgelöst wurde (die Karte folgt dabei dem Finger,
-            // weshalb der Button-eigene Tap-Erkenner das sonst nicht bemerkt).
-            guard !disablesInteraction else { return }
-            showDetail = true
-        } label: {
-            cardContent
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showDetail) {
-            MensaMealDetailView(meal: meal)
-        }
-    }
-
-    private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Kategorie
-            HStack {
-                Text(meal.category)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
+        Card {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(meal.category.isEmpty ? "Gericht" : meal.category)
+                    .font(.caption.weight(.bold))
                     .textCase(.uppercase)
-                
-                Spacer()
-                
-                // Badges (Vegan, Bio, etc.)
-                HStack(spacing: 4) {
-                    ForEach(meal.badges, id: \.self) { badge in
-                        BadgeView(text: badge)
+                    .tracking(0.6)
+                    .foregroundStyle(Color(.textTertiary))
+                    .padding(.bottom, 4)
+
+                // Der Name darf umbrechen, der Preis bleibt in einer Zeile.
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(meal.name)
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(Color(.textPrimary))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(meal.price.formatted(for: priceGroup))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color(.textPrimary))
+                        .fixedSize()
+                }
+
+                if let description = meal.description, !description.isEmpty {
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundStyle(Color(.textSecondary))
+                        .lineLimit(2)
+                        .padding(.top, 3)
+                }
+
+                if !meal.listChips.isEmpty {
+                    ChipFlowLayout(spacing: 6) {
+                        ForEach(meal.listChips, id: \.title) { chip in
+                            Chip(LocalizedStringKey(chip.title), variant: chip.variant)
+                        }
                     }
+                    .padding(.top, 8)
                 }
-            }
-            
-            // Name des Gerichts
-            Text(meal.name)
-                .font(.headline)
-                .fontWeight(.bold)
-            
-            // Beschreibung (falls vorhanden)
-            if let description = meal.description {
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            
-            // Preise (Studierende / Mitarbeiter / Gäste)
-            HStack(spacing: 0) {
-                priceColumn(label: "Studierende", value: meal.price.studentFormatted, isPrimary: true)
-                priceColumn(label: "Mitarbeiter", value: meal.price.staffFormatted, isPrimary: false)
-                priceColumn(label: "Gäste", value: meal.price.guestFormatted, isPrimary: false)
-            }
 
-            // Allergien
-            if !meal.allergies.isEmpty {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color(.brandYellow))
-
-                    Text(meal.allergies.joined(separator: ", "))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if !meal.uniqueAllergies.isEmpty {
+                    Text("Enthält \(meal.uniqueAllergies.joined(separator: ", "))")
+                        .font(.footnote)
+                        .foregroundStyle(Color(.textTertiary))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
                 }
             }
         }
-        .padding()
-        .background(Color(.surface))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color(.brandNight).opacity(0.05), radius: 5, x: 0, y: 2)
-    }
-
-    private func priceColumn(label: String, value: String, isPrimary: Bool) -> some View {
-        VStack(spacing: 2) {
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(isPrimary ? .subheadline : .caption)
-                .fontWeight(.bold)
-                .foregroundStyle(isPrimary ? Color(.accent) : Color.secondary)
-        }
-        .frame(maxWidth: .infinity)
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }
 
-#Preview {
-    MensaMealCard(
-        meal: MensaMeal(
-            id: "meal_preview_1",
-            category: "Hauptgericht 1",
-            name: "Hähnchenschnitzel",
-            description: "mit Pommes Frites und Salat",
-            price: MensaMealPrice(student: 3.50, staff: 4.70, guest: 5.90, currency: "€"),
-            allergies: ["Gluten", "Ei"],
-            badges: ["Vegetarisch"],
-            additives: ["Konservierungsstoff"],
-            categories: ["Kinderessen"],
+#Preview("Karte") {
+    ScrollView {
+        VStack(spacing: 10) {
+            MensaMealCard(meal: .previewSample)
+            MensaMealCard(meal: .previewMinimal)
+        }
+        .padding(16)
+    }
+    .background(Color(.background))
+}
+
+extension MensaMeal {
+    /// Beispielgericht für Previews.
+    static var previewSample: MensaMeal {
+        MensaMeal(
+            id: "preview-1",
+            category: "Mittagessen",
+            name: "Linsen-Dal mit Basmatireis",
+            description: "Basmatireis, Mango-Chutney",
+            price: MensaMealPrice(student: 2.9, staff: 4.4, guest: 5.8, currency: "€"),
+            allergies: ["Sellerie", "Senf"],
+            badges: ["Vegan", "Vegetarisch"],
+            additives: [],
+            categories: ["Regional"],
             co2GramPerPortion: 850,
-            components: [
-                MensaMealComponent(name: "Hähnchenschnitzel", codes: ["Gluten"]),
-                MensaMealComponent(name: "Pommes Frites", codes: [])
-            ],
+            components: [MensaMealComponent(name: "Basmatireis", codes: [])],
             canteenName: "Mensa Ehrenberg",
-            date: Date()
+            date: .now
         )
-    )
-    .padding()
+    }
+
+    /// Ohne Beschreibung, Chips und Allergene, mit fehlendem Preis.
+    static var previewMinimal: MensaMeal {
+        MensaMeal(
+            id: "preview-2",
+            category: "Mittagessen",
+            name: "Pasta Arrabbiata",
+            description: nil,
+            price: MensaMealPrice(student: nil, staff: 4.4, guest: 5.8, currency: "€"),
+            allergies: [],
+            badges: [],
+            additives: [],
+            categories: [],
+            co2GramPerPortion: nil,
+            components: [],
+            canteenName: "Mensa Ehrenberg",
+            date: .now
+        )
+    }
 }

@@ -7,152 +7,160 @@
 
 import SwiftUI
 
-/// Tri-state filter for a single meal attribute (z.B. "Vegan" oder "Gluten")
-enum MealFilterState: String, CaseIterable, Identifiable, Codable {
-    case exclude
-    case any
-    case include
-
-    var id: String { rawValue }
-
-    var symbolName: String {
-        switch self {
-        case .exclude: return "xmark"
-        case .any: return "circle"
-        case .include: return "checkmark"
-        }
-    }
-
-    var tintColor: Color {
-        switch self {
-        case .exclude: return Color(.danger)
-        case .any: return Color(.textSecondary)
-        case .include: return Color(.green)
-        }
-    }
-
-    var accessibilityLabel: String {
-        switch self {
-        case .exclude: return "Ausschließen"
-        case .any: return "Egal"
-        case .include: return "Einschließen"
-        }
-    }
-}
-
-/// Persistiert die aktiven Speiseplan-Filter in UserDefaults, damit sie geräteweit
-/// über Tage hinweg erhalten bleiben und nicht täglich neu gesetzt werden müssen.
-enum MensaFilterStore {
-    private static let key = "MensaFilterStates"
-
-    static func load() -> [String: MealFilterState] {
-        guard let data = UserDefaults.standard.data(forKey: key),
-              let decoded = try? JSONDecoder().decode([String: MealFilterState].self, from: data) else {
-            return [:]
-        }
-        return decoded
-    }
-
-    static func save(_ filterStates: [String: MealFilterState]) {
-        guard let data = try? JSONEncoder().encode(filterStates) else { return }
-        UserDefaults.standard.set(data, forKey: key)
-    }
-}
-
-/// Bottom-Sheet zum Filtern des Speiseplans nach Ernährungs-Badges und Allergenen.
-/// Jedes Attribut kann auf "ausschließen", "egal" oder "einschließen" gesetzt werden.
+/// Sheet „Filter“: Ernährung als Segment (immer gleich wie die Pills), „Nur Bio“ und ein Schalter je Allergen.
+/// Gilt für alle Mensen und Tage und bleibt gespeichert.
 struct MensaFilterSheet: View {
-    @Binding var filterStates: [String: MealFilterState]
-    let availableBadges: [String]
-    let availableAllergies: [String]
+    @Binding var filter: MensaFilter
+    /// Alle bekannten Allergene (feste Liste), dazu ausgeschlossene und neue aus dem Speiseplan.
+    let availableAllergens: [String]
+
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            List {
-                if !availableBadges.isEmpty {
-                    Section("Ernährung") {
-                        ForEach(availableBadges, id: \.self) { badge in
-                            MealAttributeFilterRow(title: badge, state: binding(for: badge))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    sectionTitle("Ernährung")
+                    group {
+                        SegmentedControl(
+                            selection: $filter.diet,
+                            options: [(.alle, "Alle"), (.vegetarisch, "Vegetarisch"), (.vegan, "Vegan")]
+                        )
+                        .padding(.vertical, 12)
+                        separator
+                        toggleRow("Nur Bio", isOn: $filter.onlyBio)
+                    }
+                    note("„Vegetarisch“ zeigt auch vegane Gerichte.")
+
+                    sectionTitle("Allergene ausschließen")
+                        .padding(.top, 22)
+                    group {
+                        ForEach(Array(availableAllergens.enumerated()), id: \.element) { index, allergen in
+                            if index > 0 { separator }
+                            toggleRow("Ohne \(allergen)", isOn: allergenBinding(allergen))
                         }
                     }
+                    note("Alle Allergene, die der Speiseplan kennt. Der Filter gilt für alle Mensen und Tage und bleibt gespeichert.")
                 }
-
-                if !availableAllergies.isEmpty {
-                    Section("Allergene") {
-                        ForEach(availableAllergies, id: \.self) { allergy in
-                            MealAttributeFilterRow(title: allergy, state: binding(for: allergy))
-                        }
-                    }
-                }
-
-                if availableBadges.isEmpty && availableAllergies.isEmpty {
-                    ContentUnavailableView(
-                        "Keine Filter verfügbar",
-                        systemImage: "line.3.horizontal.decrease.circle",
-                        description: Text("Sobald Gerichte geladen sind, können sie hier gefiltert werden.")
-                    )
-                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 34)
             }
+            .background(Color(.background))
             .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Zurücksetzen") { filter = MensaFilter() }
+                        .disabled(!filter.isActive)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Zurücksetzen") {
-                        filterStates.removeAll()
-                    }
-                    .disabled(!hasActiveFilters)
+                    Button("Fertig") { dismiss() }
+                        .fontWeight(.semibold)
                 }
             }
+            .tint(Color(.accent))
         }
     }
 
-    private var hasActiveFilters: Bool {
-        filterStates.contains { $0.value != .any }
+    // MARK: - Bausteine
+
+    private func sectionTitle(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.footnote.weight(.semibold))
+            .textCase(.uppercase)
+            .tracking(0.65)
+            .foregroundStyle(Color(.textTertiary))
+            .padding(.horizontal, 6)
+            .padding(.top, 14)
+            .padding(.bottom, 8)
+            .accessibilityAddTraits(.isHeader)
     }
 
-    private func binding(for attribute: String) -> Binding<MealFilterState> {
+    private func group<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0, content: content)
+            .padding(.horizontal, 16)
+            .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var separator: some View {
+        Rectangle().fill(Color(.separator)).frame(height: 1)
+    }
+
+    private func note(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(Color(.textTertiary))
+            .padding(.horizontal, 6)
+            .padding(.top, 8)
+    }
+
+    /// Neutral: an = `buttonPrimary`. Es sind Einstellungen, kein Rot und kein Grün.
+    private func toggleRow(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .foregroundStyle(Color(.textPrimary))
+        }
+        .toggleStyle(NeutralToggleStyle())
+        .frame(minHeight: 52)
+    }
+
+    private func allergenBinding(_ allergen: String) -> Binding<Bool> {
         Binding(
-            get: { filterStates[attribute] ?? .any },
-            set: { filterStates[attribute] = $0 }
+            get: { filter.excludedAllergens.contains(allergen) },
+            set: { isOn in
+                if isOn {
+                    filter.excludedAllergens.insert(allergen)
+                } else {
+                    filter.excludedAllergens.remove(allergen)
+                }
+            }
         )
     }
 }
 
-/// Eine Zeile mit drei Tasten (ausschließen / egal / einschließen) für ein Attribut.
-private struct MealAttributeFilterRow: View {
-    let title: String
-    @Binding var state: MealFilterState
+// MARK: - Previews
+
+/// Zeigt das Sheet ohne Präsentations-Animation: bei `.medium` etwa halbe Höhe über dem abgedunkelten Hintergrund, bei `.large` fast ganz.
+private struct FilterSheetPreview: View {
+    let detent: PresentationDetent
+    var filter = MensaFilter(diet: .vegetarisch, onlyBio: false, excludedAllergens: ["Weizen"])
+    @State private var currentFilter = MensaFilter()
 
     var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            HStack(spacing: 6) {
-                ForEach(MealFilterState.allCases) { option in
-                    Button {
-                        state = option
-                    } label: {
-                        Image(systemName: option.symbolName)
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .frame(width: 28, height: 28)
-                            .foregroundStyle(state == option ? Color(.onBlue) : option.tintColor)
-                            .background(state == option ? option.tintColor : option.tintColor.opacity(0.12))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(option.accessibilityLabel)
-                    .accessibilityAddTraits(state == option ? [.isSelected] : [])
-                }
+        GeometryReader { proxy in
+            ZStack(alignment: .bottom) {
+                Color(.background)
+                Color.black.opacity(0.35)
+                MensaFilterSheet(
+                    filter: $currentFilter,
+                    availableAllergens: MensaFilter.availableAllergens(in: [], keeping: [])
+                )
+                .frame(height: detent == .medium ? proxy.size.height * 0.55 : proxy.size.height - 12)
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 34, topTrailingRadius: 34))
+                .shadow(color: Color(.brandNight).opacity(0.28), radius: 18, y: -8)
             }
+            .ignoresSafeArea()
         }
+        .onAppear { currentFilter = filter }
     }
 }
 
-#Preview {
-    MensaFilterSheet(
-        filterStates: .constant(["Vegan": .include, "Gluten": .exclude]),
-        availableBadges: ["Vegan", "Vegetarisch", "Bio"],
-        availableAllergies: ["Gluten", "Ei", "Milch"]
-    )
+#Preview("Filter-Sheet medium – Light") {
+    FilterSheetPreview(detent: .medium).preferredColorScheme(.light)
+}
+
+#Preview("Filter-Sheet medium – Dark") {
+    FilterSheetPreview(detent: .medium).preferredColorScheme(.dark)
+}
+
+#Preview("Filter-Sheet large – Light") {
+    FilterSheetPreview(detent: .large).preferredColorScheme(.light)
+}
+
+#Preview("Filter-Sheet large – Dark") {
+    FilterSheetPreview(detent: .large).preferredColorScheme(.dark)
+}
+
+#Preview("Filter-Sheet leer – Light") {
+    FilterSheetPreview(detent: .large, filter: MensaFilter()).preferredColorScheme(.light)
 }

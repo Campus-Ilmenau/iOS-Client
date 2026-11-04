@@ -42,8 +42,10 @@ struct MensaMealPrice {
     var staffFormatted: String { Self.format(staff, currency: currency) }
     var guestFormatted: String { Self.format(guest, currency: currency) }
 
+    /// „2,90 €“ nach deutscher Schreibweise; ein fehlender Preis ist „–“.
     private static func format(_ value: Double?, currency: String) -> String {
         guard let value else { return "–" }
-        return String(format: "%.2f %@", value, currency)
+        let code = currency.count == 3 ? currency.uppercased() : "EUR"
+        return value.formatted(.currency(code: code).locale(Locale(identifier: "de_DE")))
     }
 }
