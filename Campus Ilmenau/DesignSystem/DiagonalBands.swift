@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Vieleck aus Punkten in Einheitskoordinaten (0…1), damit die Flächen mit der Größe mitwachsen.
-private struct UnitPolygon: Shape {
+struct UnitPolygon: Shape {
     let points: [CGPoint]
 
     func path(in rect: CGRect) -> Path {

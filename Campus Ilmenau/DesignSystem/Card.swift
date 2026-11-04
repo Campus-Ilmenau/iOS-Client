@@ -1,19 +1,22 @@
 import SwiftUI
 
-/// Fläche für zusammengehörige Inhalte: `surface`, Ecken 16, Innenabstand 14/16.
+/// Fläche für zusammengehörige Inhalte: `surface` (oder eine andere Fläche per `fill`), Ecken 16, Innenabstand 14/16.
 /// Karten liegen flach, ohne Schatten.
 struct Card<Content: View>: View {
     private let verticalPadding: CGFloat
     private let horizontalPadding: CGFloat
+    private let fill: Color
     private let content: Content
 
     init(
         verticalPadding: CGFloat = 14,
         horizontalPadding: CGFloat = 16,
+        fill: Color = Color(.surface),
         @ViewBuilder content: () -> Content
     ) {
         self.verticalPadding = verticalPadding
         self.horizontalPadding = horizontalPadding
+        self.fill = fill
         self.content = content()
     }
 
@@ -22,7 +25,7 @@ struct Card<Content: View>: View {
             .padding(.vertical, verticalPadding)
             .padding(.horizontal, horizontalPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(fill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 

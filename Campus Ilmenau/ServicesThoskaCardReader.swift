@@ -65,7 +65,7 @@ final class ThoskaCardReader: NSObject, ObservableObject {
         isScanning = true
         activeSession = session
 
-        session.alertMessage = "Halte deine Thoska-Karte an die Rückseite des iPhones."
+        session.alertMessage = "Halte deine Thoska an dein iPhone."
         session.begin()
     }
 }
