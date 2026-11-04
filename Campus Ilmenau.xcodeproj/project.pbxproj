@@ -12,11 +12,17 @@
 
 /* Begin PBXFileReference section */
 		0E6AD2C3308F9EF200A878C0 /* Campus-Ilmenau-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Campus-Ilmenau-Info.plist"; sourceTree = "<group>"; };
+		0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Campus IlmenauTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Campus Ilmenau.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = APIConfig.swift.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Campus IlmenauTests";
+			sourceTree = "<group>";
+		};
 		0E7D87463048BC3C005E1A2C /* Campus Ilmenau */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Campus Ilmenau";
@@ -25,6 +31,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0E7CCFC6309B3F900069A9C8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7D87413048BC3C005E1A2C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -41,6 +54,7 @@
 				0E6AD2C3308F9EF200A878C0 /* Campus-Ilmenau-Info.plist */,
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
 				0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */,
+				0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */,
 				0E7D87453048BC3C005E1A2C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */,
+				0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -56,6 +71,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0E7CCFC8309B3F900069A9C8 /* Campus IlmenauTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E7CCFCD309B3F900069A9C8 /* Build configuration list for PBXNativeTarget "Campus IlmenauTests" */;
+			buildPhases = (
+				0E7CCFC5309B3F900069A9C8 /* Sources */,
+				0E7CCFC6309B3F900069A9C8 /* Frameworks */,
+				0E7CCFC7309B3F900069A9C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */,
+			);
+			name = "Campus IlmenauTests";
+			packageProductDependencies = (
+			);
+			productName = "Campus IlmenauTests";
+			productReference = 0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		0E7D87433048BC3C005E1A2C /* Campus Ilmenau */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0E7D874F3048BC3E005E1A2C /* Build configuration list for PBXNativeTarget "Campus Ilmenau" */;
@@ -85,9 +122,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2660;
+				LastSwiftUpdateCheck = 2720;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					0E7CCFC8309B3F900069A9C8 = {
+						CreatedOnToolsVersion = 27.2;
+					};
 					0E7D87433048BC3C005E1A2C = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -108,11 +148,19 @@
 			projectRoot = "";
 			targets = (
 				0E7D87433048BC3C005E1A2C /* Campus Ilmenau */,
+				0E7CCFC8309B3F900069A9C8 /* Campus IlmenauTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0E7CCFC7309B3F900069A9C8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7D87423048BC3C005E1A2C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,6 +172,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0E7CCFC5309B3F900069A9C8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7D87403048BC3C005E1A2C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -134,6 +189,58 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		0E7CCFCE309B3F900069A9C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-Wl,-undefined,dynamic_lookup";
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-IlmenauTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Campus Ilmenau.app/Campus Ilmenau";
+				XROS_DEPLOYMENT_TARGET = 27.2;
+			};
+			name = Debug;
+		};
+		0E7CCFCF309B3F900069A9C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-Wl,-undefined,dynamic_lookup";
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-IlmenauTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Campus Ilmenau.app/Campus Ilmenau";
+				XROS_DEPLOYMENT_TARGET = 27.2;
+			};
+			name = Release;
+		};
 		0E7D874D3048BC3E005E1A2C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -349,6 +456,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0E7CCFCD309B3F900069A9C8 /* Build configuration list for PBXNativeTarget "Campus IlmenauTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E7CCFCE309B3F900069A9C8 /* Debug */,
+				0E7CCFCF309B3F900069A9C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		0E7D873F3048BC3C005E1A2C /* Build configuration list for PBXProject "Campus Ilmenau" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
