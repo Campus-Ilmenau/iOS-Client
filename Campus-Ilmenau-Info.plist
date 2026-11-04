@@ -19,7 +19,7 @@
 		<key>UIImageName</key>
 		<string>LaunchGoat</string>
 		<key>UIColorName</key>
-		<string>LaunchBackground</string>
+		<string>launchWall</string>
 	</dict>
 </dict>
 </plist>

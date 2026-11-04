@@ -1,23 +1,56 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "goat-logo2.png",
-      "idiom" : "universal",
-      "scale" : "1x"
+      "filename": "launch-goat-light@1x.png",
+      "idiom": "universal",
+      "scale": "1x"
     },
     {
-      "filename" : "goat-logo2@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
+      "filename": "launch-goat-light@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
     },
     {
-      "filename" : "goat-logo2@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename": "launch-goat-light@3x.png",
+      "idiom": "universal",
+      "scale": "3x"
+    },
+    {
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ],
+      "filename": "launch-goat-dark@1x.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ],
+      "filename": "launch-goat-dark@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ],
+      "filename": "launch-goat-dark@3x.png",
+      "idiom": "universal",
+      "scale": "3x"
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }
