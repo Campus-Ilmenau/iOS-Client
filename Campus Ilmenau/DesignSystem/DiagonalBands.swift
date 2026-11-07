@@ -30,12 +30,23 @@ struct DiagonalBands<Content: View>: View {
         case hero
     }
 
+    /// Welche Ebenen gezeichnet werden. Nur `.header` kennt zwei Ebenen: Mit `.behind` (Hintergrund und grünes Band)
+    /// und `.front` (blaues Band mit Schatten) lässt sich Inhalt zwischen die beiden legen, sodass er über dem
+    /// Grünen liegt und genau an der blauen Schräge endet.
+    enum Layer {
+        case all
+        case behind
+        case front
+    }
+
     private let style: Style
-    private let height: CGFloat
+    private let layer: Layer
+    private let height: CGFloat?
     private let content: Content
 
-    init(_ style: Style = .header, height: CGFloat = 250, @ViewBuilder content: () -> Content) {
+    init(_ style: Style = .header, layer: Layer = .all, height: CGFloat? = 250, @ViewBuilder content: () -> Content) {
         self.style = style
+        self.layer = layer
         self.height = height
         self.content = content()
     }
@@ -55,9 +66,13 @@ struct DiagonalBands<Content: View>: View {
         switch style {
         case .header:
             ZStack {
-                Color(.background)
-                band([(0, 0), (1, 0), (1, 0.46), (0, 1)], color: Color(.green))
-                band([(0, 0), (1, 0), (1, 0.22), (0, 0.76)], color: Color(.blue), shadow: true)
+                if layer != .front {
+                    Color(.background)
+                    band([(0, 0), (1, 0), (1, 0.46), (0, 1)], color: Color(.green))
+                }
+                if layer != .behind {
+                    band([(0, 0), (1, 0), (1, 0.22), (0, 0.76)], color: Color(.blue), shadow: true)
+                }
             }
         case .event:
             ZStack {
