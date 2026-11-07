@@ -20,6 +20,9 @@ struct MensaView: View {
 
     @State private var showFilterSheet = false
     @State private var filter = MensaFilterStore.load()
+    /// Wunsch von der Startseite („Ganzer Speiseplan“): wechselt auf diese Mensa.
+    @Environment(AppRouter.self) private var router: AppRouter?
+    @State private var zeigtOeffnungszeiten = false
 
     private var selectedVenue: Binding<MensaVenue> {
         Binding(
@@ -50,6 +53,12 @@ struct MensaView: View {
             .presentationDragIndicator(.visible)
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
+        .onAppear { uebernehmeMensaWunsch() }
+        .onChange(of: router?.mensaWunsch) { _, _ in uebernehmeMensaWunsch() }
+        .onChange(of: router?.mensaOeffnungszeiten) { _, _ in uebernehmeMensaWunsch() }
+        .navigationDestination(isPresented: $zeigtOeffnungszeiten) {
+            MensaOpeningHoursView(canteens: mensaService.canteens)
+        }
         .onChange(of: filter) { _, newValue in
             MensaFilterStore.save(newValue)
         }
@@ -60,6 +69,17 @@ struct MensaView: View {
             load(days[selectedDayIndex])
             // Öffnungszeiten für den Status-Chip; ohne sie fehlt der Chip einfach.
             try? await mensaService.fetchCanteens()
+        }
+    }
+
+    private func uebernehmeMensaWunsch() {
+        if let wunsch = router?.mensaWunsch {
+            storedVenue = wunsch.rawValue
+            router?.mensaWunsch = nil
+        }
+        if router?.mensaOeffnungszeiten == true {
+            router?.mensaOeffnungszeiten = false
+            zeigtOeffnungszeiten = true
         }
     }
 

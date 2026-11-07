@@ -24,7 +24,10 @@ struct MensaScreen: View {
     @State private var pagerPosition: MensaVenue?
     @State private var pageProgress: CGFloat
     @State private var tabFrames: [MensaVenue: CGRect] = [:]
+    /// Zeitverhalten der Ziege beim ersten Laden; gilt für alle Seiten gemeinsam.
+    @State private var loader: LoadingGate
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @AppStorage(MensaPriceGroup.storageKey) private var sharePriceGroup: MensaPriceGroup = .studierende
 
     init(
         days: [Date],
@@ -50,6 +53,7 @@ struct MensaScreen: View {
         self.now = now
         self.onRetry = onRetry
         self.onOpenFilter = onOpenFilter
+        self._loader = State(initialValue: LoadingGate(isLoading: loadState == .loading))
         self._pagerPosition = State(initialValue: selectedVenue.wrappedValue)
         self._pageProgress = State(initialValue: CGFloat(MensaVenue.allCases.firstIndex(of: selectedVenue.wrappedValue) ?? 0))
     }
@@ -69,6 +73,9 @@ struct MensaScreen: View {
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .onChange(of: loadState == .loading, initial: true) { _, isLoading in
+            loader.setLoading(isLoading)
+        }
     }
 
     // MARK: - Kopf
@@ -82,19 +89,55 @@ struct MensaScreen: View {
                 .minimumScaleFactor(0.5)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
-            NavigationLink {
-                MensaOpeningHoursView(canteens: canteens)
-            } label: {
-                Image(systemName: "clock")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(Color(.textPrimary))
-                    .frame(width: 44, height: 44)
-                    .background(Color(.surfaceSecondary), in: Circle())
+            HStack(spacing: 8) {
+                shareButton
+                NavigationLink {
+                    MensaOpeningHoursView(canteens: canteens)
+                } label: {
+                    Image(systemName: "clock")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(Color(.textPrimary))
+                        .frame(width: 44, height: 44)
+                        .background(Color(.surfaceSecondary), in: Circle())
+                }
+                .accessibilityLabel("Öffnungszeiten")
             }
-            .accessibilityLabel("Öffnungszeiten")
         }
         .padding(.horizontal, 16)
         .padding(.top, 4)
+    }
+
+    // MARK: - Teilen
+
+    /// Das gerade gezeigte Angebot (Mensa, Tag, bei der Cafeteria Ehrenberg Mittag oder Abendessen), ohne Filter, mit
+    /// dem Preis der eigenen Preisgruppe.
+    private var planShare: MensaPlanShare {
+        let hours = canteens.first { selectedVenue.matches(canteenName: $0.name) }?.openingHours ?? []
+        return MensaPlanShare(
+            venue: selectedVenue,
+            day: selectedDay,
+            mealtime: selectedVenue.hasMealtimes ? mealtime : .lunch,
+            allMeals: allMeals,
+            priceGroup: sharePriceGroup,
+            hours: MensaPlanShare.hours(for: selectedVenue.hasMealtimes ? mealtime : .lunch, day: selectedDay, openingHours: hours)
+        )
+    }
+
+    /// Ohne Angebot, beim Laden und bei einem Ladefehler ist die Taste deaktiviert (40 % Deckkraft).
+    private var shareButton: some View {
+        let share = planShare
+        return ShareMenuButton(
+            content: share,
+            caption: share.menuCaption(now: now),
+            isEnabled: loadState == .loaded && !share.meals.isEmpty
+        ) {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Color(.textPrimary))
+                .frame(width: 44, height: 44)
+                .background(Color(.surfaceSecondary), in: Circle())
+        }
+        .accessibilityLabel("Speiseplan teilen")
     }
 
     // MARK: - Namensleiste
@@ -313,6 +356,7 @@ struct MensaScreen: View {
                         now: now,
                         mealtime: $mealtime,
                         loadState: loadState,
+                        loader: loader,
                         meals: pageMeals(for: venue),
                         hasMealsBeforeFilter: !pageMeals(for: venue, filtered: false).isEmpty,
                         canteens: canteens,
@@ -370,7 +414,7 @@ struct MensaScreen: View {
 }
 
 /// Zahl in `accent` an der Filter-Taste. Im Dark Mode ist `accent` hell, deshalb steht dort dunkle Schrift darauf.
-private struct FilterCountBadge: View {
+struct FilterCountBadge: View {
     let count: Int
     @Environment(\.colorScheme) private var colorScheme
 
@@ -400,6 +444,7 @@ private struct MensaVenuePage: View {
     let now: Date
     @Binding var mealtime: MensaMealtime
     let loadState: MensaLoadState
+    let loader: LoadingGate
     let meals: [MensaMeal]
     /// Es gibt Gerichte, aber der Filter blendet sie aus.
     let hasMealsBeforeFilter: Bool
@@ -414,25 +459,44 @@ private struct MensaVenuePage: View {
     private var isToday: Bool { Calendar.current.isDate(day, inSameDayAs: now) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                pageHeader
-                    .padding(.bottom, 12)
+        if loader.isActive {
+            loadingPage
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    pageHeader
+                        .padding(.bottom, 12)
 
-                if venue.hasMealtimes {
-                    SegmentedControl(
-                        selection: $mealtime,
-                        options: [(.lunch, "Mittag"), (.dinner, "Abendessen")]
-                    )
-                    .padding(.bottom, 12)
+                    mealtimeControl
+
+                    content
                 }
-
-                content
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .scrollBounceBehavior(.basedOnSize)
+    }
+
+    /// Erstes Laden ohne Daten: wie im Artboard nur die Ziege mittig im freien Bereich unter den Filtern.
+    /// Die Wahl Mittag/Abendessen bleibt erreichbar; Name und Status der Mensa kommen mit den Daten.
+    private var loadingPage: some View {
+        VStack(spacing: 0) {
+            mealtimeControl
+                .padding(.horizontal, 16)
+            GoatLoadingBlock(message: "Speiseplan wird geladen …", gate: loader)
+        }
+    }
+
+    @ViewBuilder
+    private var mealtimeControl: some View {
+        if venue.hasMealtimes {
+            SegmentedControl(
+                selection: $mealtime,
+                options: [(.lunch, "Mittag"), (.dinner, "Abendessen")]
+            )
+            .padding(.bottom, 12)
+        }
     }
 
     private var pageHeader: some View {
@@ -472,9 +536,8 @@ private struct MensaVenuePage: View {
     private var content: some View {
         switch loadState {
         case .loading:
-            ProgressView("Speiseplan wird geladen …")
-                .frame(maxWidth: .infinity)
-                .padding(.top, 48)
+            // Zeigt `loadingPage`; dieser Zweig gilt nur für den einen Frame, bis `loader` nachzieht.
+            EmptyView()
         case .failed:
             messageCard(
                 title: "Speiseplan konnte nicht geladen werden",

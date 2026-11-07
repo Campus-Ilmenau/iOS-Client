@@ -43,8 +43,11 @@ struct MensaMealDetailContent: View {
     let priceGroup: MensaPriceGroup
     let canteens: [Canteen]
     @Binding var isFavorite: Bool
+    /// Nur für Previews: so weit ist die Liste beim Erscheinen schon gescrollt.
+    var startScroll: CGFloat = 0
 
     @Environment(\.dismiss) private var dismiss
+    @State private var scrollPosition = ScrollPosition()
     @State private var expandedComponents: Set<UUID> = []
     @State private var showsHours = false
 
@@ -61,30 +64,36 @@ struct MensaMealDetailContent: View {
     }
 
     var body: some View {
-        // Die Safe-Area-Höhe oben muss außerhalb von `ignoresSafeArea` gelesen werden, sonst ist sie 0
-        // und die Tasten liegen auf der Statusleiste.
+        // Drei Ebenen übereinander: hinten Hintergrund und grünes Band, darüber der Inhalt, vorn das blaue Band.
+        // So liegt der Inhalt über dem Grünen und wird genau an der blauen Schräge abgeschnitten.
         GeometryReader { proxy in
-            let top = proxy.safeAreaInsets.top
             ZStack(alignment: .top) {
-                // Kopf mit zwei Bändern, steht fest und reicht bis an den oberen Bildschirmrand.
-                DiagonalBands(.header, height: Self.headerHeight) { EmptyView() }
+                DiagonalBands(.header, layer: .behind, height: Self.headerHeight) { EmptyView() }
                     .ignoresSafeArea(edges: .top)
 
-                // Die Karte ragt 36 pt in den Kopf. Der Inhalt beginnt unter der Statusleiste,
-                // der Kopf misst 250 pt vom Bildschirmrand.
-                VStack(spacing: 0) {
-                    Color.clear.frame(height: max(0, Self.headerHeight - Self.overlap - top))
-                    ScrollView {
-                        content
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 24)
-                    }
-                    .scrollBounceBehavior(.basedOnSize)
+                // Der Inhalt scrollt über die ganze Höhe bis zum Bildschirmrand. Die Karte ragt 36 pt in den Kopf, der
+                // Kopf misst 250 pt vom Bildschirmrand.
+                ScrollView {
+                    content
+                        .padding(.horizontal, 16)
+                        .padding(.top, Self.headerHeight - Self.overlap)
+                        .padding(.bottom, 24)
                 }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollPosition($scrollPosition)
+                .ignoresSafeArea(edges: .top)
+                .onAppear { if startScroll > 0 { scrollPosition.scrollTo(y: startScroll) } }
 
-                HStack {
+                // Das Blau liegt vorn, fängt keine Berührungen ab und wirft seinen Schatten auf den Inhalt.
+                DiagonalBands(.header, layer: .front, height: Self.headerHeight) { EmptyView() }
+                    .ignoresSafeArea(edges: .top)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
+                HStack(spacing: 8) {
                     roundButton(systemImage: "chevron.left", label: "Zurück zum Speiseplan") { dismiss() }
                     Spacer()
+                    shareButton
                     roundButton(
                         systemImage: isFavorite ? "heart.fill" : "heart",
                         label: isFavorite ? "Favorit entfernen" : "Als Favorit merken",
@@ -320,6 +329,14 @@ struct MensaMealDetailContent: View {
         .accessibilityAddTraits(.isHeader)
     }
 
+    private func roundSymbol(_ systemImage: String, tint: Color = Color(.brandNight)) -> some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 19, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: 44, height: 44)
+            .background(Color(.onBlue).opacity(0.92), in: Circle())
+    }
+
     private func roundButton(
         systemImage: String,
         label: LocalizedStringKey,
@@ -327,14 +344,19 @@ struct MensaMealDetailContent: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(tint)
-                .frame(width: 44, height: 44)
-                .background(Color(.onBlue).opacity(0.92), in: Circle())
+            roundSymbol(systemImage, tint: tint)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+    }
+
+    /// Runde Taste links vom Herz: Menü mit „Als Bild teilen“ und „Als Text teilen“.
+    private var shareButton: some View {
+        let share = MensaMealShare(meal: meal, priceGroup: priceGroup)
+        return ShareMenuButton(content: share, caption: share.menuCaption) {
+            roundSymbol("square.and.arrow.up")
+        }
+        .accessibilityLabel("Gericht teilen")
     }
 }
 
@@ -386,11 +408,14 @@ private extension MensaMeal {
 private struct DetailPreview: View {
     let meal: MensaMeal
     var group: MensaPriceGroup = .studierende
+    var startScroll: CGFloat = 0
     @State private var isFavorite = false
 
     var body: some View {
         NavigationStack {
-            MensaMealDetailContent(meal: meal, priceGroup: group, canteens: [], isFavorite: $isFavorite)
+            MensaMealDetailContent(
+                meal: meal, priceGroup: group, canteens: [], isFavorite: $isFavorite, startScroll: startScroll
+            )
         }
     }
 }
@@ -401,6 +426,14 @@ private struct DetailPreview: View {
 
 #Preview("Gericht vollständig – Dark") {
     DetailPreview(meal: .previewFull).preferredColorScheme(.dark)
+}
+
+#Preview("Gericht gescrollt – Light") {
+    DetailPreview(meal: .previewFull, startScroll: 170).preferredColorScheme(.light)
+}
+
+#Preview("Gericht gescrollt – Dark") {
+    DetailPreview(meal: .previewFull, startScroll: 170).preferredColorScheme(.dark)
 }
 
 #Preview("Gericht knapp – Light") {
