@@ -134,9 +134,10 @@
 				};
 			};
 			buildConfigurationList = 0E7D873F3048BC3C005E1A2C /* Build configuration list for PBXProject "Campus Ilmenau" */;
-			developmentRegion = en;
+			developmentRegion = de;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				de,
 				en,
 				Base,
 			);
