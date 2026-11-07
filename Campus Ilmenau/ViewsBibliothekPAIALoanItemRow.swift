@@ -7,18 +7,20 @@
 
 import SwiftUI
 
-/// Zeigt ein einzelnes ausgeliehenes, vorgemerktes oder bestelltes Medium an.
-/// Bei laufenden Ausleihen (`status == .held`) wird eine kleine Fortschritts-
-/// Timeline bis zur Fälligkeit angezeigt.
+/// Karte einer laufenden Ausleihe: Titel, Signatur, Fälligkeits-Chip, Zeitleiste und Fußzeile mit „Verlängern“.
 ///
 /// Nach links wischen verlängert die Leihfrist. Die Aktion wird erst beim
 /// Loslassen ausgewertet (nicht während des Ziehens) — wer über den Button
 /// hinauszieht und ohne loszulassen wieder zurückschiebt, löst nichts aus.
 /// Haptisches Feedback markiert beim Ziehen das Erreichen des Buttons sowie
 /// der Schwelle, ab der ein Loslassen die Verlängerung auslöst.
+/// Ist das Medium laut Server nicht verlängerbar, gibt es weder Wischen noch Button.
 struct PAIALoanItemRow: View {
     let item: PAIALoanItem
+    var now: Date = .now
     var onRenew: () -> Void
+    /// Tippen auf die Karte öffnet die Details des Mediums. `nil`, wenn der Titel im Katalog nicht auffindbar ist.
+    var onOpen: (() -> Void)?
 
     private enum SwipeMetrics {
         static let actionWidth: CGFloat = 100
@@ -33,27 +35,38 @@ struct PAIALoanItemRow: View {
     @State private var triggerHapticTick = false
     @State private var showRenewConfirmation = false
 
-    private var canRenew: Bool { item.canrenew != false }
-    private var mediaTitle: String { item.about ?? item.label ?? "dieses Medium" }
+    private var info: BibliothekLoanInfo { BibliothekLoanInfo(item: item, now: now) }
+    private var canRenew: Bool { item.canBeRenewed }
     private var currentOffset: CGFloat { min(0, committedOffset + dragTranslation) }
+
+    private var chipVariant: Chip.Variant {
+        switch info.urgency {
+        case .normal: .neutral
+        case .soon: .warning
+        case .urgent: .dangerSoft
+        }
+    }
 
     var body: some View {
         ZStack(alignment: .trailing) {
-            renewBackground
+            if canRenew {
+                renewBackground
+                    .opacity(currentOffset < 0 ? 1 : 0)
+            }
 
-            rowContent
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(Color(.surface))
+            front
                 .offset(x: currentOffset)
                 .simultaneousGesture(dragGesture)
+                .modifier(OpenDetailsModifier(onOpen: onOpen, isRevealed: committedOffset < 0) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { committedOffset = 0 }
+                })
         }
-        .listRowInsets(EdgeInsets())
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .alert("Leihfrist verlängern?", isPresented: $showRenewConfirmation) {
             Button("Abbrechen", role: .cancel) {}
             Button("Verlängern") { onRenew() }
         } message: {
-            Text("Möchtest du die Leihfrist für „\(mediaTitle)“ verlängern?")
+            Text("Möchtest du die Leihfrist für „\(item.displayTitle)“ verlängern?")
         }
         .sensoryFeedback(.impact(weight: .light), trigger: revealHapticTick)
         .sensoryFeedback(.impact(weight: .heavy), trigger: triggerHapticTick)
@@ -109,6 +122,7 @@ struct PAIALoanItemRow: View {
 
     // MARK: - Subviews
 
+    /// Fläche hinter der Karte. Für VoiceOver versteckt, dort gibt es den Button in der Fußzeile.
     private var renewBackground: some View {
         HStack {
             Spacer(minLength: 0)
@@ -120,134 +134,73 @@ struct PAIALoanItemRow: View {
                     Image(systemName: "arrow.clockwise")
                         .font(.title3)
                     Text("Verlängern")
-                        .font(.caption2.weight(.semibold))
+                        .font(.footnote.weight(.semibold))
                 }
-                .foregroundStyle(Color(.onBlue))
+                .foregroundStyle(Color(.onButtonPrimary))
                 .frame(width: SwipeMetrics.actionWidth)
                 .frame(maxHeight: .infinity)
             }
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.blue))
-        .opacity(canRenew ? 1 : 0)
+        .background(Color(.buttonPrimary))
+        .accessibilityHidden(true)
     }
 
-    private var rowContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.about ?? item.label ?? "Unbekanntes Medium")
-                        .font(.headline)
-                        .lineLimit(2)
+    private var front: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            PAIAItemTitleRow(
+                title: item.displayTitle,
+                signature: item.signature,
+                chipText: info.dueText,
+                chipVariant: chipVariant
+            )
 
-                    if let label = item.label, item.about != nil {
-                        Text(label)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                statusBadge
+            if info.days != nil {
+                PAIALoanTimelineView(info: info)
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
+            } else {
+                Spacer().frame(height: 10)
             }
 
-            if item.status == .held, item.endtime != nil {
-                VStack(alignment: .leading, spacing: 6) {
-                    PAIALoanTimelineView(item: item)
-
-                    HStack {
-                        if let renewals = item.renewals, renewals > 0 {
-                            Text("\(renewals)x verlängert")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer()
-
-                        if let endtime = item.endtime {
-                            Text("Fällig: \(endtime, style: .date)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(isOverdue(endtime) ? Color(.danger) : Color.secondary)
-                        }
-                    }
-                }
-            } else if let endtime = item.endtime {
-                Text("Fällig: \(endtime, style: .date)")
+            HStack(spacing: 8) {
+                Text(info.metaText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color(.textTertiary))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if canRenew {
+                    SecondaryButton("Verlängern", compact: true) {
+                        showRenewConfirmation = true
+                    }
+                }
             }
+            .frame(minHeight: 36)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var statusBadge: some View {
-        Text(item.status.label)
-            .font(.caption.weight(.semibold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(statusColor.opacity(0.15))
-            .foregroundStyle(statusColor)
-            .clipShape(Capsule())
-    }
-
-    private var statusColor: Color {
-        switch item.status {
-        case .held:
-            return isOverdue(item.endtime) ? Color(.danger) : Color(.blue)
-        case .provided:
-            return Color(.green)
-        case .reserved, .ordered:
-            return Color(.accent)
-        case .rejected:
-            return Color(.danger)
-        case .none:
-            return Color(.textTertiary)
-        }
-    }
-
-    private func isOverdue(_ date: Date?) -> Bool {
-        guard let date else { return false }
-        return date < Date()
+        .background(Color(.surface))
     }
 }
 
-#Preview {
-    List {
-        PAIALoanItemRow(item: PAIALoanItem(
-            item: "1",
-            edition: nil,
-            about: "Swift Programming Language",
-            label: "ST 230 A123",
-            queue: nil,
-            renewals: 1,
-            reminder: 0,
-            starttime: .now.addingTimeInterval(-86400 * 16),
-            endtime: .now.addingTimeInterval(86400 * 5),
-            cancancel: false,
-            canrenew: true,
-            storage: nil,
-            storageid: nil,
-            comment: nil,
-            status: .held
-        ), onRenew: {})
-        PAIALoanItemRow(item: PAIALoanItem(
-            item: "2",
-            edition: nil,
-            about: "Overdue Book",
-            label: "ST 100 B456",
-            queue: nil,
-            renewals: 0,
-            reminder: 1,
-            starttime: .now.addingTimeInterval(-86400 * 23),
-            endtime: .now.addingTimeInterval(-86400 * 2),
-            cancancel: false,
-            canrenew: false,
-            storage: nil,
-            storageid: nil,
-            comment: nil,
-            status: .held
-        ), onRenew: {})
+/// Tippen öffnet die Details. Ist gerade die Fläche „Verlängern“ aufgewischt, schließt das Tippen sie nur wieder.
+private struct OpenDetailsModifier: ViewModifier {
+    let onOpen: (() -> Void)?
+    let isRevealed: Bool
+    let close: () -> Void
+
+    func body(content: Content) -> some View {
+        if let onOpen {
+            content
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if isRevealed { close() } else { onOpen() }
+                }
+                .accessibilityAction(named: "Details öffnen", onOpen)
+        } else {
+            content
+        }
     }
 }

@@ -25,6 +25,11 @@ final class PAIAService: ObservableObject {
     @Published private(set) var notifications: [PAIANotification] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    /// `true`, wenn die Sitzung ablief (lokal oder per 401/403) und nicht manuell beendet wurde.
+    /// Steuert Titel und Hinweis im Login-Sheet; ein erfolgreicher Login setzt es zurück.
+    @Published private(set) var sessionExpired = false
+    /// Zuletzt erfolgreich verwendete Benutzernummer, nur im Speicher (nie persistiert).
+    private(set) var lastUsername: String?
 
     // MARK: - Properties
     private let baseURL: String
@@ -86,6 +91,8 @@ final class PAIAService: ObservableObject {
             self.accessToken = authResponse.accessToken
             self.patronId = authResponse.patron
             self.tokenExpiryDate = authResponse.expiresIn.map { Date().addingTimeInterval(TimeInterval($0)) }
+            self.lastUsername = username
+            self.sessionExpired = false
             self.isAuthenticated = true
         } catch {
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -143,7 +150,7 @@ final class PAIAService: ObservableObject {
         }
 
         if let tokenExpiryDate, Date() >= tokenExpiryDate {
-            logout()
+            expireSession()
             throw PAIAError.sessionExpired
         }
 
@@ -186,12 +193,18 @@ final class PAIAService: ObservableObject {
 
     // MARK: - Private Methods
 
+    /// Beendet die Session wie `logout()` und merkt sich, dass sie abgelaufen ist.
+    private func expireSession() {
+        logout()
+        sessionExpired = true
+    }
+
     /// Führt ein authentifiziertes GET gegen `core/{patron}/{path}` aus und
     /// dekodiert die Antwort. Wirft `.sessionExpired`, wenn der Server die
     /// Session ablehnt oder das Token bereits lokal abgelaufen ist.
     private func performAuthorizedGET<T: Decodable>(path: String) async throws -> T {
         if let tokenExpiryDate, Date() >= tokenExpiryDate {
-            logout()
+            expireSession()
             throw PAIAError.sessionExpired
         }
 
@@ -230,7 +243,7 @@ final class PAIAService: ObservableObject {
         }
 
         if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-            logout()
+            expireSession()
             throw PAIAError.sessionExpired
         }
 

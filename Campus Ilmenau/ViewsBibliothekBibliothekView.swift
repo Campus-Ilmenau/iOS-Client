@@ -7,123 +7,105 @@
 
 import SwiftUI
 
+/// Verbindet `BibliothekScreen` mit dem `PAIAService`: Sitzung, Sheets, Laden und Verlängern.
 struct BibliothekView: View {
     @StateObject private var service = PAIAService.shared
     @State private var showLoginSheet = false
     @State private var showNotificationsSheet = false
+    @State private var showCatalog = false
+    @State private var returningFromCatalog = false
+    @Environment(\.merkliste) private var merkliste
+    @State private var showsMerkliste = false
+    @State private var openedTitle: LibraryTitleRoute?
+    // Die Katalog-API für die Details eines Mediums; Cover-Zwischenspeicher gilt, solange die Seite offen ist.
+    @State private var catalogService: LibraryCatalogService
+    @State private var coverLoader: LibraryCoverLoader
+    @State private var toastMessage = ""
+    @State private var showToast = false
+
+    init() {
+        let service = LibraryCatalogService()
+        _catalogService = State(initialValue: service)
+        _coverLoader = State(initialValue: LibraryCoverLoader(service: service))
+    }
 
     var body: some View {
-        content
-            .navigationTitle("Bibliothek")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                if service.isAuthenticated {
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        notificationsButton
-                        Button("Abmelden", role: .destructive) {
-                            service.logout()
-                        }
-                    }
-                }
-            }
-            .onAppear {
-                if !service.isAuthenticated {
-                    showLoginSheet = true
-                }
-            }
-            .onChange(of: service.isAuthenticated) { _, isAuthenticated in
-                if !isAuthenticated {
-                    showLoginSheet = true
-                }
-            }
-            .sheet(isPresented: $showLoginSheet) {
-                PAIALoginSheet(service: service) {
-                    showLoginSheet = false
-                    Task { await loadData() }
-                }
-            }
-            .sheet(isPresented: $showNotificationsSheet) {
-                PAIANotificationsView(service: service)
-            }
-    }
-
-    private var notificationsButton: some View {
-        Button {
-            showNotificationsSheet = true
-        } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "bell")
-                if !service.notifications.isEmpty {
-                    Circle()
-                        .fill(Color(.danger))
-                        .frame(width: 8, height: 8)
-                        .offset(x: 4, y: -4)
-                }
+        BibliothekScreen(
+            session: service.isAuthenticated
+                ? .signedIn(username: service.lastUsername)
+                : .signedOut(expired: service.sessionExpired),
+            items: service.items,
+            notificationCount: service.notifications.count,
+            isLoading: service.isLoading,
+            errorMessage: Binding(
+                get: { service.errorMessage },
+                set: { service.errorMessage = $0 }
+            ),
+            onOpenNotifications: { showNotificationsSheet = true },
+            onOpenCatalog: {
+                returningFromCatalog = true
+                showCatalog = true
+            },
+            onLogin: { showLoginSheet = true },
+            onLogout: { service.logout() },
+            onRenew: { item in Task { await renew(item) } },
+            onRefresh: { await loadData() },
+            onOpenTitle: { openedTitle = $0 },
+            merklisteCount: merkliste.anzahl,
+            onOpenMerkliste: { showsMerkliste = true }
+        )
+        // Die Navigationsleiste bleibt vorerst für den Zurück-Pfeil, bis die TabBar die Navigation übernimmt.
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toast(LocalizedStringKey(toastMessage), isPresented: $showToast)
+        .task(id: service.isAuthenticated) {
+            if service.isAuthenticated {
+                await loadData()
             }
         }
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        if service.isAuthenticated {
-            loanList
-        } else {
-            placeholder
-        }
-    }
-
-    private var placeholder: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "books.vertical.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(Color(.accent))
-            Text("Bibliothek")
-                .font(.title)
-            Text("Melde dich an, um deine ausgeliehenen Medien zu sehen.")
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            Button("Anmelden") {
+        .onAppear {
+            // Nach der Rückkehr aus dem Katalog soll das Sheet nicht erneut aufspringen.
+            if returningFromCatalog {
+                returningFromCatalog = false
+                return
+            }
+            if !service.isAuthenticated {
                 showLoginSheet = true
             }
-            .buttonStyle(.borderedProminent)
         }
-        .padding()
-    }
-
-    private var loanList: some View {
-        List {
-            if let errorMessage = service.errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundStyle(Color(.danger))
-                }
-            }
-
-            if service.items.isEmpty && !service.isLoading {
-                ContentUnavailableView(
-                    "Keine ausgeliehenen Medien",
-                    systemImage: "books.vertical",
-                    description: Text("Du hast aktuell keine Medien ausgeliehen, vorgemerkt oder bestellt.")
-                )
-            } else {
-                ForEach(service.items) { item in
-                    PAIALoanItemRow(item: item) {
-                        Task { await renew(item) }
-                    }
-                }
+        .onChange(of: service.isAuthenticated) { _, isAuthenticated in
+            if !isAuthenticated {
+                showLoginSheet = true
             }
         }
-        .overlay {
-            if service.isLoading && service.items.isEmpty {
-                ProgressView()
-            }
+        .sheet(isPresented: $showLoginSheet) {
+            PAIALoginSheet(service: service, onSuccess: {
+                showLoginSheet = false
+                Task { await loadData() }
+            }, onOpenCatalog: {
+                showLoginSheet = false
+                returningFromCatalog = true
+                showCatalog = true
+            })
         }
-        .refreshable {
-            await loadData()
+        .navigationDestination(isPresented: $showsMerkliste) {
+            BibMerklisteView(service: catalogService, coverLoader: coverLoader)
         }
-        .task {
-            await loadData()
+        .navigationDestination(item: $openedTitle) { route in
+            LibraryTitleView(
+                media: route.media,
+                searchId: nil,
+                service: catalogService,
+                coverLoader: coverLoader,
+                origin: .library
+            )
+        }
+        .navigationDestination(isPresented: $showCatalog) {
+            LibraryCatalogView(autofocus: true)
+        }
+        .sheet(isPresented: $showNotificationsSheet) {
+            PAIANotificationsView(service: service)
         }
     }
 
@@ -132,8 +114,23 @@ struct BibliothekView: View {
         try? await service.fetchNotifications()
     }
 
+    /// Verlängert nach der Rückfrage der Karte. Bei Erfolg Toast mit dem neuen Datum, bei Ablehnung
+    /// setzt der Service `errorMessage` („Verlängerung fehlgeschlagen: …“), die der Fehlerkasten zeigt.
     private func renew(_ item: PAIALoanItem) async {
-        try? await service.renew(item)
+        let oldEnd = item.endtime
+        do {
+            try await service.renew(item)
+        } catch {
+            return
+        }
+        service.errorMessage = nil
+        let newEnd = service.items.first { $0.item == item.item }?.endtime
+        if let newEnd, newEnd != oldEnd {
+            toastMessage = "Verlängert bis \(BibliothekFormat.shortDate(newEnd))"
+        } else {
+            toastMessage = "Verlängert"
+        }
+        showToast = true
     }
 }
 
