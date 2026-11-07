@@ -20,9 +20,13 @@ struct Campus_IlmenauApp: App {
 
 private struct RootView: View {
     @State private var showLaunchAnimation = true
+    /// Einstellung „Darstellung“ unter „Mehr“.
+    @AppStorage(AppDarstellung.schluessel) private var darstellung = AppDarstellung.system
 
     var body: some View {
         ContentView()
+            .preferredColorScheme(darstellung.colorScheme)
+            .environment(\.merkliste, BibMerklisteStore.shared)
             .launchAnimation(isPresented: $showLaunchAnimation)
     }
 }

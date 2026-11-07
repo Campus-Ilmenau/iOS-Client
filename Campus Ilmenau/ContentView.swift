@@ -6,117 +6,67 @@
 //
 
 import SwiftUI
-import Combine
 
+/// Hülle der App: der gewählte Tab und darunter die Tab-Leiste.
 struct ContentView: View {
-    @State private var currentDate = Date()
-    
-    // Timer für automatische Datum-Aktualisierung
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
-    
-    // Dashboard-Kacheln
-    private let dashboardItems: [DashboardItem] = [
-        DashboardItem(
-            title: "Mensa Essen",
-            color: Color(.brandOrange),
-            destination: MensaView()
-        ),
-        DashboardItem(
-            title: "Thoska Guthaben",
-            color: Color(.blue),
-            destination: ThoskaView()
-        ),
-        DashboardItem(
-            title: "Stundenplan",
-            color: Color(.green),
-            destination: StundenplanView()
-        ),
-        DashboardItem(
-            title: "Bibliothek",
-            color: Color(.brandDusk),
-            destination: BibliothekView()
-        ),
-        DashboardItem(
-            title: "Campus Karte",
-            color: Color(.danger),
-            destination: CampusMapView()
-        ),
-        DashboardItem(
-            title: "ÖPNV",
-            color: Color(.brandNight),
-            destination: OEPNVView()
-        )
-    ]
-    
+    @State private var router = AppRouter()
+    /// Tabs werden erst beim ersten Besuch aufgebaut (sonst lädt jeder Tab schon beim Start) und danach behalten.
+    @State private var besuchteTabs: Set<AppTab> = [.heute]
+    @State private var tastaturSichtbar = false
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header mit Begrüßung
-                    VStack(spacing: 8) {
-                        Text(greeting)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                        
-                        Text(formattedDate)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+        @Bindable var router = router
+        // Inhalt und Leiste liegen untereinander (kein `safeAreaInset`): Der Inhalt endet über der Leiste, und die
+        // Leiste wandert nicht mit der Tastatur nach oben, sondern verschwindet, solange diese sichtbar ist.
+        VStack(spacing: 0) {
+            ZStack {
+                ForEach(AppTab.allCases) { tab in
+                    if besuchteTabs.contains(tab) {
+                        inhalt(tab)
+                            .opacity(tab == router.tab ? 1 : 0)
+                            .allowsHitTesting(tab == router.tab)
+                            .accessibilityHidden(tab != router.tab)
                     }
-                    .padding(.top, 20)
-                    
-                    // Adaptives Grid mit Kacheln
-                    LazyVGrid(
-                        columns: gridColumns,
-                        spacing: 16
-                    ) {
-                        ForEach(dashboardItems) { item in
-                            NavigationLink(destination: item.destination) {
-                                DashboardTile(item: item)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal)
                 }
-                .padding(.bottom, 20)
             }
-            .background(Color(.background))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if !tastaturSichtbar {
+                TabBar(selection: $router.tab)
+            }
         }
-        .onReceive(timer) { _ in
-            currentDate = Date()
+        .background(Color(.background))
+        .environment(router)
+        .onChange(of: router.tab) { _, neu in besuchteTabs.insert(neu) }
+        .task { await beobachteTastatur() }
+    }
+
+    /// Setzt `tastaturSichtbar` nach den Tastatur-Meldungen des Systems. `willShow` kommt vor der Animation,
+    /// damit die Leiste nicht erst kurz mit hochfährt.
+    private func beobachteTastatur() async {
+        await withTaskGroup(of: Void.self) { gruppe in
+            gruppe.addTask { @MainActor in
+                for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillShowNotification) {
+                    tastaturSichtbar = true
+                }
+            }
+            gruppe.addTask { @MainActor in
+                for await _ in NotificationCenter.default.notifications(named: UIResponder.keyboardWillHideNotification) {
+                    tastaturSichtbar = false
+                }
+            }
         }
     }
-    
-    // Adaptives Grid: iPhone 2 Spalten, iPad mehr
-    private var gridColumns: [GridItem] {
-        [GridItem(.adaptive(minimum: 160, maximum: 200), spacing: 16)]
-    }
-    
-    // Tagesabhängige Begrüßung
-    private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: currentDate)
-        
-        switch hour {
-        case 0..<6:
-            return "Hallo Nachteule"
-        case 6..<12:
-            return "Moin!"
-        case 12..<18:
-            return "Guten Tag"
-        case 18..<22:
-            return "Guten Abend"
-        default:
-            return "Hallo Nachteule"
+
+    @ViewBuilder
+    private func inhalt(_ tab: AppTab) -> some View {
+        switch tab {
+        case .heute: HeuteView()
+        case .mensa: NavigationStack { MensaView() }
+        case .thoska: NavigationStack { ThoskaView() }
+        case .bibliothek: NavigationStack { BibliothekView() }
+        case .events: EventsView()
         }
-    }
-    
-    // Formatiertes Datum: "Montag der 26. Okt. 2026"
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
-        formatter.dateFormat = "EEEE 'der' dd. MMM yyyy"
-        return formatter.string(from: currentDate)
     }
 }
 
