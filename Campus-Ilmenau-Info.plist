@@ -6,6 +6,14 @@
 	<array>
 		<string>D2760000850100</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Damit du Veranstaltungen in deinen Kalender übernehmen kannst.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Die Kamera wird nur genutzt, um die Benutzernummer von deiner Thoska zu lesen. Es werden keine Bilder gespeichert.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Damit du geteilte Bilder in deinen Fotos sichern kannst.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PlusJakartaSans-Regular.ttf</string>
