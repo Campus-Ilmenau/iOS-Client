@@ -7,16 +7,21 @@ import Observation
 @Observable
 final class EventsMerkStore {
     /// Der Speicher der App.
-    static let shared = EventsMerkStore()
+    static let shared = EventsMerkStore(widgetSync: .shared)
 
     /// IDs der gemerkten Veranstaltungen.
     private(set) var ids: Set<String> = []
 
     @ObservationIgnored private let fileURL: URL?
+    /// Gibt Änderungen an die Widgets weiter. `nil` in Previews und Tests.
+    @ObservationIgnored private let widgetSync: WidgetSync?
 
-    /// - Parameter fileURL: Ort der Datei. `nil` hält die IDs nur im Speicher (Previews, Tests).
-    init(fileURL: URL? = EventsMerkStore.defaultFileURL) {
+    /// - Parameters:
+    ///   - fileURL: Ort der Datei. `nil` hält die IDs nur im Speicher (Previews, Tests).
+    ///   - widgetSync: Wohin sich Änderungen melden; nur der Speicher der App setzt es.
+    init(fileURL: URL? = EventsMerkStore.defaultFileURL, widgetSync: WidgetSync? = nil) {
         self.fileURL = fileURL
+        self.widgetSync = widgetSync
         laden()
     }
 
@@ -40,6 +45,7 @@ final class EventsMerkStore {
             ids.insert(id)
         }
         speichern()
+        widgetSync?.speichereMerkliste(ids)
         return ids.contains(id)
     }
 

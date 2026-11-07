@@ -2,31 +2,9 @@ import Foundation
 
 // MARK: - Mensa
 
-/// Woher die Heute-Seite Speiseplan und Öffnungszeiten holt. Tests und Previews setzen eine eigene Quelle.
-@MainActor
-protocol HeuteMensaDatenquelle {
-    /// Alle gelieferten Gerichte aller Mensen für den Tag.
-    func speiseplan(am tag: Date) async throws -> [MensaMeal]
-    func mensen() async throws -> [Canteen]
-}
-
-/// Die echte Quelle. Jede Anfrage bekommt einen eigenen `MensaService`, weil dieser nur ein gemeinsames `meals`-Feld hat
-/// und parallele Anfragen sich sonst überschreiben würden.
-@MainActor
-struct MensaHeuteQuelle: HeuteMensaDatenquelle {
-    func speiseplan(am tag: Date) async throws -> [MensaMeal] {
-        let service = MensaService()
-        // Mittag des Berliner Tages, damit der API-Tag auch bei anderer Gerätezeitzone stimmt.
-        try await service.fetchMeals(date: HeuteUhr.datum(am: tag, minuten: 12 * 60))
-        return service.meals
-    }
-
-    func mensen() async throws -> [Canteen] {
-        let service = MensaService()
-        try await service.fetchCanteens()
-        return service.canteens
-    }
-}
+/// Woher die Heute-Seite Speiseplan und Öffnungszeiten holt (`MensaDatenquelle`, gemeinsam mit dem Widget).
+/// Tests und Previews setzen eine eigene Quelle.
+typealias HeuteMensaDatenquelle = MensaDatenquelle
 
 // MARK: - Hinweise
 
@@ -85,31 +63,4 @@ protocol HinweiseQuelle {
 /// Platzhalter, bis der Server Hinweise liefert: keine Hinweise, der Abschnitt entfällt.
 struct LeereHinweiseQuelle: HinweiseQuelle {
     func hinweise(jetzt: Date) async throws -> [Hinweis] { [] }
-}
-
-// MARK: - Zeitlimit
-
-private struct HeuteZeitablauf: Error {}
-
-/// Führt `arbeit` mit Zeitlimit aus. Fehler und Zeitablauf ergeben `nil`, die Seite hängt nie.
-/// Bei Abbruch der Aufgabe kommt ebenfalls `nil`.
-@MainActor
-func heuteMitZeitlimit<T: Sendable>(
-    _ limit: Duration,
-    _ arbeit: @escaping @MainActor @Sendable () async throws -> T
-) async -> T? {
-    do {
-        return try await withThrowingTaskGroup(of: T.self) { gruppe in
-            gruppe.addTask { try await arbeit() }
-            gruppe.addTask {
-                try await Task.sleep(for: limit)
-                throw HeuteZeitablauf()
-            }
-            defer { gruppe.cancelAll() }
-            guard let erstes = try await gruppe.next() else { throw HeuteZeitablauf() }
-            return erstes
-        }
-    } catch {
-        return nil
-    }
 }

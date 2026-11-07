@@ -14,6 +14,8 @@ struct BibliothekView: View {
     @State private var showNotificationsSheet = false
     @State private var showCatalog = false
     @State private var returningFromCatalog = false
+    /// Wunsch aus dem Link `campusilmenau://katalog/suche`: Katalogsuche mit offener Tastatur, ohne Anmeldung.
+    @Environment(AppRouter.self) private var router: AppRouter?
     @Environment(\.merkliste) private var merkliste
     @State private var showsMerkliste = false
     @State private var openedTitle: LibraryTitleRoute?
@@ -64,7 +66,10 @@ struct BibliothekView: View {
                 await loadData()
             }
         }
+        .onChange(of: router?.katalogSuche) { _, _ in oeffneKatalogAufWunsch() }
         .onAppear {
+            // Ein Link zur Katalogsuche geht vor: Die Suche braucht keine Anmeldung, das Sheet bleibt zu.
+            if oeffneKatalogAufWunsch() { return }
             // Nach der Rückkehr aus dem Katalog soll das Sheet nicht erneut aufspringen.
             if returningFromCatalog {
                 returningFromCatalog = false
@@ -107,6 +112,18 @@ struct BibliothekView: View {
         .sheet(isPresented: $showNotificationsSheet) {
             PAIANotificationsView(service: service)
         }
+    }
+
+    /// Öffnet die Katalogsuche, wenn ein Link es wünscht. Gibt zurück, ob sie geöffnet wurde.
+    /// `returningFromCatalog` verhindert, dass beim Zurückkommen das Anmelde-Sheet aufspringt.
+    @discardableResult
+    private func oeffneKatalogAufWunsch() -> Bool {
+        guard router?.katalogSuche == true else { return false }
+        router?.katalogSuche = false
+        showLoginSheet = false
+        returningFromCatalog = true
+        showCatalog = true
+        return true
     }
 
     private func loadData() async {

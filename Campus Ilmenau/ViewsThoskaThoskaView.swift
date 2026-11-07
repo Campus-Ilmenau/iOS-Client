@@ -17,6 +17,9 @@ struct ThoskaView: View {
     @Query private var cardNames: [ThoskaCardName]
     /// Bleibt nach dem ersten erfolgreichen Auslesen sichtbar, bis die Ansicht verlassen wird.
     @State private var showsConfirmation = false
+    /// Wunsch aus dem Link `campusilmenau://thoska/auslesen`: Auslesen sofort starten.
+    @Environment(AppRouter.self) private var router: AppRouter?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ThoskaScreen(
@@ -37,6 +40,17 @@ struct ThoskaView: View {
             // Jedes erfolgreiche Auslesen landet im Verlauf. Die Daten bleiben nur auf dem Gerät.
             modelContext.insert(ThoskaBalanceRecord(balance))
         }
+        .onAppear { startetAuslesenAufWunsch() }
+        .onChange(of: router?.thoskaAuslesen) { _, _ in startetAuslesenAufWunsch() }
+        .onChange(of: scenePhase) { _, _ in startetAuslesenAufWunsch() }
+    }
+
+    /// Startet das NFC-Sheet, wenn ein Link es wünscht. Die Sitzung braucht eine aktive App; bei einem Kaltstart
+    /// über den Link wartet der Wunsch, bis die Szene aktiv ist.
+    private func startetAuslesenAufWunsch() {
+        guard router?.thoskaAuslesen == true, scenePhase == .active else { return }
+        router?.thoskaAuslesen = false
+        reader.scan()
     }
 }
 

@@ -47,8 +47,8 @@ struct MehrScreen: View {
     let onAbmelden: () -> Void
 
     @AppStorage(AppDarstellung.schluessel) private var darstellung = AppDarstellung.system
-    @AppStorage(HeuteMensaSpeicher.schluessel) private var heuteMensa = MensaVenue.mensaEhrenberg
-    @AppStorage(MensaPriceGroup.storageKey) private var preisgruppe = MensaPriceGroup.studierende
+    @AppStorage(HeuteMensaSpeicher.schluessel, store: AppGroup.defaults) private var heuteMensa = MensaVenue.mensaEhrenberg
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var preisgruppe = MensaPriceGroup.studierende
 
     @Environment(\.openURL) private var openURL
     @State private var aktuellesIcon = AlternativeAppIcons.aktuell

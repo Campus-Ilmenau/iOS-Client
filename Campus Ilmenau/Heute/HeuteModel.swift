@@ -43,6 +43,8 @@ final class HeuteModel {
     @ObservationIgnored private let ausblendSpeicher: HinweiseAusblendSpeicher
     @ObservationIgnored private let preisgruppe: () -> MensaPriceGroup
     @ObservationIgnored private let zeitlimit: Duration
+    /// Schreibt, was geladen wurde, für die Widgets. `nil` in Tests, die den Speicher nicht berühren sollen.
+    @ObservationIgnored private let widgetSync: WidgetSync?
     @ObservationIgnored private var geladenAm: Date?
     @ObservationIgnored private var geladenePhase: Tagesphase?
 
@@ -54,10 +56,11 @@ final class HeuteModel {
         mensaSpeicher: HeuteMensaSpeicher = HeuteMensaSpeicher(),
         ausblendSpeicher: HinweiseAusblendSpeicher = HinweiseAusblendSpeicher(),
         preisgruppe: @escaping () -> MensaPriceGroup = {
-            UserDefaults.standard.string(forKey: MensaPriceGroup.storageKey).flatMap(MensaPriceGroup.init(rawValue:))
+            AppGroup.defaults.string(forKey: MensaPriceGroup.storageKey).flatMap(MensaPriceGroup.init(rawValue:))
                 ?? .studierende
         },
-        zeitlimit: Duration = .seconds(8)
+        zeitlimit: Duration = .seconds(8),
+        widgetSync: WidgetSync? = nil
     ) {
         self.now = now
         self.mensaQuelle = mensaQuelle ?? MensaHeuteQuelle()
@@ -67,6 +70,7 @@ final class HeuteModel {
         self.ausblendSpeicher = ausblendSpeicher
         self.preisgruppe = preisgruppe
         self.zeitlimit = zeitlimit
+        self.widgetSync = widgetSync
         self.mensa = mensaSpeicher.venue
         self.jetzt = now()
         self.ausgeblendeteHinweise = ausblendSpeicher.ids
@@ -145,6 +149,20 @@ final class HeuteModel {
         }
         jetzt = now()
         istGeladen = true
+        schreibeWidgetSpeicher(mensaQuelle: mensaQuelle)
+    }
+
+    /// Gibt Speiseplan, Öffnungszeiten, Events und Merkliste an die Widgets weiter. Die Suche nach dem nächsten
+    /// Öffnungstag läuft für sich, damit die Seite nicht darauf wartet.
+    private func schreibeWidgetSpeicher(mensaQuelle: any HeuteMensaDatenquelle) {
+        guard let widgetSync else { return }
+        let zeit = jetzt
+        let mensen = mensen, heute = speiseplanHeute, morgen = speiseplanMorgen
+        widgetSync.speichereEvents(heute: eventsAbend, morgen: eventsMorgen, jetzt: zeit)
+        widgetSync.speichereMerkliste(EventsMerkStore.shared.ids)
+        Task {
+            await widgetSync.speichereMensa(mensen: mensen, heute: heute, morgen: morgen, quelle: mensaQuelle, jetzt: zeit)
+        }
     }
 
     /// Stellt die Uhr nach und lädt neu, wenn der Tag oder die Tagesphase gewechselt hat oder die Daten älter als

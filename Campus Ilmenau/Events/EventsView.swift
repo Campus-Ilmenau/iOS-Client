@@ -10,7 +10,7 @@ struct EventsView: View {
     @Environment(AppRouter.self) private var router: AppRouter?
 
     init(model: EventsModel? = nil) {
-        _model = State(initialValue: model ?? EventsModel())
+        _model = State(initialValue: model ?? EventsModel(widgetSync: .shared))
     }
 
     var body: some View {
@@ -57,6 +57,16 @@ struct EventsView: View {
                             pfad = []
                         }
                     )
+                case .detailID(let id):
+                    EventDetailView(
+                        model: EventDetailModel(id: id, quelle: model.quelle),
+                        onAlleVonVeranstalter: { name in
+                            if let veranstalter = model.veranstalter.first(where: { $0.name == name }) {
+                                model.auswahl.waehleVeranstalter(name, id: veranstalter.id)
+                            }
+                            pfad = []
+                        }
+                    )
                 case .vergangene:
                     EventsVergangeneView(
                         quelle: model.quelle,
@@ -67,8 +77,12 @@ struct EventsView: View {
             }
         }
         .environment(\.eventsMerkStore, model.merkStore)
-        .onAppear { uebernehmeHeuteAbendWunsch() }
+        .onAppear {
+            uebernehmeHeuteAbendWunsch()
+            uebernehmeEventWunsch()
+        }
         .onChange(of: router?.eventsHeuteAbend) { _, _ in uebernehmeHeuteAbendWunsch() }
+        .onChange(of: router?.eventWunsch) { _, _ in uebernehmeEventWunsch() }
         .sheet(isPresented: $zeigtFilter) {
             EventsFilterSheet(auswahl: $model.auswahl)
         }
@@ -85,6 +99,13 @@ struct EventsView: View {
         router?.eventsHeuteAbend = false
         pfad = []
         model.auswahl = EventsAuswahl.heuteAbend(jetzt: model.jetztZeit)
+    }
+
+    /// Link `campusilmenau://events/<id>`: öffnet das Detail über der Liste.
+    private func uebernehmeEventWunsch() {
+        guard let id = router?.eventWunsch else { return }
+        router?.eventWunsch = nil
+        pfad = [.detailID(id)]
     }
 }
 

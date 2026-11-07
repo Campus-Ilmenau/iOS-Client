@@ -12,7 +12,7 @@ struct MensaMealDetailView: View {
     let meal: MensaMeal
     var canteens: [Canteen] = []
 
-    @AppStorage(MensaPriceGroup.storageKey) private var priceGroup: MensaPriceGroup = .studierende
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var priceGroup: MensaPriceGroup = .studierende
     @State private var isFavorite: Bool
 
     init(meal: MensaMeal, canteens: [Canteen] = []) {

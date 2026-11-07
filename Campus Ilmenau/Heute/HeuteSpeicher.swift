@@ -1,13 +1,14 @@
 import Foundation
 
 /// Die Mensa auf der Startseite. Sie gilt für die Jetzt-Karte und „Als Nächstes“ und ist unabhängig von der Auswahl im
-/// Mensa-Tab. „Mehr“ und das Auswahl-Sheet auf Heute schreiben hierher.
+/// Mensa-Tab. „Mehr“ und das Auswahl-Sheet auf Heute schreiben hierher. Der Wert liegt in der App Group, damit die
+/// Mensa-Widgets dieselbe Mensa zeigen.
 final class HeuteMensaSpeicher {
-    static let schluessel = "heuteMensa"
+    static let schluessel = AppGroup.heuteMensaSchluessel
 
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AppGroup.defaults) {
         self.defaults = defaults
     }
 

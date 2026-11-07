@@ -7,17 +7,82 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E71AA82309FD4780043D99E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E71AA81309FD4780043D99E /* WidgetKit.framework */; };
+		0E71AA84309FD4780043D99E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E71AA83309FD4780043D99E /* SwiftUI.framework */; };
+		0E71AA91309FD4790043D99E /* CampusWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0E71AA7F309FD4780043D99E /* CampusWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0E71AB02309FD4790043D99E /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB01309FD4790043D99E /* Colors.xcassets */; };
+		0E71AB20309FD4790043D99E /* PlusJakartaSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB10309FD4790043D99E /* PlusJakartaSans-Regular.ttf */; };
+		0E71AB21309FD4790043D99E /* PlusJakartaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB11309FD4790043D99E /* PlusJakartaSans-Medium.ttf */; };
+		0E71AB22309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB12309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf */; };
+		0E71AB23309FD4790043D99E /* PlusJakartaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */; };
+		0E71AB24309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */; };
 		0EBED7F4308F5273009A8BEC /* APIConfig.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0E71AA8F309FD4790043D99E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0E7D873C3048BC3C005E1A2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0E71AA7E309FD4780043D99E;
+			remoteInfo = CampusWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0E71AA96309FD4790043D99E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0E71AA91309FD4790043D99E /* CampusWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0E6AD2C3308F9EF200A878C0 /* Campus-Ilmenau-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Campus-Ilmenau-Info.plist"; sourceTree = "<group>"; };
+		0E71AA7F309FD4780043D99E /* CampusWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CampusWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E71AA81309FD4780043D99E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
+		0E71AA83309FD4780043D99E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
+		0E71AB01309FD4790043D99E /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = "Design/Logo 2026/Farben/Colors.xcassets"; sourceTree = "<group>"; };
+		0E71AB10309FD4790043D99E /* PlusJakartaSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-Regular.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-Regular.ttf"; sourceTree = "<group>"; };
+		0E71AB11309FD4790043D99E /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-Medium.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
+		0E71AB12309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-SemiBold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
+		0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-Bold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-Bold.ttf"; sourceTree = "<group>"; };
+		0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-ExtraBold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Campus IlmenauTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Campus Ilmenau.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = APIConfig.swift.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0E71AA92309FD4790043D99E /* Exceptions for "CampusWidgets" folder in "CampusWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0E71AA85309FD4780043D99E /* CampusWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0E71AA92309FD4790043D99E /* Exceptions for "CampusWidgets" folder in "CampusWidgetsExtension" target */,
+			);
+			path = CampusWidgets;
+			sourceTree = "<group>";
+		};
+		0E71AB00309FD4790043D99E /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Campus IlmenauTests";
@@ -31,6 +96,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0E71AA7C309FD4780043D99E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E71AA84309FD4780043D99E /* SwiftUI.framework in Frameworks */,
+				0E71AA82309FD4780043D99E /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7CCFC6309B3F900069A9C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -48,6 +122,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0E71AA80309FD4780043D99E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0E71AA81309FD4780043D99E /* WidgetKit.framework */,
+				0E71AA83309FD4780043D99E /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0E71AB30309FD4790043D99E /* Widget-Ressourcen */ = {
+			isa = PBXGroup;
+			children = (
+				0E71AB01309FD4790043D99E /* Colors.xcassets */,
+				0E71AB10309FD4790043D99E /* PlusJakartaSans-Regular.ttf */,
+				0E71AB11309FD4790043D99E /* PlusJakartaSans-Medium.ttf */,
+				0E71AB12309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf */,
+				0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */,
+				0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */,
+			);
+			name = "Widget-Ressourcen";
+			sourceTree = "<group>";
+		};
 		0E7D873B3048BC3C005E1A2C = {
 			isa = PBXGroup;
 			children = (
@@ -55,6 +151,10 @@
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
 				0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */,
 				0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */,
+				0E71AA85309FD4780043D99E /* CampusWidgets */,
+				0E71AB00309FD4790043D99E /* Shared */,
+				0E71AB30309FD4790043D99E /* Widget-Ressourcen */,
+				0E71AA80309FD4780043D99E /* Frameworks */,
 				0E7D87453048BC3C005E1A2C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +164,7 @@
 			children = (
 				0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */,
 				0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */,
+				0E71AA7F309FD4780043D99E /* CampusWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,6 +172,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E71AA93309FD4790043D99E /* Build configuration list for PBXNativeTarget "CampusWidgetsExtension" */;
+			buildPhases = (
+				0E71AA7B309FD4780043D99E /* Sources */,
+				0E71AA7C309FD4780043D99E /* Frameworks */,
+				0E71AA7D309FD4780043D99E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0E71AA85309FD4780043D99E /* CampusWidgets */,
+				0E71AB00309FD4790043D99E /* Shared */,
+			);
+			name = CampusWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = CampusWidgetsExtension;
+			productReference = 0E71AA7F309FD4780043D99E /* CampusWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		0E7CCFC8309B3F900069A9C8 /* Campus IlmenauTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0E7CCFCD309B3F900069A9C8 /* Build configuration list for PBXNativeTarget "Campus IlmenauTests" */;
@@ -100,12 +224,15 @@
 				0E7D87403048BC3C005E1A2C /* Sources */,
 				0E7D87413048BC3C005E1A2C /* Frameworks */,
 				0E7D87423048BC3C005E1A2C /* Resources */,
+				0E71AA96309FD4790043D99E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				0E71AA90309FD4790043D99E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				0E71AB00309FD4790043D99E /* Shared */,
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
 			);
 			name = "Campus Ilmenau";
@@ -125,6 +252,9 @@
 				LastSwiftUpdateCheck = 2720;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					0E71AA7E309FD4780043D99E = {
+						CreatedOnToolsVersion = 27.2;
+					};
 					0E7CCFC8309B3F900069A9C8 = {
 						CreatedOnToolsVersion = 27.2;
 					};
@@ -150,11 +280,25 @@
 			targets = (
 				0E7D87433048BC3C005E1A2C /* Campus Ilmenau */,
 				0E7CCFC8309B3F900069A9C8 /* Campus IlmenauTests */,
+				0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0E71AA7D309FD4780043D99E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E71AB02309FD4790043D99E /* Colors.xcassets in Resources */,
+				0E71AB20309FD4790043D99E /* PlusJakartaSans-Regular.ttf in Resources */,
+				0E71AB21309FD4790043D99E /* PlusJakartaSans-Medium.ttf in Resources */,
+				0E71AB22309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf in Resources */,
+				0E71AB23309FD4790043D99E /* PlusJakartaSans-Bold.ttf in Resources */,
+				0E71AB24309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7CCFC7309B3F900069A9C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -173,6 +317,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0E71AA7B309FD4780043D99E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E7CCFC5309B3F900069A9C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -189,7 +340,99 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		0E71AA90309FD4790043D99E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */;
+			targetProxy = 0E71AA8F309FD4790043D99E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0E71AA94309FD4790043D99E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = CampusWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CampusWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CampusWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.CampusWidgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 27.2;
+			};
+			name = Debug;
+		};
+		0E71AA95309FD4790043D99E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = CampusWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CampusWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CampusWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.CampusWidgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 27.2;
+			};
+			name = Release;
+		};
 		0E7CCFCE309B3F900069A9C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -457,6 +700,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0E71AA93309FD4790043D99E /* Build configuration list for PBXNativeTarget "CampusWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E71AA94309FD4790043D99E /* Debug */,
+				0E71AA95309FD4790043D99E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		0E7CCFCD309B3F900069A9C8 /* Build configuration list for PBXNativeTarget "Campus IlmenauTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

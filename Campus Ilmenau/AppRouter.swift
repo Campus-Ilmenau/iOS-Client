@@ -34,4 +34,44 @@ final class AppRouter {
         eventsHeuteAbend = true
         tab = .events
     }
+
+    // MARK: Deeplinks
+
+    /// Ein Gericht, das der Mensa-Tab beim nächsten Erscheinen öffnen soll (Link aus dem Widget).
+    struct GerichtWunsch: Equatable {
+        let id: String
+        /// Berliner Tag `yyyy-MM-dd`, an dem es das Gericht gibt; `nil` heißt heute.
+        let tag: String?
+    }
+
+    var gerichtWunsch: GerichtWunsch?
+    /// Der Events-Tab öffnet beim nächsten Erscheinen das Detail dieser Veranstaltung.
+    var eventWunsch: String?
+    /// Der Thoska-Tab startet beim nächsten Erscheinen sofort das Auslesen (NFC-Sheet).
+    var thoskaAuslesen = false
+    /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche mit offener Tastatur.
+    var katalogSuche = false
+
+    /// Wählt Tab und Ziel zu einem Deeplink (`campusilmenau://…`). Die Tabs lesen den Wunsch beim Erscheinen,
+    /// auch wenn sie erst durch den Link zum ersten Mal aufgebaut werden.
+    func oeffne(_ link: DeepLink) {
+        switch link {
+        case .mensa(let id):
+            zeigeMensa(id.flatMap(MensaVenue.init(rawValue:)))
+        case .gericht(let id, let tag):
+            gerichtWunsch = GerichtWunsch(id: id, tag: tag)
+            tab = .mensa
+        case .eventsHeuteAbend:
+            zeigeEventsHeuteAbend()
+        case .event(let id):
+            eventWunsch = id
+            tab = .events
+        case .thoskaAuslesen:
+            thoskaAuslesen = true
+            tab = .thoska
+        case .katalogSuche:
+            katalogSuche = true
+            tab = .bibliothek
+        }
+    }
 }

@@ -14,7 +14,7 @@ struct HeuteView: View {
     @Environment(AppRouter.self) private var router: AppRouter?
 
     init(model: HeuteModel? = nil) {
-        _model = State(initialValue: model ?? HeuteModel())
+        _model = State(initialValue: model ?? HeuteModel(widgetSync: .shared))
     }
 
     var body: some View {

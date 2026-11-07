@@ -1,25 +1,5 @@
 import Foundation
 
-/// Preisgruppe, deren Preis in der Liste und im Detail groß steht. Die Einstellung dafür kommt mit „Mehr“;
-/// bis dahin gilt „Studierende“ (Schlüssel `mensaPriceGroup`).
-enum MensaPriceGroup: String, CaseIterable, Identifiable {
-    case studierende
-    case bedienstete
-    case gaeste
-
-    static let storageKey = "mensaPriceGroup"
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .studierende: "Studierende"
-        case .bedienstete: "Bedienstete"
-        case .gaeste: "Gäste"
-        }
-    }
-}
-
 extension MensaMealPrice {
     /// „2,90 €“ oder „–“ bei fehlendem Preis.
     func formatted(for group: MensaPriceGroup) -> String {
@@ -54,17 +34,17 @@ struct MensaComponentInfo: Identifiable {
 }
 
 extension MensaMeal {
-    /// Nur Vegan, Vegetarisch, Bio und Regional. Ein veganes Gericht zeigt nur „Vegan“.
+    /// Nur Vegan, Vegetarisch, Bio und Regional. Ein veganes Gericht zeigt nur „Vegan“. Die Regeln liegen in
+    /// `widgetChips`, damit Liste und Widget dasselbe zeigen.
     var listChips: [MensaChipItem] {
-        var items: [MensaChipItem] = []
-        let isVegan = badges.contains("Vegan")
-        if isVegan { items.append(MensaChipItem(title: "Vegan", variant: .green)) }
-        if !isVegan, badges.contains("Vegetarisch") { items.append(MensaChipItem(title: "Vegetarisch", variant: .neutral)) }
-        if badges.contains("Bio") { items.append(MensaChipItem(title: "Bio", variant: .green)) }
-        if categories.contains(where: { $0.localizedCaseInsensitiveContains("regional") }) {
-            items.append(MensaChipItem(title: "Regional", variant: .blue))
+        widgetChips.map { chip in
+            let variant: Chip.Variant = switch chip.art {
+            case .gruen: .green
+            case .blau: .blue
+            case .neutral: .neutral
+            }
+            return MensaChipItem(title: chip.titel, variant: variant)
         }
-        return items
     }
 
     /// Wie in der Liste, dazu weitere Kategorien der API (z. B. „Kinderessen“) als neutrale Chips.

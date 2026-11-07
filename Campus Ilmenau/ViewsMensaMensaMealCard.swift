@@ -11,7 +11,7 @@ import SwiftUI
 /// Die Karte ist reine Darstellung; das Öffnen (Push) übernimmt der Aufrufer.
 struct MensaMealCard: View {
     let meal: MensaMeal
-    @AppStorage(MensaPriceGroup.storageKey) private var priceGroup: MensaPriceGroup = .studierende
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var priceGroup: MensaPriceGroup = .studierende
 
     var body: some View {
         Card {

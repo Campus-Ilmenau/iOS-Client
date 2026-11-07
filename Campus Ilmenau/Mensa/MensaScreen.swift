@@ -27,7 +27,7 @@ struct MensaScreen: View {
     /// Zeitverhalten der Ziege beim ersten Laden; gilt für alle Seiten gemeinsam.
     @State private var loader: LoadingGate
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @AppStorage(MensaPriceGroup.storageKey) private var sharePriceGroup: MensaPriceGroup = .studierende
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var sharePriceGroup: MensaPriceGroup = .studierende
 
     init(
         days: [Date],
@@ -454,7 +454,7 @@ private struct MensaVenuePage: View {
     let onResetFilter: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @AppStorage(MensaPriceGroup.storageKey) private var priceGroup: MensaPriceGroup = .studierende
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var priceGroup: MensaPriceGroup = .studierende
 
     private var isToday: Bool { Calendar.current.isDate(day, inSameDayAs: now) }
 

@@ -118,5 +118,7 @@ struct EventKarte: View {
 /// Ziele im Navigationsstapel der Veranstaltungen.
 enum EventsRoute: Hashable {
     case detail(CampusEvent)
+    /// Detail nur mit ID (Deeplink aus dem Widget): Die Ansicht lädt die Veranstaltung selbst.
+    case detailID(String)
     case vergangene
 }

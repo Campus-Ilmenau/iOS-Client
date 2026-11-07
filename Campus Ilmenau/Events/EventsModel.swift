@@ -66,14 +66,18 @@ final class EventsModel {
     @ObservationIgnored private var geladenFuer: LadeSchluessel?
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private let jetzt: @MainActor () -> Date
+    /// Gibt geladene Events an die Widgets weiter. `nil` in Previews und Tests.
+    @ObservationIgnored private let widgetSync: WidgetSync?
 
     init(
         modus: Modus = .kommende,
         auswahl: EventsAuswahl = EventsAuswahl(),
         quelle: (any EventsDatenquelle)? = nil,
         merkStore: EventsMerkStore? = nil,
-        jetzt: @escaping @MainActor () -> Date = { .now }
+        jetzt: @escaping @MainActor () -> Date = { .now },
+        widgetSync: WidgetSync? = nil
     ) {
+        self.widgetSync = widgetSync
         self.modus = modus
         self.auswahl = auswahl
         self.quelle = quelle ?? EventsService()
@@ -180,6 +184,12 @@ final class EventsModel {
             hatWeitere = ergebnis.hatWeitere
             zustand = .geladen
             geladenFuer = schluessel
+            // Was die Liste vollständig kennt, geht auch an die Widgets (nur bei „Kommende“).
+            if modus == .kommende {
+                widgetSync?.speichereEvents(
+                    aus: ergebnis.events, hatWeitere: ergebnis.hatWeitere, filter: auswahl.filter(), jetzt: jetzt()
+                )
+            }
         } catch {
             guard meine == generation, !Task.isCancelled, !(error is CancellationError) else { return }
             if still, !events.isEmpty { return }

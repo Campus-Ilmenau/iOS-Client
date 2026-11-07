@@ -39,6 +39,11 @@ struct ContentView: View {
         .environment(router)
         .onChange(of: router.tab) { _, neu in besuchteTabs.insert(neu) }
         .task { await beobachteTastatur() }
+        // Links aus Widgets und Steuerelementen: Tab wählen, Ziel öffnen.
+        .onOpenURL { url in
+            guard let link = DeepLink(url: url) else { return }
+            router.oeffne(link)
+        }
     }
 
     /// Setzt `tastaturSichtbar` nach den Tastatur-Meldungen des Systems. `willShow` kommt vor der Animation,

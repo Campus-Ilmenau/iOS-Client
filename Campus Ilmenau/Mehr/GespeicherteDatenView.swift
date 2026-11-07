@@ -11,8 +11,8 @@ struct GespeicherteDatenView: View {
     @Environment(\.eventsMerkStore) private var eventsMerkStore
 
     @AppStorage(AppDarstellung.schluessel) private var darstellung = AppDarstellung.system
-    @AppStorage(HeuteMensaSpeicher.schluessel) private var heuteMensa = MensaVenue.mensaEhrenberg
-    @AppStorage(MensaPriceGroup.storageKey) private var preisgruppe = MensaPriceGroup.studierende
+    @AppStorage(HeuteMensaSpeicher.schluessel, store: AppGroup.defaults) private var heuteMensa = MensaVenue.mensaEhrenberg
+    @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var preisgruppe = MensaPriceGroup.studierende
 
     /// Werte, die nicht beobachtbar sind, werden beim Öffnen gelesen.
     @State private var mensaFilter = MensaFilter()
