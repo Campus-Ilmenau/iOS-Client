@@ -78,9 +78,11 @@ struct EventsView: View {
         }
         .environment(\.eventsMerkStore, model.merkStore)
         .onAppear {
+            uebernehmeAlleWunsch()
             uebernehmeHeuteAbendWunsch()
             uebernehmeEventWunsch()
         }
+        .onChange(of: router?.eventsAlle) { _, _ in uebernehmeAlleWunsch() }
         .onChange(of: router?.eventsHeuteAbend) { _, _ in uebernehmeHeuteAbendWunsch() }
         .onChange(of: router?.eventWunsch) { _, _ in uebernehmeEventWunsch() }
         .sheet(isPresented: $zeigtFilter) {
@@ -99,6 +101,14 @@ struct EventsView: View {
         router?.eventsHeuteAbend = false
         pfad = []
         model.auswahl = EventsAuswahl.heuteAbend(jetzt: model.jetztZeit)
+    }
+
+    /// Link `campusilmenau://events`: die Liste ab heute, ohne die Filter vom letzten Besuch.
+    private func uebernehmeAlleWunsch() {
+        guard router?.eventsAlle == true else { return }
+        router?.eventsAlle = false
+        pfad = []
+        model.auswahl = EventsAuswahl()
     }
 
     /// Link `campusilmenau://events/<id>`: öffnet das Detail über der Liste.

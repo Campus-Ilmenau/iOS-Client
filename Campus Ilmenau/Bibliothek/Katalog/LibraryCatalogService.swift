@@ -179,31 +179,12 @@ final class LibraryCatalogService {
 
     // MARK: - Helfer (static, damit sie ohne Instanz testbar sind)
 
-    /// Baut die URL und kodiert die Werte selbst: `URLComponents` lässt ein `+` stehen, die API läse es als Leerzeichen
-    /// („C++“ würde zu „C  “).
+    /// Baut die URL und kodiert die Werte selbst (siehe `APIHilfen`).
     static func buildURL(baseURL: String, path: String, queryItems: [URLQueryItem]) -> URL? {
-        var string = baseURL + path
-        if !queryItems.isEmpty {
-            let query = queryItems.map { item in
-                "\(item.name.queryEncoded)=\((item.value ?? "").queryEncoded)"
-            }.joined(separator: "&")
-            string += "?" + query
-        }
-        return URL(string: string)
+        APIHilfen.buildURL(baseURL: baseURL, path: path, queryItems: queryItems)
     }
 
-    static var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let string = try decoder.singleValueContainer().decode(String.self)
-            if let date = LibraryDateParsing.date(from: string) { return date }
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Ungültiges Datum: \(string)")
-            )
-        }
-        return decoder
-    }
+    static var decoder: JSONDecoder { APIHilfen.decoder }
 
     static func info(from response: HTTPURLResponse) -> LibraryResponseInfo {
         let cache = response.value(forHTTPHeaderField: "X-Cache-Status")
@@ -256,41 +237,7 @@ final class LibraryCatalogService {
     }
 }
 
-// MARK: - Datum
-
-/// Die API liefert ISO-8601 mit Millisekunden (`2026-10-29T00:06:54.519Z`) und reine Daten (`2026-11-05`).
-enum LibraryDateParsing {
-    static func date(from string: String) -> Date? {
-        let withFraction = ISO8601DateFormatter()
-        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = withFraction.date(from: string) { return date }
-
-        let plain = ISO8601DateFormatter()
-        plain.formatOptions = [.withInternetDateTime]
-        if let date = plain.date(from: string) { return date }
-
-        // Reines Datum: Mittag UTC, damit der Tag in jeder Zeitzone der gleiche bleibt.
-        let parts = string.split(separator: "-").compactMap { Int($0) }
-        guard parts.count == 3, string.count == 10 else { return nil }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC") ?? .gmt
-        return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: 12))
-    }
-}
-
 // MARK: - Fehler
-
-struct LibraryErrorResponse: Decodable {
-    struct Detail: Decodable {
-        let type: String?
-        let code: String
-        let message: String
-        let param: String?
-        let requestId: String?
-    }
-
-    let error: Detail
-}
 
 enum LibraryAPIError: LocalizedError {
     case invalidURL

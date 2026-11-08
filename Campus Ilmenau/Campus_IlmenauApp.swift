@@ -13,6 +13,8 @@ struct Campus_IlmenauApp: App {
     init() {
         // „Mensa auf der Startseite“ und Preisgruppe liegen in der App Group. Bisherige Werte kommen einmalig mit.
         AppGroup.uebernimmEinstellungenEinmalig()
+        // Intents (Steuerelemente) erreichen die Navigation über denselben Router wie die Deeplinks.
+        AppRouter.gemeinsam.verbinden()
     }
 
     var body: some Scene {
@@ -37,6 +39,8 @@ private struct RootView: View {
             .preferredColorScheme(darstellung.colorScheme)
             .environment(\.merkliste, BibMerklisteStore.shared)
             .launchAnimation(isPresented: $showLaunchAnimation)
+            // Ein Ziel von außen, das beim Kaltstart eintraf, wartet bis hierher: erst Start-Animation, dann Ziel.
+            .onChange(of: showLaunchAnimation) { _, laeuft in if !laeuft { AppRouter.gemeinsam.startBeendet() } }
             .onChange(of: heuteMensa) { _, _ in WidgetSync.shared.einstellungenGeaendert() }
             .onChange(of: preisgruppe) { _, _ in WidgetSync.shared.einstellungenGeaendert() }
     }

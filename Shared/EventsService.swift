@@ -103,7 +103,7 @@ final class EventsService {
     }
 
     private func perform<T: Decodable>(path: String, queryItems: [URLQueryItem]) async throws -> T {
-        guard let url = LibraryCatalogService.buildURL(baseURL: baseURL, path: path, queryItems: queryItems) else {
+        guard let url = APIHilfen.buildURL(baseURL: baseURL, path: path, queryItems: queryItems) else {
             throw EventsAPIError.invalidURL
         }
         var request = URLRequest(url: url)
@@ -131,14 +131,14 @@ final class EventsService {
             throw Self.fehler(aus: data, status: http.statusCode)
         }
         do {
-            return try LibraryCatalogService.decoder.decode(T.self, from: data)
+            return try APIHilfen.decoder.decode(T.self, from: data)
         } catch {
             throw EventsAPIError.decodingError(error)
         }
     }
 
     static func fehler(aus data: Data, status: Int) -> EventsAPIError {
-        let detail = (try? LibraryCatalogService.decoder.decode(LibraryErrorResponse.self, from: data))?.error
+        let detail = (try? APIHilfen.decoder.decode(LibraryErrorResponse.self, from: data))?.error
         if status == 404 { return .notFound }
         if let detail {
             return .apiError(statusCode: status, code: detail.code, message: detail.message, param: detail.param)

@@ -570,14 +570,6 @@ struct LibraryFeatures: Decodable, Equatable {
 
 // MARK: - Hilfen
 
-extension KeyedDecodingContainer {
-    /// Liest eine URL und ergibt `nil`, wenn sie fehlt oder nicht lesbar ist, statt die ganze Antwort zu verwerfen.
-    func lenientURL(forKey key: Key) -> URL? {
-        guard let string = (try? decodeIfPresent(String.self, forKey: key)) ?? nil, !string.isEmpty else { return nil }
-        return URL(string: string)
-    }
-}
-
 /// Sprachcodes der Bibliothek (MARC, dreistellig) als deutscher Name.
 enum LibraryLanguage {
     private static let names: [String: String] = [

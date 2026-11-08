@@ -45,8 +45,7 @@ nonisolated enum AppGroup {
 nonisolated enum WidgetKinds {
     static let mensa = "de.kai-gothe.Campus-Ilmenau.widget.mensa"
     static let heuteAbend = "de.kai-gothe.Campus-Ilmenau.widget.heute-abend"
-    static let events = "de.kai-gothe.Campus-Ilmenau.widget.events"
 
     /// Alle Widgets, deren Daten aus dem `WidgetStore` stammen.
-    static let alle = [mensa, heuteAbend, events]
+    static let alle = [mensa, heuteAbend]
 }

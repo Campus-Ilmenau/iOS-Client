@@ -40,6 +40,12 @@ nonisolated enum MensaVenue: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
+    /// Die nächste Mensa in der Reihenfolge der App; nach der letzten wieder die erste. Für den Wechsel-Knopf im Widget.
+    var naechste: MensaVenue {
+        let alle = MensaVenue.allCases
+        return alle[((alle.firstIndex(of: self) ?? 0) + 1) % alle.count]
+    }
+
     /// Nur die Cafeteria Ehrenberg bietet Mittag und Abendessen an.
     var hasMealtimes: Bool { self == .cafeteriaEhrenberg }
 

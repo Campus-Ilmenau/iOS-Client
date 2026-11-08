@@ -57,6 +57,7 @@ struct DeepLinkTests {
         ("campusilmenau://mensa", DeepLink.mensa(id: nil)),
         ("campusilmenau://mensa/gericht/meal_62e88be1", DeepLink.gericht(id: "meal_62e88be1", tag: nil)),
         ("campusilmenau://mensa/gericht/meal_1?tag=2026-11-09", DeepLink.gericht(id: "meal_1", tag: "2026-11-09")),
+        ("campusilmenau://events", DeepLink.events),
         ("campusilmenau://events?filter=heute-abend", DeepLink.eventsHeuteAbend),
         ("campusilmenau://events/evt_dec1b86b", DeepLink.event(id: "evt_dec1b86b")),
         ("campusilmenau://thoska/auslesen", DeepLink.thoskaAuslesen),
@@ -84,7 +85,7 @@ struct DeepLinkTests {
         let links: [DeepLink] = [
             .mensa(id: "roentgenbau"), .mensa(id: nil),
             .gericht(id: "meal_a/b c?d", tag: "2026-11-02"), .gericht(id: "x", tag: nil),
-            .eventsHeuteAbend, .event(id: "evt 1/2"), .thoskaAuslesen, .katalogSuche
+            .events, .eventsHeuteAbend, .event(id: "evt 1/2"), .thoskaAuslesen, .katalogSuche
         ]
         for link in links {
             #expect(DeepLink(url: link.url) == link, "\(link.url)")
@@ -265,7 +266,7 @@ struct WidgetSyncTests {
         #expect(ehrenberg?.oeffnungszeiten.count == 1)
     }
 
-    @Test func eventsNurDerAbendOhneAbgesagteUndGanztaegige() {
+    @Test func eventsNurDerAbendMitAbgesagtenOhneGanztaegige() {
         let (sync, store, neuladen) = aufbau()
         func event(_ id: String, _ von: String, bis: String? = nil, status: EventStatus = .findetStatt, ganztaegig: Bool = false) -> CampusEvent {
             CampusEvent(
@@ -281,20 +282,22 @@ struct WidgetSyncTests {
             event("ganztags", "00:00", ganztaegig: true)
         ]
 
-        sync.speichereEvents(heute: liste, morgen: [], jetzt: berlin(freitag, "09:00"))
+        sync.speichereEvents(heute: liste, morgen: [], abgesagteMitgeliefert: true, jetzt: berlin(freitag, "09:00"))
 
-        #expect(store.lesen().events.map(\.id) == ["laeuftInDenAbend", "abend"])
-        #expect(neuladen.kinds == [WidgetKinds.heuteAbend, WidgetKinds.events])
+        // Abgesagte bleiben drin (das Widget zeigt „Fällt aus“), Ganztägige und Frühe nicht.
+        #expect(store.lesen().events.map(\.id) == ["laeuftInDenAbend", "abend", "abgesagt"])
+        #expect(store.lesen().events.map(\.abgesagt) == [false, false, true])
+        #expect(neuladen.kinds == [WidgetKinds.heuteAbend])
     }
 
     @Test func nichtGeladenerTagBleibtErhalten() {
         let (sync, store, _) = aufbau()
         let heute = CampusEvent(id: "heute", titel: "Heute", beginn: berlin(freitag, "20:00"))
         let morgen = CampusEvent(id: "morgen", titel: "Morgen", beginn: berlin("2026-10-31", "20:00"))
-        sync.speichereEvents(heute: [heute], morgen: [morgen], jetzt: berlin(freitag, "09:00"))
+        sync.speichereEvents(heute: [heute], morgen: [morgen], abgesagteMitgeliefert: true, jetzt: berlin(freitag, "09:00"))
 
         // Nur „morgen“ ist neu geladen; „heute“ bleibt, wie es war.
-        sync.speichereEvents(heute: nil, morgen: [], jetzt: berlin(freitag, "09:30"))
+        sync.speichereEvents(heute: nil, morgen: [], abgesagteMitgeliefert: true, jetzt: berlin(freitag, "09:30"))
 
         #expect(store.lesen().events.map(\.id) == ["heute"])
     }
@@ -304,7 +307,7 @@ struct WidgetSyncTests {
 
         sync.speichereMerkliste(["b", "a"])
         #expect(store.lesen().gemerkteEventIDs == ["a", "b"])
-        #expect(neuladen.kinds == [WidgetKinds.heuteAbend, WidgetKinds.events])
+        #expect(neuladen.kinds == [WidgetKinds.heuteAbend])
 
         // Gleiche Merkliste: kein Neuladen.
         let anzahl = neuladen.aufrufe.count

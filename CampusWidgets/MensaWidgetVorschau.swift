@@ -127,72 +127,61 @@ enum MensaWidgetVorschau {
 
 // MARK: - Previews
 
-/// Die drei Größen untereinander, wie auf dem Home-Bildschirm, mit dem Hintergrund des Mockups.
-private struct MensaWidgetVorschauRaster: View {
-    let anzeige: MensaWidgetAnzeige
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 22) {
-                widget(.klein, breite: 158, hoehe: 158)
-            }
-            widget(.mittel, breite: 338, hoehe: 158)
-            widget(.gross, breite: 338, hoehe: 354)
-        }
-        .padding(26)
-        .frame(width: 390, alignment: .leading)
-        .background(Color(.background))
-    }
-
-    private func widget(_ groesse: MensaWidgetGroesse, breite: CGFloat, hoehe: CGFloat) -> some View {
-        MensaWidgetView(anzeige: anzeige, groesse: groesse)
-            .frame(width: breite, height: hoehe)
-            .background(Color(.surface))
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+extension MensaEintrag {
+    /// Ein Eintrag der Vorschau; das mittlere Widget bekommt Knopf und Punkte, außer bei fester Mensa.
+    fileprivate static func vorschau(_ szenario: MensaWidgetVorschau.Szenario, fest: Bool = false, getoent: Bool = false) -> MensaEintrag {
+        MensaEintrag(
+            date: .now,
+            anzeige: MensaWidgetVorschau.anzeige(szenario),
+            wechsel: fest ? nil : MensaWechsel(venue: szenario.mensa),
+            getoentVorschau: getoent
+        )
     }
 }
 
-#Preview("08:15 hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.morgen)) }
-#Preview("08:15 dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.morgen)).preferredColorScheme(.dark) }
-#Preview("11:45 hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.mittag)) }
-#Preview("11:45 dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.mittag)).preferredColorScheme(.dark) }
-#Preview("15:10 Nanoteria hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.nachmittag)) }
-#Preview("15:10 Nanoteria dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.nachmittag)).preferredColorScheme(.dark) }
-#Preview("17:40 hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.abend)) }
-#Preview("17:40 dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.abend)).preferredColorScheme(.dark) }
-#Preview("21:30 hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.nacht)) }
-#Preview("21:30 dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.nacht)).preferredColorScheme(.dark) }
-#Preview("Wochenende hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.wochenende)) }
-#Preview("Wochenende dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.wochenende)).preferredColorScheme(.dark) }
-#Preview("Kein Plan hell") { MensaWidgetVorschauRaster(anzeige: .vorschau(.kein)) }
-#Preview("Kein Plan dunkel") { MensaWidgetVorschauRaster(anzeige: .vorschau(.kein)).preferredColorScheme(.dark) }
-
-extension MensaWidgetAnzeige {
-    fileprivate static func vorschau(_ szenario: MensaWidgetVorschau.Szenario) -> MensaWidgetAnzeige {
-        MensaWidgetVorschau.anzeige(szenario)
-    }
-}
+// Die echten Widget-Previews: alle sieben Zustände als Zeitleiste. Hell und dunkel, Dynamic Type (auch „X Large“,
+// wo ein Gericht weniger erscheint) und die Größe schaltet die Preview-Leiste (Varianten).
 
 #Preview("Widget klein", as: .systemSmall) {
     MensaWidget()
 } timeline: {
-    for szenario in MensaWidgetVorschau.Szenario.allCases {
-        MensaEintrag(date: .now, anzeige: MensaWidgetVorschau.anzeige(szenario))
-    }
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario) }
 }
 
 #Preview("Widget mittel", as: .systemMedium) {
     MensaWidget()
 } timeline: {
-    for szenario in MensaWidgetVorschau.Szenario.allCases {
-        MensaEintrag(date: .now, anzeige: MensaWidgetVorschau.anzeige(szenario))
-    }
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario) }
 }
 
 #Preview("Widget groß", as: .systemLarge) {
     MensaWidget()
 } timeline: {
-    for szenario in MensaWidgetVorschau.Szenario.allCases {
-        MensaEintrag(date: .now, anzeige: MensaWidgetVorschau.anzeige(szenario))
-    }
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario) }
+}
+
+#Preview("Widget mittel, feste Mensa (ohne Knopf)", as: .systemMedium) {
+    MensaWidget()
+} timeline: {
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario, fest: true) }
+}
+
+// Getönt / Klar: Ohne Tönung des Systems zeigen diese Previews nur, was wegfällt (Bänder, Chip-Flächen).
+
+#Preview("Getönt klein", as: .systemSmall) {
+    MensaWidget()
+} timeline: {
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario, getoent: true) }
+}
+
+#Preview("Getönt mittel", as: .systemMedium) {
+    MensaWidget()
+} timeline: {
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario, getoent: true) }
+}
+
+#Preview("Getönt groß", as: .systemLarge) {
+    MensaWidget()
+} timeline: {
+    for szenario in MensaWidgetVorschau.Szenario.allCases { MensaEintrag.vorschau(szenario, getoent: true) }
 }

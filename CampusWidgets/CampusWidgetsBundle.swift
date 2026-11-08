@@ -12,5 +12,10 @@ import SwiftUI
 struct CampusWidgetsBundle: WidgetBundle {
     var body: some Widget {
         MensaWidget()
+        AbendWidget()
+        if #available(iOS 18.0, *) {
+            ThoskaSteuerelement()
+            KatalogSteuerelement()
+        }
     }
 }

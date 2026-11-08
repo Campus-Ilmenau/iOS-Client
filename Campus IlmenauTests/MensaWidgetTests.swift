@@ -317,3 +317,22 @@ struct WidgetMensaPflegeTests {
         #expect(store.lesen().events.map(\.id) == ["abend"])
     }
 }
+
+// MARK: - Wechsel-Knopf
+
+struct MensaWechselTests {
+    @Test func schaltetEineMensaWeiterUndDannVonVorn() {
+        let reihenfolge = MensaVenue.allCases
+        #expect(reihenfolge.count == 4)
+        for (index, venue) in reihenfolge.enumerated() {
+            #expect(venue.naechste == reihenfolge[(index + 1) % reihenfolge.count])
+        }
+        #expect(MensaVenue.roentgenbau.naechste == .mensaEhrenberg)
+    }
+
+    @Test func vierSchritteFuehrenZurueck() {
+        var venue = MensaVenue.nanoteria
+        for _ in 0..<4 { venue = venue.naechste }
+        #expect(venue == .nanoteria)
+    }
+}

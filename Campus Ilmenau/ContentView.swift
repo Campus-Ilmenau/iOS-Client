@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Hülle der App: der gewählte Tab und darunter die Tab-Leiste.
 struct ContentView: View {
-    @State private var router = AppRouter()
+    @State private var router = AppRouter.gemeinsam
     /// Tabs werden erst beim ersten Besuch aufgebaut (sonst lädt jeder Tab schon beim Start) und danach behalten.
     @State private var besuchteTabs: Set<AppTab> = [.heute]
     @State private var tastaturSichtbar = false
@@ -38,11 +38,13 @@ struct ContentView: View {
         .background(Color(.background))
         .environment(router)
         .onChange(of: router.tab) { _, neu in besuchteTabs.insert(neu) }
+        // Stand der Tab schon vor dem ersten Bild fest, braucht er keine Änderung, um aufgebaut zu werden.
+        .onAppear { besuchteTabs.insert(router.tab) }
         .task { await beobachteTastatur() }
         // Links aus Widgets und Steuerelementen: Tab wählen, Ziel öffnen.
         .onOpenURL { url in
             guard let link = DeepLink(url: url) else { return }
-            router.oeffne(link)
+            router.eingang(link)
         }
     }
 

@@ -1,16 +1,6 @@
 import Foundation
 import Observation
 
-/// Woher die Ansicht ihre Daten holt. Der `EventsService` ist die echte Quelle, Previews und Tests setzen eine eigene.
-@MainActor
-protocol EventsDatenquelle {
-    func liste(filter: EventFilter, seite: Int, jetzt: Date) async throws -> EventSeite
-    func veranstalter() async throws -> [Veranstalter]
-    func detail(id: String) async throws -> CampusEvent
-}
-
-extension EventsService: EventsDatenquelle {}
-
 /// Zustand der Ansicht „Veranstaltungen“ und der Ansicht „Vergangene“: Auswahl, geladene Seiten, Laden und Fehler.
 ///
 /// Wechselt die Auswahl, startet die Ansicht `laden()` über `task(id: ladeSchluessel)` neu; SwiftUI bricht die laufende

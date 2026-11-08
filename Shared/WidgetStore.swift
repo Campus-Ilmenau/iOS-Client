@@ -11,6 +11,8 @@ nonisolated struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// Nicht abgesagte Events von heute und morgen, nach Beginn.
     var events: [WidgetEvent] = []
     var gemerkteEventIDs: [String] = []
+    /// Wie viele Veranstaltungen in der Woche ab dem Abend-Bezugstag stehen („Diese Woche: 14 Veranstaltungen“).
+    var woche: WidgetWoche?
     /// Wann die App den Speicher zuletzt geschrieben hat.
     var stand: Date?
 
@@ -77,6 +79,41 @@ nonisolated struct WidgetEvent: Codable, Equatable, Sendable, Identifiable {
     var ganztaegig: Bool
     var ort: String?
     var veranstalter: String?
+    /// Abgesagt: Das Widget zeigt „Fällt aus“ und streicht den Titel durch.
+    var abgesagt = false
+
+    init(
+        id: String, titel: String, beginn: Date, ende: Date? = nil, ganztaegig: Bool = false,
+        ort: String? = nil, veranstalter: String? = nil, abgesagt: Bool = false
+    ) {
+        self.id = id
+        self.titel = titel
+        self.beginn = beginn
+        self.ende = ende
+        self.ganztaegig = ganztaegig
+        self.ort = ort
+        self.veranstalter = veranstalter
+        self.abgesagt = abgesagt
+    }
+
+    // Ältere Dateien kennen `abgesagt` noch nicht.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        titel = try container.decode(String.self, forKey: .titel)
+        beginn = try container.decode(Date.self, forKey: .beginn)
+        ende = try container.decodeIfPresent(Date.self, forKey: .ende)
+        ganztaegig = try container.decode(Bool.self, forKey: .ganztaegig)
+        ort = try container.decodeIfPresent(String.self, forKey: .ort)
+        veranstalter = try container.decodeIfPresent(String.self, forKey: .veranstalter)
+        abgesagt = try container.decodeIfPresent(Bool.self, forKey: .abgesagt) ?? false
+    }
+}
+
+nonisolated struct WidgetWoche: Codable, Equatable, Sendable {
+    /// Berliner Tag `yyyy-MM-dd`, ab dem gezählt wurde.
+    var von: String
+    var anzahl: Int
 }
 
 // MARK: - Speicher

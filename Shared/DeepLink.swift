@@ -8,6 +8,7 @@ import Foundation
 /// | Speiseplan einer Mensa | `campusilmenau://mensa?mensa=<id>` |
 /// | Gericht | `campusilmenau://mensa/gericht/<id>` (optional `?tag=yyyy-MM-dd`) |
 /// | Veranstaltungen „Heute Abend“ | `campusilmenau://events?filter=heute-abend` |
+/// | Alle Veranstaltungen | `campusilmenau://events` |
 /// | Event-Detail | `campusilmenau://events/<id>` |
 /// | Thoska auslesen (NFC-Sheet) | `campusilmenau://thoska/auslesen` |
 /// | Katalogsuche mit Fokus | `campusilmenau://katalog/suche` |
@@ -21,6 +22,8 @@ nonisolated enum DeepLink: Equatable, Sendable {
     /// Ein Gericht. Die IDs der Mensa-API gelten nur für einen Tag und lassen sich nicht einzeln abfragen,
     /// darum kann der Link den Tag (`yyyy-MM-dd`, Berliner Tag) mitgeben.
     case gericht(id: String, tag: String?)
+    /// Die Veranstaltungsliste ohne Filter („Alle“, leeres Widget).
+    case events
     case eventsHeuteAbend
     case event(id: String)
     case thoskaAuslesen
@@ -44,8 +47,11 @@ nonisolated enum DeepLink: Equatable, Sendable {
         case "mensa" where pfad.count == 2 && pfad[0] == "gericht":
             self = .gericht(id: pfad[1], tag: parameter("tag"))
         case "events" where pfad.isEmpty:
-            guard parameter("filter") == "heute-abend" else { return nil }
-            self = .eventsHeuteAbend
+            switch parameter("filter") {
+            case nil: self = .events
+            case "heute-abend": self = .eventsHeuteAbend
+            default: return nil
+            }
         case "events" where pfad.count == 1:
             self = .event(id: pfad[0])
         case "thoska" where pfad == ["auslesen"]:
@@ -71,6 +77,8 @@ nonisolated enum DeepLink: Equatable, Sendable {
             komponenten.host = "mensa"
             komponenten.percentEncodedPath = "/gericht/" + Self.pfadteil(id)
             if let tag { komponenten.queryItems = [URLQueryItem(name: "tag", value: tag)] }
+        case .events:
+            komponenten.host = "events"
         case .eventsHeuteAbend:
             komponenten.host = "events"
             komponenten.queryItems = [URLQueryItem(name: "filter", value: "heute-abend")]

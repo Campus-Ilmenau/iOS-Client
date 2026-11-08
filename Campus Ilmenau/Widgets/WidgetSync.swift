@@ -11,11 +11,6 @@ struct WidgetSync {
     /// Die App-weite Instanz mit dem echten Speicher der App Group.
     static let shared = WidgetSync()
 
-    /// „Abend“ beginnt um 17 Uhr (wie bei „Heute Abend“).
-    static let abendBeginn = 17
-    /// So viele Events gehen höchstens in den Speicher.
-    static let maxEvents = 24
-
     private let store: WidgetStore
     private let neuLaden: @MainActor ([String]) -> Void
 
@@ -75,35 +70,16 @@ struct WidgetSync {
 
     /// Schreibt die Events der nächsten zwei Abende (heute und morgen). `nil` heißt „nicht geladen“: dieser Tag
     /// bleibt, wie er war.
-    func speichereEvents(heute: [CampusEvent]?, morgen: [CampusEvent]?, jetzt: Date = .now) {
-        let tagHeute = EventKalender.tagesbeginn(jetzt)
-        let tagMorgen = EventKalender.tag(jetzt, plus: 1)
+    /// - Parameter abgesagteMitgeliefert: Die Listen enthalten auch abgesagte Events (siehe `WidgetEventPflege`).
+    func speichereEvents(heute: [CampusEvent]?, morgen: [CampusEvent]?, abgesagteMitgeliefert: Bool, jetzt: Date = .now) {
+        var listen: [(tag: Date, events: [CampusEvent])] = []
+        if let heute { listen.append((EventKalender.tagesbeginn(jetzt), heute)) }
+        if let morgen { listen.append((EventKalender.tag(jetzt, plus: 1), morgen)) }
 
         let aenderung = store.aendern { snapshot in
-            // Vergangene Tage fallen heraus; ein neu geladener Tag ersetzt seine alten Einträge.
-            var behalten = snapshot.events.filter { $0.beginn >= tagHeute }
-            if heute != nil { behalten.removeAll { EventKalender.kalender.isDate($0.beginn, inSameDayAs: tagHeute) } }
-            if morgen != nil { behalten.removeAll { EventKalender.kalender.isDate($0.beginn, inSameDayAs: tagMorgen) } }
-
-            var neu: [WidgetEvent] = []
-            for (liste, tag) in [(heute, tagHeute), (morgen, tagMorgen)] {
-                for event in liste ?? [] where Self.gehoertZumAbend(event, an: tag) {
-                    neu.append(WidgetEvent(
-                        id: event.id,
-                        titel: event.titel,
-                        beginn: event.beginn,
-                        ende: event.ende,
-                        ganztaegig: event.ganztaegig,
-                        ort: event.ort,
-                        veranstalter: event.veranstalterAnzeigen
-                    ))
-                }
-            }
-            let alle = (behalten + neu).sorted { $0.beginn < $1.beginn }
-            var gesehen = Set<String>()
-            snapshot.events = alle.filter { gesehen.insert($0.id).inserted }.prefix(Self.maxEvents).map { $0 }
+            WidgetEventPflege.uebernehme(listen, jetzt: jetzt, abgesagteMitgeliefert: abgesagteMitgeliefert, in: &snapshot)
         }
-        if aenderung { neuLaden([WidgetKinds.heuteAbend, WidgetKinds.events]) }
+        if aenderung { neuLaden([WidgetKinds.heuteAbend]) }
     }
 
     /// Der Events-Tab hat eine Liste geladen. Ein Tag geht nur in den Speicher, wenn die Liste ihn vollständig
@@ -129,6 +105,7 @@ struct WidgetSync {
         speichereEvents(
             heute: vollstaendig(heute) ? events : nil,
             morgen: vollstaendig(morgen) ? events : nil,
+            abgesagteMitgeliefert: !filter.abgesagteAusblenden,
             jetzt: jetzt
         )
     }
@@ -137,7 +114,7 @@ struct WidgetSync {
     func speichereMerkliste(_ ids: Set<String>) {
         let sortiert = ids.sorted()
         let aenderung = store.aendern { $0.gemerkteEventIDs = sortiert }
-        if aenderung { neuLaden([WidgetKinds.heuteAbend, WidgetKinds.events]) }
+        if aenderung { neuLaden([WidgetKinds.heuteAbend]) }
     }
 
     // MARK: Einstellungen
@@ -148,15 +125,4 @@ struct WidgetSync {
         neuLaden([WidgetKinds.mensa])
     }
 
-    // MARK: Auswahl
-
-    /// Ein Event gehört zum Abend eines Tages, wenn es an dem Tag beginnt, nicht abgesagt und nicht ganztägig ist
-    /// und ab 17 Uhr beginnt oder nach 17 Uhr noch läuft.
-    static func gehoertZumAbend(_ event: CampusEvent, an tag: Date) -> Bool {
-        guard event.status != .abgesagt, !event.ganztaegig,
-              EventKalender.kalender.isDate(event.beginn, inSameDayAs: tag),
-              let grenze = EventKalender.kalender.date(bySettingHour: abendBeginn, minute: 0, second: 0, of: tag)
-        else { return false }
-        return event.beginn >= grenze || (event.ende ?? event.beginn) > grenze
-    }
 }

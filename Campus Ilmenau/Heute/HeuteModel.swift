@@ -158,7 +158,7 @@ final class HeuteModel {
         guard let widgetSync else { return }
         let zeit = jetzt
         let mensen = mensen, heute = speiseplanHeute, morgen = speiseplanMorgen
-        widgetSync.speichereEvents(heute: eventsAbend, morgen: eventsMorgen, jetzt: zeit)
+        widgetSync.speichereEvents(heute: eventsAbend, morgen: eventsMorgen, abgesagteMitgeliefert: false, jetzt: zeit)
         widgetSync.speichereMerkliste(EventsMerkStore.shared.ids)
         Task {
             await widgetSync.speichereMensa(mensen: mensen, heute: heute, morgen: morgen, quelle: mensaQuelle, jetzt: zeit)
