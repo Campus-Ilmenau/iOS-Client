@@ -49,7 +49,29 @@ nonisolated struct MensaWidgetAnzeige: Equatable, Sendable {
     /// `campusilmenau://mensa?mensa=<id>`: Speiseplan der gezeigten Mensa (beim Abendessen-Tipp die Cafeteria).
     var kopfLink: URL
 
+    /// Der Filter der App ist angewendet (Schalter „Filter aus der App anwenden“ an, in der App ist etwas gesetzt).
+    /// `nil` ohne Schalter und bei leerem App-Filter: dann verhält sich das Widget wie ohne Schalter.
+    var filterung: Filterung?
+
     var hatPlan: Bool { !zeilen.isEmpty }
+
+    /// Es gibt Gerichte, aber der Filter lässt keins davon durch.
+    var nichtsPasst: Bool {
+        guard let filterung else { return false }
+        return zeilen.isEmpty && filterung.ohneFilterAnzahl > 0
+    }
+
+    struct Filterung: Equatable, Sendable {
+        /// „Vegan · ohne Milch“
+        let kurztext: String
+        /// Wie viele Gerichte der gezeigte Plan ohne Filter hat.
+        let ohneFilterAnzahl: Int
+
+        /// „3 Gerichte ohne Filter“
+        var ohneFilterText: String {
+            ohneFilterAnzahl == 1 ? "1 Gericht ohne Filter" : "\(ohneFilterAnzahl) Gerichte ohne Filter"
+        }
+    }
 }
 
 /// Die Phasen des Widgets „Mensa heute“, nach der Tabelle in `Uebergabe.md` und den Regeln der Jetzt-Karte auf Heute.
@@ -71,10 +93,13 @@ nonisolated enum MensaWidgetPhasen {
         snapshot: WidgetSnapshot,
         mensaID: String,
         preisgruppe: MensaPriceGroup,
-        jetzt: Date
+        jetzt: Date,
+        filter: MensaFilter? = nil
     ) -> MensaWidgetAnzeige {
-        Rechner(snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: preisgruppe, jetzt: jetzt)
-            .anzeige()
+        Rechner(
+            snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: preisgruppe, jetzt: jetzt,
+            filter: filter.flatMap { $0.isActive ? $0 : nil }
+        ).anzeige()
     }
 
     /// Das Widget lädt am nächsten Morgen um 6:00 (Berliner Zeit) neu.
@@ -145,6 +170,8 @@ private nonisolated struct Rechner {
     let venue: MensaVenue
     let preisgruppe: MensaPriceGroup
     let jetzt: Date
+    /// Der App-Filter, wenn das Widget ihn anwendet und etwas gesetzt ist.
+    let filter: MensaFilter?
 
     typealias Anzeige = MensaWidgetAnzeige
     typealias P = MensaWidgetPhasen
@@ -200,7 +227,7 @@ private nonisolated struct Rechner {
     // MARK: Zeilen
 
     private func zeilen(_ gerichte: [WidgetGericht], tag: String?) -> [Anzeige.Zeile] {
-        gerichte.prefix(P.maxZeilen).map { gericht in
+        (filter?.apply(to: gerichte) ?? gerichte).prefix(P.maxZeilen).map { gericht in
             Anzeige.Zeile(
                 id: gericht.id,
                 name: gericht.name,
@@ -209,6 +236,16 @@ private nonisolated struct Rechner {
                 link: DeepLink.gericht(id: gericht.id, tag: tag).url
             )
         }
+    }
+
+    /// Der Filterzustand für die Anzeige eines Plans mit diesen (ungefilterten) Gerichten.
+    private func filterzustand(_ gerichte: [WidgetGericht]) -> Anzeige.Filterung? {
+        filter.map { Anzeige.Filterung(kurztext: $0.activeDescription, ohneFilterAnzahl: gerichte.count) }
+    }
+
+    /// Hinter der Unterzeile steht der Filter („Mittagsangebot · Vegan · ohne Milch“).
+    private func mitFilter(_ text: String, _ filterung: Anzeige.Filterung?) -> String {
+        filterung.map { "\(text) · \($0.kurztext)" } ?? text
     }
 
     private func mittag(tag: String) -> [WidgetGericht] {
@@ -274,13 +311,16 @@ private nonisolated struct Rechner {
             termine.append(.init(zeit: uhrzeit(P.abendessenBeginn), text: "Abendessen · \(Self.kurz(ort))"))
         }
 
+        let gerichte = mittag(tag: heuteTag)
+        let filterung = filterzustand(gerichte)
         return Anzeige(
             phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName,
-            unterzeile: phase == .morgen ? "Vorschau aufs Mittagsangebot" : "Mittagsangebot",
-            zeilen: zeilen(mittag(tag: heuteTag), tag: heuteTag),
+            unterzeile: mitFilter(phase == .morgen ? "Vorschau aufs Mittagsangebot" : "Mittagsangebot", filterung),
+            zeilen: zeilen(gerichte, tag: heuteTag),
             termine: Array(termine.prefix(2)),
             planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag),
-            kopfLink: kopf
+            kopfLink: kopf,
+            filterung: filterung
         )
     }
 
@@ -289,10 +329,13 @@ private nonisolated struct Rechner {
     private func abend(phase: Anzeige.Phase, kopf: URL) -> Anzeige {
         guard let ort = abendessenOrt else {
             // Kein Abendessen heute: die gewählte Mensa bleibt stehen, wie auf Heute.
+            let gerichte = mittag(tag: heuteTag)
+            let filterung = filterzustand(gerichte)
             return Anzeige(
                 phase: phase, mensaID: venue.rawValue, kicker: "Heute geschlossen", titel: venue.displayName,
-                unterzeile: "Mittagsangebot", zeilen: zeilen(mittag(tag: heuteTag), tag: heuteTag),
-                termine: folgetagTermine(), planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag), kopfLink: kopf
+                unterzeile: mitFilter("Mittagsangebot", filterung), zeilen: zeilen(gerichte, tag: heuteTag),
+                termine: folgetagTermine(), planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag), kopfLink: kopf,
+                filterung: filterung
             )
         }
 
@@ -325,10 +368,12 @@ private nonisolated struct Rechner {
             termine = [.init(zeit: ende, text: "Abendessen schließt")] + liste(mittagFolgetag())
         }
 
+        let filterung = filterzustand(gerichte)
         return Anzeige(
-            phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: titel, unterzeile: unterzeile,
+            phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: titel,
+            unterzeile: mitFilter(unterzeile, filterung),
             zeilen: zeilen(gerichte, tag: heuteTag), termine: Array(termine.prefix(2)), planTag: heuteTag,
-            kopfLink: ortLink
+            kopfLink: ortLink, filterung: filterung
         )
     }
 
@@ -362,10 +407,13 @@ private nonisolated struct Rechner {
         }
 
         let plan = P.plan(venue, tag: tag, in: snapshot)
+        let gerichte = plan?.gerichte.filter { !$0.abendessen } ?? []
+        let filterung = filterzustand(gerichte)
         return Anzeige(
-            phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName, unterzeile: unterzeile,
-            zeilen: zeilen(plan?.gerichte.filter { !$0.abendessen } ?? [], tag: tag),
-            termine: Array(termine.prefix(2)), planTag: plan?.tag, kopfLink: kopf
+            phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName,
+            unterzeile: mitFilter(unterzeile, filterung),
+            zeilen: zeilen(gerichte, tag: tag),
+            termine: Array(termine.prefix(2)), planTag: plan?.tag, kopfLink: kopf, filterung: filterung
         )
     }
 

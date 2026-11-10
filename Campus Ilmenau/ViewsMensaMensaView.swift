@@ -74,6 +74,7 @@ struct MensaView: View {
         }
         .onChange(of: filter) { _, newValue in
             MensaFilterStore.save(newValue)
+            WidgetSync.shared.mensaFilterGeaendert()
         }
         .onChange(of: selectedDayIndex) { _, newIndex in
             load(days[newIndex])

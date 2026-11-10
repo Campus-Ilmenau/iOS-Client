@@ -60,6 +60,29 @@ nonisolated struct WidgetGericht: Codable, Equatable, Sendable, Identifiable {
     var preisGaeste: Double?
     var waehrung: String
     var chips: [WidgetChip]
+    /// Allergene wie in der API; der Filter „Allergene ausschließen“ prüft sie.
+    var allergene: [String] = []
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, gruppe, abendessen, preisStudierende, preisBedienstete, preisGaeste, waehrung, chips, allergene
+    }
+}
+
+extension WidgetGericht {
+    // Ältere Dateien kennen `allergene` noch nicht; sie werden beim nächsten Laden neu geschrieben.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        gruppe = try container.decode(String.self, forKey: .gruppe)
+        abendessen = try container.decode(Bool.self, forKey: .abendessen)
+        preisStudierende = try container.decodeIfPresent(Double.self, forKey: .preisStudierende)
+        preisBedienstete = try container.decodeIfPresent(Double.self, forKey: .preisBedienstete)
+        preisGaeste = try container.decodeIfPresent(Double.self, forKey: .preisGaeste)
+        waehrung = try container.decode(String.self, forKey: .waehrung)
+        chips = try container.decode([WidgetChip].self, forKey: .chips)
+        allergene = try container.decodeIfPresent([String].self, forKey: .allergene) ?? []
+    }
 }
 
 nonisolated struct WidgetChip: Codable, Equatable, Sendable, Hashable {

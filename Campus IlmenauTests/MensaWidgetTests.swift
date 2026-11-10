@@ -336,3 +336,264 @@ struct MensaWechselTests {
         #expect(venue == .nanoteria)
     }
 }
+
+// MARK: - Filter aus der App
+
+private func filterGericht(_ name: String, chips: [WidgetChip] = [], allergene: [String] = []) -> WidgetGericht {
+    var g = gericht(name, chips: chips)
+    g.allergene = allergene
+    return g
+}
+
+private func filterDaten() -> WidgetSnapshot {
+    var daten = snapshot()
+    let vegan = [WidgetChip(titel: "Vegan", art: .gruen)]
+    daten.mensen[0].heute?.gerichte = [
+        filterGericht("Linsen-Dal", chips: vegan),
+        filterGericht("Schnitzel", allergene: ["Milch und Milchzucker"]),
+        filterGericht("Pasta", chips: vegan, allergene: ["Milch und Milchzucker"])
+    ]
+    daten.mensen[1].heute?.gerichte = [
+        filterGericht("Flammkuchen", allergene: ["Weizen"]).abend(), filterGericht("Bowl", chips: vegan).abend()
+    ]
+    daten.mensen[0].naechsterOeffnungstag?.gerichte = [filterGericht("Suppe", chips: vegan), filterGericht("Lasagne")]
+    return daten
+}
+
+private extension WidgetGericht {
+    func abend() -> WidgetGericht { var kopie = self; kopie.abendessen = true; kopie.gruppe = "Abendessen"; return kopie }
+}
+
+private func gefiltert(_ uhr: String, _ filter: MensaFilter?, tag: String = "2026-10-29", mensa: MensaVenue = .mensaEhrenberg) -> MensaWidgetAnzeige {
+    MensaWidgetPhasen.anzeige(snapshot: filterDaten(), mensaID: mensa.rawValue, preisgruppe: .studierende, jetzt: zeit(tag, uhr), filter: filter)
+}
+
+struct MensaWidgetFilterTests {
+    let veganOhneMilch = MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])
+
+    @Test func mittagZeigtNurPassendes() {
+        let a = gefiltert("11:45", veganOhneMilch)
+        #expect(a.zeilen.map(\.name) == ["Linsen-Dal"])
+        #expect(a.filterung == .init(kurztext: "Vegan · ohne Milch und Milchzucker", ohneFilterAnzahl: 3))
+        #expect(a.unterzeile == "Mittagsangebot · Vegan · ohne Milch und Milchzucker")
+        #expect(!a.nichtsPasst)
+    }
+
+    @Test func abendessenUndNaechsterTagWerdenGefiltert() {
+        let abend = gefiltert("17:40", MensaFilter(diet: .vegan))
+        #expect(abend.zeilen.map(\.name) == ["Bowl"])
+        let nacht = gefiltert("21:30", MensaFilter(diet: .vegan))
+        #expect(nacht.zeilen.map(\.name) == ["Suppe"])
+        #expect(nacht.filterung?.ohneFilterAnzahl == 2)
+    }
+
+    @Test func ohneFilterOderMitLeeremFilterBleibtAllesWieEs() {
+        let ohne = gefiltert("11:45", nil)
+        #expect(gefiltert("11:45", MensaFilter()) == ohne)
+        #expect(ohne.zeilen.count == 3)
+        #expect(ohne.filterung == nil)
+    }
+
+    @Test func nichtsPasst() {
+        let a = gefiltert("11:45", MensaFilter(diet: .vegan, onlyBio: true))
+        #expect(a.zeilen.isEmpty)
+        #expect(a.nichtsPasst)
+        #expect(a.filterung?.ohneFilterText == "3 Gerichte ohne Filter")
+        #expect(a.kopfLink == DeepLink.mensa(id: MensaVenue.mensaEhrenberg.rawValue).url)
+    }
+
+    @Test func keinPlanIstNichtNichtsPasst() {
+        let a = MensaWidgetPhasen.anzeige(
+            snapshot: WidgetSnapshot(), mensaID: MensaVenue.mensaEhrenberg.rawValue, preisgruppe: .studierende,
+            jetzt: zeit("2026-10-29", "11:45"), filter: MensaFilter(diet: .vegan)
+        )
+        #expect(!a.nichtsPasst)
+        #expect(!a.hatPlan)
+    }
+}
+
+// MARK: - Sperrbildschirm
+
+private func sperre(
+    _ uhr: String, tag: String = "2026-10-29", mensa: MensaVenue = .mensaEhrenberg,
+    daten: WidgetSnapshot? = nil, filter: MensaFilter? = nil
+) -> MensaSperreAnzeige {
+    MensaSperrePhasen.anzeige(
+        snapshot: daten ?? snapshot(), mensaID: mensa.rawValue, preisgruppe: .studierende, jetzt: zeit(tag, uhr), filter: filter
+    )
+}
+
+/// Wie `snapshot()`, aber am Freitag: der nächste Öffnungstag ist der Montag.
+private func freitagsDaten() -> WidgetSnapshot {
+    snapshot(heute: "2026-10-30", naechster: "2026-11-02")
+}
+
+/// Ohne Abendessen: die Cafeteria hat heute nur ihre Öffnungszeiten.
+private func ohneAbendessen() -> WidgetSnapshot {
+    var daten = snapshot()
+    daten.mensen[1].heute?.gerichte = []
+    return daten
+}
+
+struct MensaSperrePhasenTests {
+    @Test func vormittagsIstDieGewaehlteMensaVorschau() {
+        let a = sperre("08:15")
+        #expect(a.phase == .vorschau)
+        #expect(a.kicker == "Ehrenberg · ab 11:00")
+        #expect(a.zeitText == "ab 11:00")
+        #expect((a.kreisGross, a.kreisKlein) == ("11:00", "öffnet"))
+        #expect(a.mensaID == MensaVenue.mensaEhrenberg.rawValue)
+    }
+
+    @Test func mittagsBisZurSchliesszeit() {
+        let a = sperre("11:45")
+        #expect(a.phase == .mittag)
+        #expect(a.kicker == "Ehrenberg · bis 14:00")
+        #expect((a.kreisGross, a.kreisKlein) == ("14:00", "bis"))
+        #expect(a.zeile.hasPrefix("bis 14:00 · "))
+        #expect(["2,90", "3,80"].contains { a.gericht?.preis.hasPrefix($0) == true })
+    }
+
+    @Test func nachDerSchliesszeitIstNochOffenWasLaengerOffenHat() {
+        let a = sperre("14:20")
+        #expect(a.phase == .nochOffen)
+        #expect(a.kicker == "Noch offen · Nanoteria")
+        #expect((a.kreisGross, a.kreisKlein) == ("15:00", "Nanoteria"))
+        #expect(a.zeitText == "Nanoteria bis 15:00")
+        #expect(a.mensaID == MensaVenue.nanoteria.rawValue)
+        #expect(["Curry", "Spätzle"].contains(a.gericht?.name ?? ""))
+        // Die Cafeteria hat bis 15:00 offen, aber kein Mittag: sie zählt nicht.
+        #expect(a.mensaID != MensaVenue.cafeteriaEhrenberg.rawValue)
+    }
+
+    @Test func nachDemLetztenMittagKommtDasAbendessenAb() {
+        let a = sperre("15:40")
+        #expect(a.phase == .abend)
+        #expect(a.kicker == "Abendessen · ab 16:30")
+        #expect((a.kreisGross, a.kreisKlein) == ("16:30", "Abend"))
+        #expect(a.mensaID == MensaVenue.cafeteriaEhrenberg.rawValue)
+    }
+
+    @Test func abendessenGiltBisZumEndeUndUnabhaengigVonDerGewaehltenMensa() {
+        for mensa in MensaVenue.allCases {
+            let a = sperre("17:40", mensa: mensa)
+            #expect(a.phase == .abend, "\(mensa)")
+            #expect(a.kicker == "Abendessen · bis 19:30")
+            #expect(a.mensaID == MensaVenue.cafeteriaEhrenberg.rawValue)
+            #expect(["Flammkuchen", "Bowl", "Ofenkartoffel"].contains(a.gericht?.name ?? ""))
+        }
+        #expect((sperre("17:40").kreisGross, sperre("17:40").kreisKlein) == ("19:30", "bis"))
+    }
+
+    @Test func abendsIstMittagMorgen() {
+        let a = sperre("21:30")
+        #expect(a.phase == .naechsterTag)
+        #expect(a.kicker == "Mittag morgen · Ehrenberg")
+        #expect(a.zeitText == "morgen ab 11:00")
+        #expect((a.kreisGross, a.kreisKlein) == ("Fr", "11:00"))
+        #expect(["Suppe", "Lasagne", "Falafel"].contains(a.gericht?.name ?? ""))
+        #expect(a.gericht?.link.absoluteString.contains("tag=2026-10-30") == true)
+    }
+
+    @Test func freitagsAbendsIstMittagMontag() {
+        let a = sperre("21:30", tag: "2026-10-30", daten: freitagsDaten())
+        #expect(a.phase == .naechsterTag)
+        #expect(a.kicker == "Mittag Montag · Ehrenberg")
+        #expect(a.zeitText == "Mo ab 11:00")
+        #expect((a.kreisGross, a.kreisKlein) == ("Mo", "11:00"))
+    }
+
+    @Test func ohneAbendessenFolgtMittagMorgenGleichNachDemLetztenMittag() {
+        let a = sperre("15:40", daten: ohneAbendessen())
+        #expect(a.phase == .naechsterTag)
+        #expect(a.kicker == "Mittag morgen · Ehrenberg")
+        // Solange eine andere Mensa Mittag hat, bleibt es dagegen bei „Noch offen“.
+        #expect(sperre("14:20", daten: ohneAbendessen()).phase == .nochOffen)
+    }
+
+    @Test func amWochenendeIstMittagMontag() {
+        var daten = snapshot(heute: "2026-10-31", naechster: "2026-11-02")
+        for index in daten.mensen.indices { daten.mensen[index].heute?.gerichte = [] }
+        let a = sperre("11:45", tag: "2026-10-31", daten: daten)
+        #expect(a.phase == .naechsterTag)
+        #expect(a.kicker == "Mittag Montag · Ehrenberg")
+    }
+
+    @Test func ohneSpeicherBleibtEsBeiKeinPlan() {
+        let a = sperre("11:45", daten: WidgetSnapshot())
+        #expect(a.gericht == nil)
+        #expect(a.leerTitel == "Noch kein Plan")
+        #expect(a.rechteckLink == a.speiseplanLink)
+    }
+}
+
+struct MensaSperreRotationTests {
+    private func namen(_ uhren: [String], filter: MensaFilter? = nil, daten: WidgetSnapshot? = nil) -> [String?] {
+        uhren.map { sperre($0, daten: daten, filter: filter).gericht?.name }
+    }
+
+    @Test func alleFuenfMinutenKommtDasNaechsteGerichtUndAmEndeWiederDasErste() {
+        let n = namen(["11:45", "11:50", "11:55", "12:00", "12:05"])
+        #expect(Set(n).count == 3)
+        #expect(n[0] == n[3] && n[1] == n[4])
+        // Dazwischen bleibt es beim selben Gericht.
+        #expect(namen(["11:45", "11:46", "11:49"]) == [n[0], n[0], n[0]])
+        // Reihenfolge wie im Speiseplan.
+        let reihenfolge = ["Linsen-Dal", "Schnitzel", "Pasta"]
+        let start = reihenfolge.firstIndex(of: n[0] ?? "") ?? -1
+        #expect(start >= 0)
+        #expect(n[1] == reihenfolge[(start + 1) % 3] && n[2] == reihenfolge[(start + 2) % 3])
+    }
+
+    @Test func positionZaehltHochUndStartetNeu() {
+        let a = ["11:45", "11:50", "11:55", "12:00"].map { sperre($0) }
+        #expect(a.map(\.anzahl) == [3, 3, 3, 3])
+        #expect(Set(a.prefix(3).map(\.position)) == [1, 2, 3])
+        #expect(a[0].position == a[3].position)
+        #expect(a[1].position == a[0].position % 3 + 1)
+    }
+
+    @Test func mitFilterRotierenNurPassendeGerichte() {
+        let filter = MensaFilter(diet: .vegan)
+        let n = namen(["11:45", "11:50", "11:55", "12:00"], filter: filter, daten: filterDaten())
+        #expect(Set(n.compactMap { $0 }) == ["Linsen-Dal", "Pasta"])
+        #expect(n[0] != n[1] && n[0] == n[2] && n[1] == n[3])
+        let a = sperre("11:45", daten: filterDaten(), filter: filter)
+        #expect(a.anzahl == 2)
+        #expect(a.positionText.hasSuffix("/2"))
+        #expect(a.filterung != nil)
+    }
+
+    @Test func mitFilterOhneTrefferZeigtNichtsPasst() {
+        let a = sperre("11:45", daten: filterDaten(), filter: MensaFilter(diet: .vegan, onlyBio: true))
+        #expect(a.gericht == nil)
+        #expect(a.nichtsPasst)
+        #expect(a.leerTitel == "Nichts passt zu deinem Filter")
+        #expect(a.zeile.hasSuffix("Nichts passt"))
+        #expect(a.rechteckLink == a.speiseplanLink)
+    }
+
+    @Test func einEinzelnesGerichtRotiertNicht() {
+        let a = sperre("11:45", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"]))
+        #expect(a.anzahl == 1)
+        #expect(a.positionText.isEmpty)
+        #expect(sperre("11:50", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])).gericht == a.gericht)
+    }
+
+    @Test func zeitleisteIstKurzUndGerundet() {
+        let jetzt = zeit("2026-10-29", "11:47")
+        let punkte = MensaSperrePhasen.zeitpunkte(snapshot: snapshot(), nach: jetzt)
+        #expect(punkte.first == zeit("2026-10-29", "11:50"))
+        #expect(punkte.last == zeit("2026-10-29", "14:45"))
+        #expect(punkte.count <= 40)
+        #expect(punkte == punkte.sorted() && Set(punkte).count == punkte.count)
+        #expect(punkte.allSatisfy { HeuteUhr.minuten($0) % 5 == 0 })
+        #expect(punkte.contains(zeit("2026-10-29", "14:00")))
+    }
+
+    @Test func zeitleisteEndetSpaetestensAmTagesende() {
+        let punkte = MensaSperrePhasen.zeitpunkte(snapshot: snapshot(), nach: zeit("2026-10-29", "22:10"))
+        #expect(punkte.last == EventKalender.tag(zeit("2026-10-29", "22:10"), plus: 1))
+        #expect(MensaSperrePhasen.ende(nach: zeit("2026-10-29", "22:10")) == punkte.last)
+    }
+}

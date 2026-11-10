@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 @main
 struct Campus_IlmenauApp: App {
@@ -15,7 +16,33 @@ struct Campus_IlmenauApp: App {
         AppGroup.uebernimmEinstellungenEinmalig()
         // Intents (Steuerelemente) erreichen die Navigation über denselben Router wie die Deeplinks.
         AppRouter.gemeinsam.verbinden()
+        #if DEBUG
+        Self.uebernimmWidgetFotoArgumente()
+        #endif
     }
+
+    #if DEBUG
+    /// Für Website-Bilder: `-WidgetUhr 11:45` (oder `aus`) stellt die Uhr der Widgets, `-WidgetFilter vegan|bio|aus`
+    /// den Mensa-Filter der App. Danach laden alle Widgets neu. Nur in Debug-Builds.
+    private static func uebernimmWidgetFotoArgumente() {
+        let argumente = UserDefaults.standard
+        var geaendert = false
+        if let uhr = argumente.string(forKey: "WidgetUhr") {
+            if uhr == "aus" { AppGroup.defaults.removeObject(forKey: WidgetUhr.schluessel) } else { AppGroup.defaults.set(uhr, forKey: WidgetUhr.schluessel) }
+            geaendert = true
+        }
+        if let filter = argumente.string(forKey: "WidgetFilter") {
+            switch filter {
+            case "vegan": MensaFilterStore.save(MensaFilter(diet: .vegan))
+            case "vegetarisch": MensaFilterStore.save(MensaFilter(diet: .vegetarisch))
+            case "bio": MensaFilterStore.save(MensaFilter(onlyBio: true))
+            default: MensaFilterStore.save(MensaFilter())
+            }
+            geaendert = true
+        }
+        if geaendert { WidgetCenter.shared.reloadAllTimelines() }
+    }
+    #endif
 
     var body: some Scene {
         WindowGroup {

@@ -211,4 +211,77 @@ struct MensaFilterTests {
         #expect(MensaFilterStore.load(defaults: defaults) == MensaFilter(diet: .vegan))
         #expect(defaults.data(forKey: MensaFilterStore.legacyKey) == nil)
     }
+
+    // MARK: - Gemeinsame Logik für Widget und App
+
+    @Test func widgetUndMensaAnsichtFilternGleich() {
+        let meals = [meat, vegetarian, vegan, veganOnly, bioVegan, bioVegetarian]
+        let filters = [
+            MensaFilter(), MensaFilter(diet: .vegetarisch), MensaFilter(diet: .vegan), MensaFilter(onlyBio: true),
+            MensaFilter(diet: .vegan, onlyBio: true), MensaFilter(excludedAllergens: ["Gluten", "Soja"]),
+            MensaFilter(diet: .vegetarisch, excludedAllergens: ["Milch"])
+        ]
+        for filter in filters {
+            let gerichte = meals.map { meal in
+                WidgetGericht(
+                    id: meal.id, name: meal.name, gruppe: "Mittag", abendessen: false, preisStudierende: nil,
+                    preisBedienstete: nil, preisGaeste: nil, waehrung: "EUR", chips: meal.widgetChips,
+                    allergene: meal.allergies
+                )
+            }
+            #expect(filter.apply(to: gerichte).map(\.id) == ids(filter.apply(to: meals)), "Filter: \(filter.activeDescription)")
+        }
+    }
+
+    @Test func gerichtOhneAllergeneAusAelterenDateienLaesstSichLesen() throws {
+        let json = #"{"id":"1","name":"Suppe","gruppe":"Mittag","abendessen":false,"waehrung":"EUR","chips":[]}"#
+        let gericht = try JSONDecoder().decode(WidgetGericht.self, from: Data(json.utf8))
+        #expect(gericht.allergene.isEmpty)
+        let rund = try JSONDecoder().decode(WidgetGericht.self, from: JSONEncoder().encode(WidgetGericht(
+            id: "2", name: "Pasta", gruppe: "Mittag", abendessen: false, preisStudierende: nil, preisBedienstete: nil,
+            preisGaeste: nil, waehrung: "EUR", chips: [], allergene: ["Weizen"]
+        )))
+        #expect(rund.allergene == ["Weizen"])
+    }
+
+    // MARK: - Übernahme in die App Group
+
+    @Test func filterWirdEinmaligInDieGruppeUebernommen() throws {
+        let alt = makeDefaults(), neu = makeDefaults()
+        MensaFilterStore.save(MensaFilter(diet: .vegan, onlyBio: true), defaults: alt)
+
+        AppGroup.uebernimmEinstellungenEinmalig(von: alt, nach: neu)
+
+        #expect(MensaFilterStore.load(defaults: neu) == MensaFilter(diet: .vegan, onlyBio: true))
+        #expect(alt.data(forKey: MensaFilterStore.key) == nil)
+    }
+
+    @Test func filterWirdAuchNachDerErstenUebernahmeNachgeholt() throws {
+        let alt = makeDefaults(), neu = makeDefaults()
+        neu.set(true, forKey: "appGroupEinstellungenUebernommen")
+        MensaFilterStore.save(MensaFilter(diet: .vegetarisch), defaults: alt)
+
+        AppGroup.uebernimmEinstellungenEinmalig(von: alt, nach: neu)
+
+        #expect(MensaFilterStore.load(defaults: neu) == MensaFilter(diet: .vegetarisch))
+    }
+
+    @Test func alterDreiZustandeFilterWirdInDerGruppeUmgerechnet() throws {
+        let alt = makeDefaults(), neu = makeDefaults()
+        alt.set(try JSONEncoder().encode(["Vegan": "include", "Gluten": "exclude"]), forKey: MensaFilterStore.legacyKey)
+
+        AppGroup.uebernimmEinstellungenEinmalig(von: alt, nach: neu)
+
+        #expect(MensaFilterStore.load(defaults: neu) == MensaFilter(diet: .vegan, excludedAllergens: ["Gluten"]))
+    }
+
+    @Test func filterInDerGruppeBleibt() throws {
+        let alt = makeDefaults(), neu = makeDefaults()
+        MensaFilterStore.save(MensaFilter(diet: .vegan), defaults: alt)
+        MensaFilterStore.save(MensaFilter(onlyBio: true), defaults: neu)
+
+        AppGroup.uebernimmEinstellungenEinmalig(von: alt, nach: neu)
+
+        #expect(MensaFilterStore.load(defaults: neu) == MensaFilter(onlyBio: true))
+    }
 }

@@ -103,13 +103,22 @@ private struct MensaWidgetInhalt: View {
                 .lineLimit(1)
                 .minimumScaleFactor(groesse == .klein ? 0.7 : 1)
                 .padding(.trailing, kopfTextRand(kicker: true))
-            Text(anzeige.titel)
-                .font(.custom("PlusJakartaSans-ExtraBold", size: titelGroesse * skalaTitel))
-                .tracking(-0.02 * titelGroesse * skalaTitel)
-                .lineLimit(1)
-                .minimumScaleFactor(groesse == .klein ? 0.7 : 1)
-                .padding(.top, groesse == .gross ? 3 : 2)
-                .padding(.trailing, kopfTextRand(kicker: false))
+            HStack(spacing: 5) {
+                Text(anzeige.titel)
+                    .font(.custom("PlusJakartaSans-ExtraBold", size: titelGroesse * skalaTitel))
+                    .tracking(-0.02 * titelGroesse * skalaTitel)
+                    .lineLimit(1)
+                    .minimumScaleFactor(groesse == .klein ? 0.7 : 1)
+                // Filter der App ist angewendet.
+                if anzeige.filterung != nil {
+                    Image(systemName: "line.3.horizontal.decrease")
+                        .font(.system(size: 13 * skalaTitel, weight: .semibold))
+                        .opacity(0.85)
+                        .accessibilityLabel("Gefiltert")
+                }
+            }
+            .padding(.top, groesse == .gross ? 3 : 2)
+            .padding(.trailing, kopfTextRand(kicker: false))
             if groesse == .gross {
                 Text(anzeige.unterzeile)
                     .font(.system(size: 12.5 * skalaUnterzeile))
@@ -265,27 +274,42 @@ private struct MensaWidgetInhalt: View {
         }
     }
 
-    // MARK: Kein Plan
+    // MARK: Kein Plan, nichts passt
 
     private var leer: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(groesse == .klein ? "Noch kein Plan" : "Der Speiseplan ist noch nicht da")
+            Text(leerTitel)
                 .font(.system(size: 14 * skalaGericht, weight: .bold))
                 .foregroundStyle(Color(.textPrimary))
             Text(leerText)
                 .font(.system(size: 13 * skalaDetail))
                 .foregroundStyle(Color(.textSecondary))
+                .lineLimit(groesse == .klein ? 4 : nil)
         }
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
+    private var leerTitel: LocalizedStringKey {
+        if anzeige.nichtsPasst { return groesse == .klein ? "Nichts passt" : "Nichts passt zu deinem Filter" }
+        return groesse == .klein ? "Noch kein Plan" : "Der Speiseplan ist noch nicht da"
+    }
+
     private var leerText: LocalizedStringKey {
+        // Alle Gerichte stehen im Speiseplan: Tippen öffnet ihn (Kopf-Link, im kleinen Widget das ganze Widget).
+        if let filterung = anzeige.filterung, anzeige.nichtsPasst {
+            let text = "\(filterung.kurztext) · \(filterung.ohneFilterText)"
+            switch groesse {
+            case .klein: return "\(filterung.kurztext)"
+            case .mittel: return "\(text)"
+            case .gross: return "\(text). Tippen zeigt alle im Speiseplan."
+            }
+        }
         switch groesse {
-        case .klein: "Tippen zum Laden"
-        case .mittel: "Tippen, um ihn in der App zu laden."
-        case .gross: "Tippen, um ihn in der App zu laden. Öffnungszeiten stehen trotzdem unten."
+        case .klein: return "Tippen zum Laden"
+        case .mittel: return "Tippen, um ihn in der App zu laden."
+        case .gross: return "Tippen, um ihn in der App zu laden. Öffnungszeiten stehen trotzdem unten."
         }
     }
 

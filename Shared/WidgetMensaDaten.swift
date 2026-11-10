@@ -35,7 +35,8 @@ enum WidgetMensaPflege {
                     preisBedienstete: meal.price.staff,
                     preisGaeste: meal.price.guest,
                     waehrung: meal.price.currency,
-                    chips: meal.widgetChips
+                    chips: meal.widgetChips,
+                    allergene: meal.allergies
                 )
             }
     }

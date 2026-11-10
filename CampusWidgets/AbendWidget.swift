@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Ein Zustand des Widgets „Heute Abend“: alles, was die Ansicht braucht, ist schon als Text berechnet.
 struct AbendEintrag: TimelineEntry {
-    let date: Date
+    var date: Date
     let anzeige: AbendWidgetAnzeige
     /// Nur für Previews: zeichnet auch ohne Tönung des Systems so, wie „Getönt / Klar“ aussieht.
     var getoentVorschau = false
@@ -35,17 +35,17 @@ struct AbendProvider: TimelineProvider {
             return
         }
         // Die Galerie und Momentaufnahmen laden nichts nach: sie zeigen den Speicher.
-        completion(Self.eintraege(snapshot: store.lesen(), ab: .now).first ?? placeholder(in: context))
+        completion(Self.eintraege(snapshot: store.lesen(), ab: WidgetUhr.jetzt).first ?? placeholder(in: context))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<AbendEintrag>) -> Void) {
         let store = store
         let quelle = quelle
         Task { @MainActor in
-            let jetzt = Date.now
+            let jetzt = WidgetUhr.jetzt
             await WidgetEventsAktualisierung(store: store)
                 .ladeUndSpeichere(quelle: quelle(), jetzt: jetzt, zeitlimit: Self.zeitlimit)
-            let eintraege = Self.eintraege(snapshot: store.lesen(), ab: jetzt)
+            let eintraege = WidgetUhr.eintraege(Self.eintraege(snapshot: store.lesen(), ab: jetzt)) { $0.date = $1 }
             completion(Timeline(entries: eintraege, policy: .after(AbendWidgetPhasen.zeitleistenEnde(nach: jetzt))))
         }
     }

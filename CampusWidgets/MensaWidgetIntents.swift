@@ -44,8 +44,18 @@ struct MensaWidgetKonfiguration: WidgetConfigurationIntent {
     @Parameter(title: "Mensa", default: .wieStartseite)
     var mensa: MensaAuswahl
 
+    @Parameter(
+        title: "Filter aus der App anwenden",
+        description: "Zeigt nur Gerichte, die zu deinem Filter in der Mensa-Ansicht passen.",
+        default: false
+    )
+    var filterAnwenden: Bool
+
     static var parameterSummary: some ParameterSummary {
-        Summary("\(\.$mensa)")
+        Summary {
+            \.$mensa
+            \.$filterAnwenden
+        }
     }
 }
 

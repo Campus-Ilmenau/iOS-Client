@@ -125,4 +125,10 @@ struct WidgetSync {
         neuLaden([WidgetKinds.mensa])
     }
 
+    /// Der Mensa-Filter der App hat sich geändert. Er liegt in der App Group; Widgets mit dem Schalter
+    /// „Filter aus der App anwenden“ lesen ihn beim Neuladen.
+    func mensaFilterGeaendert() {
+        neuLaden([WidgetKinds.mensa])
+    }
+
 }
