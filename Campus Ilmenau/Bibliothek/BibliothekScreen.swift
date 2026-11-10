@@ -30,6 +30,8 @@ struct BibliothekScreen: View {
     /// Anzahl der Titel auf der Merkliste, für das Lesezeichen im Kopf.
     let merklisteCount: Int
     let onOpenMerkliste: () -> Void
+    /// Bibliotheksausweis zeigen (Face ID / Touch ID folgt in der aufrufenden View).
+    let onShowAusweis: () -> Void
 
     @State private var tab: Tab
     /// Zeitverhalten der Ziege beim ersten Laden ohne Ausleihen.
@@ -51,7 +53,8 @@ struct BibliothekScreen: View {
         onRefresh: @escaping () async -> Void,
         onOpenTitle: @escaping (LibraryTitleRoute) -> Void = { _ in },
         merklisteCount: Int = 0,
-        onOpenMerkliste: @escaping () -> Void = {}
+        onOpenMerkliste: @escaping () -> Void = {},
+        onShowAusweis: @escaping () -> Void = {}
     ) {
         self.session = session
         self.items = items
@@ -70,6 +73,7 @@ struct BibliothekScreen: View {
         self.onOpenTitle = onOpenTitle
         self.merklisteCount = merklisteCount
         self.onOpenMerkliste = onOpenMerkliste
+        self.onShowAusweis = onShowAusweis
     }
 
     private var lists: BibliothekLists { BibliothekLists(items: items) }
@@ -119,7 +123,10 @@ struct BibliothekScreen: View {
             }
             Spacer(minLength: 0)
             HStack(spacing: 8) {
-                // Das Lesezeichen ist immer da, auch abgemeldet; die Glocke nur mit Anmeldung.
+                // Ausweis und Glocke nur mit Anmeldung; das Lesezeichen ist immer da, auch abgemeldet.
+                if isSignedIn {
+                    ausweisButton
+                }
                 bookmarkButton
                 if isSignedIn {
                     bellButton
@@ -129,6 +136,17 @@ struct BibliothekScreen: View {
         .padding(.horizontal, 16)
         .padding(.top, 4)
         .padding(.bottom, 12)
+    }
+
+    private var ausweisButton: some View {
+        Button(action: onShowAusweis) {
+            Image(systemName: "person.text.rectangle")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Color(.textPrimary))
+                .frame(width: 44, height: 44)
+                .background(Color(.surfaceSecondary), in: Circle())
+        }
+        .accessibilityLabel("Bibliotheksausweis zeigen")
     }
 
     private var bookmarkButton: some View {

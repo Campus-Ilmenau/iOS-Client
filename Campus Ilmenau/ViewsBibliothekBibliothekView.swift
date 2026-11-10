@@ -22,6 +22,9 @@ struct BibliothekView: View {
     // Die Katalog-API für die Details eines Mediums; Cover-Zwischenspeicher gilt, solange die Seite offen ist.
     @State private var catalogService: LibraryCatalogService
     @State private var coverLoader: LibraryCoverLoader
+    @State private var ausweisDaten: BibliotheksausweisDaten?
+    @State private var isCheckingBiometrics = false
+    @State private var biometrieHinweis: BibliotheksausweisZugang.Hinweis?
     @State private var toastMessage = ""
     @State private var showToast = false
 
@@ -32,6 +35,31 @@ struct BibliothekView: View {
     }
 
     var body: some View {
+        screen
+            .fullScreenCover(item: $ausweisDaten) { daten in
+                BibliotheksausweisView(daten: daten) { grund in
+                    ausweisDaten = nil
+                    if grund == .zeit {
+                        toastMessage = "Ausweis geschlossen"
+                        showToast = true
+                    }
+                }
+            }
+            .alert(
+                biometrieHinweis?.titel ?? "",
+                isPresented: Binding(
+                    get: { biometrieHinweis != nil },
+                    set: { if !$0 { biometrieHinweis = nil } }
+                ),
+                presenting: biometrieHinweis
+            ) { _ in
+                Button("OK") {}
+            } message: { hinweis in
+                Text(hinweis.text)
+            }
+    }
+
+    private var screen: some View {
         BibliothekScreen(
             session: service.isAuthenticated
                 ? .signedIn(username: service.lastUsername)
@@ -54,7 +82,8 @@ struct BibliothekView: View {
             onRefresh: { await loadData() },
             onOpenTitle: { openedTitle = $0 },
             merklisteCount: merkliste.anzahl,
-            onOpenMerkliste: { showsMerkliste = true }
+            onOpenMerkliste: { showsMerkliste = true },
+            onShowAusweis: { Task { await zeigeAusweis() } }
         )
         // Die Navigationsleiste bleibt vorerst für den Zurück-Pfeil, bis die TabBar die Navigation übernimmt.
         .navigationTitle("")
@@ -81,6 +110,8 @@ struct BibliothekView: View {
         }
         .onChange(of: service.isAuthenticated) { _, isAuthenticated in
             if !isAuthenticated {
+                // Ausweisdaten gehören zum Token und werden mit ihm verworfen.
+                ausweisDaten = nil
                 showLoginSheet = true
             }
         }
@@ -124,6 +155,34 @@ struct BibliothekView: View {
         returningFromCatalog = true
         showCatalog = true
         return true
+    }
+
+    /// Face ID / Touch ID bei jedem Tippen neu, danach Konto frisch laden und den Ausweis öffnen.
+    /// Abbruch oder Fehlschlag der Prüfung bleibt ohne Meldung.
+    private func zeigeAusweis() async {
+        guard !isCheckingBiometrics else { return }
+        isCheckingBiometrics = true
+        defer { isCheckingBiometrics = false }
+
+        switch await BibliotheksausweisZugang.pruefen() {
+        case .erlaubt:
+            let letzter = service.patron
+            // Schlägt der Abruf fehl, wird der Ausweis trotzdem gezeigt: mit Name und Nummer aus der Sitzung,
+            // aber ohne „Gültig bis“, Gruppe und Status.
+            let frisch = try? await service.fetchPatron()
+            // Lief die Sitzung währenddessen ab (401/403), öffnet sich stattdessen das Login-Sheet.
+            if service.isAuthenticated {
+                ausweisDaten = BibliotheksausweisDaten(
+                    benutzernummer: service.lastUsername ?? "",
+                    frisch: frisch,
+                    letzter: letzter
+                )
+            }
+        case .hinweis(let hinweis):
+            biometrieHinweis = hinweis
+        case .abgebrochen:
+            break
+        }
     }
 
     private func loadData() async {

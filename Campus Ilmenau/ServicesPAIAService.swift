@@ -23,6 +23,9 @@ final class PAIAService: ObservableObject {
     @Published private(set) var isAuthenticated = false
     @Published private(set) var items: [PAIALoanItem] = []
     @Published private(set) var notifications: [PAIANotification] = []
+    /// Konto des angemeldeten Nutzers (core/{patron}) für den Bibliotheksausweis. Nur im Speicher,
+    /// wird mit dem Token verworfen: beim Abmelden, bei 401/403 und beim Neustart der App.
+    @Published private(set) var patron: PAIAPatron?
     @Published var isLoading = false
     @Published var errorMessage: String?
     /// `true`, wenn die Sitzung ablief (lokal oder per 401/403) und nicht manuell beendet wurde.
@@ -143,6 +146,18 @@ final class PAIAService: ObservableObject {
         }
     }
 
+    /// Lädt das Nutzerkonto (PAIA `GET core/{patron}`). Fehler setzen bewusst keine `errorMessage`,
+    /// weil der Ausweis auch ohne diese Angaben angezeigt wird; bei einem Fehler bleibt der letzte
+    /// Abruf der Sitzung erhalten.
+    @discardableResult
+    func fetchPatron() async throws -> PAIAPatron {
+        let loaded: PAIAPatron = try await performAuthorizedGET(path: "")
+        // Wurde währenddessen abgemeldet, dürfen die Daten nicht zurückkehren.
+        guard isAuthenticated else { throw PAIAError.notAuthenticated }
+        patron = loaded
+        return loaded
+    }
+
     /// Verlängert die Leihfrist eines Mediums (PAIA core/{patron}/renew).
     func renew(_ item: PAIALoanItem) async throws {
         guard let itemURI = item.item else {
@@ -189,6 +204,7 @@ final class PAIAService: ObservableObject {
         isAuthenticated = false
         items = []
         notifications = []
+        patron = nil
     }
 
     // MARK: - Private Methods
@@ -212,14 +228,14 @@ final class PAIAService: ObservableObject {
         return try await send(request)
     }
 
-    /// Baut ein authentifiziertes Request gegen `core/{patron}/{path}`.
+    /// Baut ein authentifiziertes Request gegen `core/{patron}/{path}` (leerer `path`: `core/{patron}`).
     private func authorizedRequest(path: String, method: String, body: Data? = nil) throws -> URLRequest {
         guard isAuthenticated, let accessToken, let patronId else {
             throw PAIAError.notAuthenticated
         }
 
         guard let encodedPatron = patronId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
-              let url = URL(string: "\(baseURL)/core/\(encodedPatron)/\(path)") else {
+              let url = URL(string: "\(baseURL)/core/\(encodedPatron)\(path.isEmpty ? "" : "/\(path)")") else {
             throw PAIAError.invalidURL
         }
 
