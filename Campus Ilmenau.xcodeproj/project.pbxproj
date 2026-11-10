@@ -16,6 +16,7 @@
 		0E71AB22309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB12309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf */; };
 		0E71AB23309FD4790043D99E /* PlusJakartaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */; };
 		0E71AB24309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */; };
+		0E71AC6E30A0F1F80043D99E /* Suche-API-Analyse.md in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AC6D30A0F1F80043D99E /* Suche-API-Analyse.md */; };
 		0EBED7F4308F5273009A8BEC /* APIConfig.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */; };
 /* End PBXBuildFile section */
 
@@ -54,6 +55,7 @@
 		0E71AB12309FD4790043D99E /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-SemiBold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-Bold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-Bold.ttf"; sourceTree = "<group>"; };
 		0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PlusJakartaSans-ExtraBold.ttf"; path = "Campus Ilmenau/Fonts/PlusJakartaSans-ExtraBold.ttf"; sourceTree = "<group>"; };
+		0E71AC6D30A0F1F80043D99E /* Suche-API-Analyse.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Suche-API-Analyse.md"; sourceTree = "<group>"; };
 		0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Campus IlmenauTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Campus Ilmenau.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = APIConfig.swift.example; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 		0E7D873B3048BC3C005E1A2C = {
 			isa = PBXGroup;
 			children = (
+				0E71AC6D30A0F1F80043D99E /* Suche-API-Analyse.md */,
 				0E6AD2C3308F9EF200A878C0 /* Campus-Ilmenau-Info.plist */,
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
 				0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */,
@@ -311,6 +314,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0EBED7F4308F5273009A8BEC /* APIConfig.swift.example in Resources */,
+				0E71AC6E30A0F1F80043D99E /* Suche-API-Analyse.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
