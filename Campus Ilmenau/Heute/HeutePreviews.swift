@@ -124,6 +124,7 @@ enum HeuteVorschau {
             mensaSpeicher: speicher,
             ausblendSpeicher: HinweiseAusblendSpeicher(defaults: defaults),
             preisgruppe: { .studierende },
+            mensaFilter: { MensaFilter() },
             zeitlimit: .seconds(2)
         )
     }

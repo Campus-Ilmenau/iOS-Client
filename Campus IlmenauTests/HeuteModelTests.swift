@@ -125,7 +125,7 @@ private struct Aufbau {
     var hinweise: [Hinweis]? = []
     let defaults = UserDefaults(suiteName: "HeuteModelTests-\(UUID().uuidString)") ?? .standard
 
-    func modell(_ uhr: String, mensa venue: MensaVenue, hinweise: [Hinweis]? = nil) -> HeuteModel {
+    func modell(_ uhr: String, mensa venue: MensaVenue, hinweise: [Hinweis]? = nil, filter: MensaFilter = MensaFilter()) -> HeuteModel {
         let speicher = HeuteMensaSpeicher(defaults: defaults)
         speicher.venue = venue
         let jetzt = zeit(uhr)
@@ -137,6 +137,7 @@ private struct Aufbau {
             mensaSpeicher: speicher,
             ausblendSpeicher: HinweiseAusblendSpeicher(defaults: defaults),
             preisgruppe: { .studierende },
+            mensaFilter: { filter },
             zeitlimit: .seconds(2)
         )
     }
@@ -629,7 +630,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
         )
         await modell.laden()
         #expect(modell.phase == .morgen)
@@ -657,7 +658,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
         )
         await modell.laden()
         #expect(aufbau.mensa.tage.count == 2)
@@ -675,7 +676,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
         )
         await modell.laden()
         uhr.jetzt = zeit("12:09")
@@ -699,7 +700,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
         )
         // Knapp vor der vollen Minute: der Wecker klingelt nach höchstens einer Sekunde
         let minute = HeuteModel.naechsteMinute(nach: .now)

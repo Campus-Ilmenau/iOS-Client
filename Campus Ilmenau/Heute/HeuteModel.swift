@@ -23,6 +23,8 @@ final class HeuteModel {
     // MARK: Zustand
 
     private(set) var mensa: MensaVenue
+    /// Der Mensa-Filter der App; `mensaNeuLesen()` holt ihn nach, wenn die Mensa-Ansicht ihn geändert hat.
+    private(set) var filter: MensaFilter
     private(set) var jetzt: Date
 
     private(set) var mensen: [Canteen]?
@@ -42,6 +44,8 @@ final class HeuteModel {
     @ObservationIgnored private let mensaSpeicher: HeuteMensaSpeicher
     @ObservationIgnored private let ausblendSpeicher: HinweiseAusblendSpeicher
     @ObservationIgnored private let preisgruppe: () -> MensaPriceGroup
+    /// Der Mensa-Filter der App (aus der App Group); die Mensa-Karte zeigt nur, was zu ihm passt.
+    @ObservationIgnored private let mensaFilter: () -> MensaFilter
     @ObservationIgnored private let zeitlimit: Duration
     /// Schreibt, was geladen wurde, für die Widgets. `nil` in Tests, die den Speicher nicht berühren sollen.
     @ObservationIgnored private let widgetSync: WidgetSync?
@@ -59,6 +63,7 @@ final class HeuteModel {
             AppGroup.defaults.string(forKey: MensaPriceGroup.storageKey).flatMap(MensaPriceGroup.init(rawValue:))
                 ?? .studierende
         },
+        mensaFilter: @escaping () -> MensaFilter = { MensaFilterStore.load() },
         zeitlimit: Duration = .seconds(8),
         widgetSync: WidgetSync? = nil
     ) {
@@ -69,9 +74,11 @@ final class HeuteModel {
         self.mensaSpeicher = mensaSpeicher
         self.ausblendSpeicher = ausblendSpeicher
         self.preisgruppe = preisgruppe
+        self.mensaFilter = mensaFilter
         self.zeitlimit = zeitlimit
         self.widgetSync = widgetSync
         self.mensa = mensaSpeicher.venue
+        self.filter = mensaFilter()
         self.jetzt = now()
         self.ausgeblendeteHinweise = ausblendSpeicher.ids
     }
@@ -84,10 +91,13 @@ final class HeuteModel {
         mensaSpeicher.venue = venue
     }
 
-    /// Liest die Mensa neu aus dem Speicher, falls „Mehr“ sie geändert hat. Der Speicher ist die einzige Quelle.
+    /// Liest Mensa und Filter neu aus dem Speicher, falls „Mehr“ die Mensa oder die Mensa-Ansicht den Filter
+    /// geändert hat. Der Speicher ist die einzige Quelle.
     func mensaNeuLesen() {
         let gespeichert = mensaSpeicher.venue
         if gespeichert != mensa { mensa = gespeichert }
+        let gespeicherterFilter = mensaFilter()
+        if gespeicherterFilter != filter { filter = gespeicherterFilter }
     }
 
     /// Blendet einen Hinweis dauerhaft aus.
@@ -348,6 +358,11 @@ final class HeuteModel {
         (speiseplan ?? []).filter { venue.matches(canteenName: $0.canteenName) && !MensaMealtime.isDinner($0) }
     }
 
+    /// Nur Gerichte, die zum Mensa-Filter der App passen (Mensa-Ansicht, Heute und Widget nutzen denselben).
+    private func passend(_ gerichte: [MensaMeal]) -> [MensaMeal] {
+        filter.apply(to: gerichte)
+    }
+
     private func zeile(_ gericht: MensaMeal) -> HeuteZeile {
         HeuteZeile(
             id: gericht.id,
@@ -375,7 +390,7 @@ final class HeuteModel {
             kicker: kicker,
             titel: mensa.displayName,
             unterzeile: unterzeile,
-            zeilen: mittagGerichte(mensa, in: speiseplanHeute).prefix(anzahl).map(zeile),
+            zeilen: passend(mittagGerichte(mensa, in: speiseplanHeute)).prefix(anzahl).map(zeile),
             linkText: "Ganzer Speiseplan",
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
@@ -456,7 +471,7 @@ final class HeuteModel {
             kicker: kicker,
             titel: titel,
             unterzeile: unterzeile,
-            zeilen: gerichte.prefix(3).map(zeile),
+            zeilen: passend(gerichte).prefix(3).map(zeile),
             linkText: "Zum Abendangebot",
             ziel: .speiseplan(ort),
             mensaAendernSichtbar: true,
@@ -515,7 +530,7 @@ final class HeuteModel {
             kicker: kicker,
             titel: mensa.displayName,
             unterzeile: "Mittagsangebot morgen",
-            zeilen: gerichte.prefix(3).map(zeile),
+            zeilen: passend(gerichte).prefix(3).map(zeile),
             linkText: "Ganzer Speiseplan",
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
