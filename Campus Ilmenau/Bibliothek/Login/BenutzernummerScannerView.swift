@@ -496,9 +496,17 @@ struct ScannerCameraView: UIViewControllerRepresentable {
             handle(updatedItems)
         }
 
+        #if DEBUG
+        /// Letzte Konsolenzeile, damit `didUpdate` (mehrmals pro Sekunde) nicht dieselbe Zeile wiederholt.
+        private var lastLog: String?
+        #endif
+
         /// Nimmt den ersten Barcode, der eine Benutzernummer sein kann. Anderes wird still ignoriert.
         private func handle(_ items: [RecognizedItem]) {
             for item in items {
+                #if DEBUG
+                logBarcode(item)
+                #endif
                 guard case .barcode(let barcode) = item,
                       let payload = barcode.payloadStringValue,
                       let number = BenutzernummerFormat.normalize(
@@ -509,6 +517,20 @@ struct ScannerCameraView: UIViewControllerRepresentable {
                 return
             }
         }
+
+        #if DEBUG
+        /// Zum Klären des Strichcode-Formats mit der UB: Schreibt Format, Rohwert und Ergebnis der Normalisierung in die Konsole.
+        private func logBarcode(_ item: RecognizedItem) {
+            guard case .barcode(let barcode) = item else { return }
+            let symbology = barcode.observation.symbology
+            let payload = barcode.payloadStringValue
+            let normalized = payload.flatMap { BenutzernummerFormat.normalize($0, isCodabar: symbology == .codabar) }
+            let line = "[Scanner] Format: \(symbology.rawValue) | Rohwert: \(payload.map { "\"\($0)\"" } ?? "nil") | Benutzernummer: \(normalized ?? "nicht erkannt")"
+            guard line != lastLog else { return }
+            lastLog = line
+            print(line)
+        }
+        #endif
     }
 }
 
