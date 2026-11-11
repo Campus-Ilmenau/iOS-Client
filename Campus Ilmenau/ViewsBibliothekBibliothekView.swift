@@ -14,8 +14,11 @@ struct BibliothekView: View {
     @State private var showNotificationsSheet = false
     @State private var showCatalog = false
     @State private var returningFromCatalog = false
-    /// Wunsch aus dem Link `campusilmenau://katalog/suche`: Katalogsuche mit offener Tastatur, ohne Anmeldung.
+    /// Wünsche aus Links und von Siri (`campusilmenau://katalog/suche`, `…/katalog/titel/<id>`, `…/bibliothek/merkliste`):
+    /// Keiner braucht eine Anmeldung.
     @Environment(AppRouter.self) private var router: AppRouter?
+    /// Begriff für die Katalogsuche, wenn Siri sie mit Suchbegriff öffnet (Treffer laden sofort, kein Fokus).
+    @State private var katalogSuchbegriff: String?
     @Environment(\.merkliste) private var merkliste
     @State private var showsMerkliste = false
     @State private var openedTitle: LibraryTitleRoute?
@@ -74,6 +77,7 @@ struct BibliothekView: View {
             onOpenNotifications: { showNotificationsSheet = true },
             onOpenCatalog: {
                 returningFromCatalog = true
+                katalogSuchbegriff = nil
                 showCatalog = true
             },
             onLogin: { showLoginSheet = true },
@@ -95,10 +99,13 @@ struct BibliothekView: View {
                 await loadData()
             }
         }
-        .onChange(of: router?.katalogSuche) { _, _ in oeffneKatalogAufWunsch() }
+        .onChange(of: router?.katalogSuche) { _, _ in oeffneZielAufWunsch() }
+        .onChange(of: router?.katalogBegriff) { _, _ in oeffneZielAufWunsch() }
+        .onChange(of: router?.katalogTitelWunsch) { _, _ in oeffneZielAufWunsch() }
+        .onChange(of: router?.merklisteOeffnen) { _, _ in oeffneZielAufWunsch() }
         .onAppear {
-            // Ein Link zur Katalogsuche geht vor: Die Suche braucht keine Anmeldung, das Sheet bleibt zu.
-            if oeffneKatalogAufWunsch() { return }
+            // Ein Link zu Katalog, Titel oder Merkliste geht vor: Nichts davon braucht eine Anmeldung, das Sheet bleibt zu.
+            if oeffneZielAufWunsch() { return }
             // Nach der Rückkehr aus dem Katalog soll das Sheet nicht erneut aufspringen.
             if returningFromCatalog {
                 returningFromCatalog = false
@@ -122,6 +129,7 @@ struct BibliothekView: View {
             }, onOpenCatalog: {
                 showLoginSheet = false
                 returningFromCatalog = true
+                katalogSuchbegriff = nil
                 showCatalog = true
             })
         }
@@ -138,23 +146,54 @@ struct BibliothekView: View {
             )
         }
         .navigationDestination(isPresented: $showCatalog) {
-            LibraryCatalogView(autofocus: true)
+            // `id`: Kommt ein neuer Begriff von Siri, während die Suche offen ist, entsteht sie neu.
+            LibraryCatalogView(autofocus: true, suchbegriff: katalogSuchbegriff)
+                .id(katalogSuchbegriff ?? "")
         }
         .sheet(isPresented: $showNotificationsSheet) {
             PAIANotificationsView(service: service)
         }
     }
 
-    /// Öffnet die Katalogsuche, wenn ein Link es wünscht. Gibt zurück, ob sie geöffnet wurde.
+    /// Öffnet, was ein Link oder Siri wünscht: die Katalogsuche (leer mit Tastatur oder mit Begriff und gleich geladenen
+    /// Treffern), einen Titel oder die Merkliste. Gibt zurück, ob etwas geöffnet wurde.
     /// `returningFromCatalog` verhindert, dass beim Zurückkommen das Anmelde-Sheet aufspringt.
     @discardableResult
-    private func oeffneKatalogAufWunsch() -> Bool {
-        guard router?.katalogSuche == true else { return false }
-        router?.katalogSuche = false
+    private func oeffneZielAufWunsch() -> Bool {
+        guard let router else { return false }
+        if let begriff = router.katalogBegriff {
+            router.katalogBegriff = nil
+            beginneVonAussen()
+            katalogSuchbegriff = begriff
+            showCatalog = true
+            return true
+        }
+        if router.katalogSuche {
+            router.katalogSuche = false
+            beginneVonAussen()
+            katalogSuchbegriff = nil
+            showCatalog = true
+            return true
+        }
+        if let id = router.katalogTitelWunsch {
+            router.katalogTitelWunsch = nil
+            beginneVonAussen()
+            openedTitle = LibraryTitleRoute(id: id)
+            return true
+        }
+        if router.merklisteOeffnen {
+            router.merklisteOeffnen = false
+            beginneVonAussen()
+            showsMerkliste = true
+            return true
+        }
+        return false
+    }
+
+    /// Ein Ziel von außen braucht keine Anmeldung: Das Sheet bleibt zu, auch nach der Rückkehr.
+    private func beginneVonAussen() {
         showLoginSheet = false
         returningFromCatalog = true
-        showCatalog = true
-        return true
     }
 
     /// Face ID / Touch ID bei jedem Tippen neu, danach Konto frisch laden und den Ausweis öffnen.

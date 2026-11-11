@@ -109,6 +109,16 @@ final class LibrarySearchModel {
         self.coverLoader = LibraryCoverLoader(service: service)
     }
 
+    /// Ein Modell mit gefülltem Suchfeld, wenn die Suche von außen kommt (Siri-Link mit `?q=`). Leer oder `nil`: wie sonst.
+    /// Die Treffer lädt erst `submit()`, denn eine Änderung vor dem Erscheinen löst `textChanged()` nicht aus.
+    static func fuerSuchbegriff(_ begriff: String?) -> LibrarySearchModel {
+        let model = LibrarySearchModel()
+        if let begriff = begriff?.trimmingCharacters(in: .whitespacesAndNewlines), !begriff.isEmpty {
+            model.text = begriff
+        }
+        return model
+    }
+
     // MARK: - Aktionen der Oberfläche
 
     /// Beim Erscheinen: einmal abfragen, ob Inhaltsangaben erlaubt sind. Wird nicht gespeichert.

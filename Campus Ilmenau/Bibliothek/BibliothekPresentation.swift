@@ -188,6 +188,16 @@ extension PAIALoanItem: Equatable {
 struct LibraryTitleRoute: Hashable {
     let media: LibraryMedia
 
+    /// Ein Titel aus einem Link (`campusilmenau://katalog/titel/<id>`, von Siri): Bekannt ist nur die ID, den Rest lädt die
+    /// Titel-Ansicht. Bis dahin steht „Titel <PPN>“, wie bei einem Eintrag der Merkliste ohne Daten.
+    init(id: String) {
+        self.media = GemerkterTitel(id: id, titel: "").alsMedia
+    }
+
+    init(media: LibraryMedia) {
+        self.media = media
+    }
+
     static func == (lhs: LibraryTitleRoute, rhs: LibraryTitleRoute) -> Bool { lhs.media.id == rhs.media.id }
     func hash(into hasher: inout Hasher) { hasher.combine(media.id) }
 }

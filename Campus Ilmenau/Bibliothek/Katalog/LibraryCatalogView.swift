@@ -2,12 +2,26 @@ import SwiftUI
 
 /// Push-Ansicht „Katalog“ aus der Bibliothek: Suche in der Bibliotheks-API, ohne Anmeldung, nur lesend.
 /// Das Feld ist beim Öffnen fokussiert, sofern `autofocus` gesetzt ist.
+///
+/// Mit `suchbegriff` (Link `campusilmenau://katalog/suche?q=<begriff>`, von Siri) steht der Begriff im Feld und die Treffer
+/// laden sofort; die Tastatur bleibt zu.
 struct LibraryCatalogView: View {
     var autofocus = true
-    @State private var model = LibrarySearchModel()
+    var suchbegriff: String?
+    @State private var model: LibrarySearchModel
+
+    init(autofocus: Bool = true, suchbegriff: String? = nil) {
+        self.autofocus = autofocus
+        self.suchbegriff = suchbegriff
+        _model = State(initialValue: LibrarySearchModel.fuerSuchbegriff(suchbegriff))
+    }
 
     var body: some View {
-        LibraryCatalogScreen(model: model, autofocus: autofocus)
+        LibraryCatalogScreen(model: model, autofocus: autofocus && suchbegriff == nil)
+            .task {
+                guard suchbegriff != nil else { return }
+                model.submit()
+            }
     }
 }
 
