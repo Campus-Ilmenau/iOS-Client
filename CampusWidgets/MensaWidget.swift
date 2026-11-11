@@ -28,6 +28,21 @@ struct MensaEintrag: TimelineEntry {
     var sperre: MensaSperreAnzeige?
     /// Nur für Previews: zeichnet auch ohne Tönung des Systems so, wie „Getönt / Klar“ aussieht.
     var getoentVorschau = false
+    /// Wie wichtig der Eintrag im Smart Stack gerade ist (`MensaWidgetPhasen.relevanz`).
+    var relevance: TimelineEntryRelevance?
+}
+
+extension Array where Element == MensaEintrag {
+    /// Gibt jedem Eintrag seine Relevanz im Smart Stack: der Wert der Phase, gültig bis zum nächsten Eintrag.
+    /// - Parameter ende: Bis wann der letzte Eintrag gilt (Neuladen am nächsten Morgen).
+    func mitRelevanz(ende: Date) -> [MensaEintrag] {
+        let relevanzen = MensaWidgetPhasen.relevanzen(anzeigen: map(\.anzeige), zeitpunkte: map(\.date), ende: ende)
+        return zip(self, relevanzen).map { eintrag, relevanz in
+            var kopie = eintrag
+            kopie.relevance = TimelineEntryRelevance(score: relevanz.score, duration: relevanz.dauer)
+            return kopie
+        }
+    }
 }
 
 /// Liefert die Zeitleiste: ein Eintrag pro Phasenwechsel für den ganzen Tag, dann Neuladen am nächsten Morgen um 6:00.
@@ -103,8 +118,9 @@ struct MensaProvider: AppIntentTimelineProvider {
         let gruppe = defaults.string(forKey: AppGroup.preisgruppeSchluessel).flatMap(MensaPriceGroup.init(rawValue:))
             ?? .studierende
         let wechsel = auswahl == .wieStartseite ? MensaWechsel(venue: venue) : nil
+        let ende = MensaWidgetPhasen.naechsteNeuladung(nach: jetzt)
         if family.istSperrbildschirm {
-            return sperrEintraege(snapshot: snapshot, ab: jetzt, venue: venue, gruppe: gruppe, filter: filter)
+            return sperrEintraege(snapshot: snapshot, ab: jetzt, venue: venue, gruppe: gruppe, filter: filter).mitRelevanz(ende: ende)
         }
         let zeitpunkte = [jetzt] + MensaWidgetPhasen.wechsel(snapshot: snapshot, mensaID: venue.rawValue, nach: jetzt)
         return zeitpunkte.map { zeit in
@@ -113,7 +129,7 @@ struct MensaProvider: AppIntentTimelineProvider {
                 anzeige: MensaWidgetPhasen.anzeige(snapshot: snapshot, mensaID: venue.rawValue, preisgruppe: gruppe, jetzt: zeit, filter: filter),
                 wechsel: wechsel
             )
-        }
+        }.mitRelevanz(ende: ende)
     }
 }
 

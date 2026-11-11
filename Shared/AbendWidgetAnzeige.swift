@@ -166,10 +166,11 @@ nonisolated enum AbendWidgetPhasen {
     }
 
     /// Die Zeitpunkte nach `jetzt`, an denen sich die Anzeige ändert: jeder Beginn und jedes Ende der Events von
-    /// heute und morgen (dann wechselt „Läuft gerade“ ohne Nachladen) und der Tageswechsel um 6 Uhr.
+    /// heute und morgen (dann wechselt „Läuft gerade“ ohne Nachladen) und der Tageswechsel um 6 Uhr. Dazu kommen die
+    /// Zeitpunkte, an denen sich die Relevanz im Smart Stack ändert (17 Uhr, 30 Minuten vor jedem Beginn).
     static func wechsel(events: [WidgetEvent], nach jetzt: Date) -> [Date] {
         let heute = AbendBezug.tag(jetzt)
-        let bis = jetzt.addingTimeInterval(36 * 3600)
+        let bis = jetzt.addingTimeInterval(zeitleistenHorizont)
         var zeiten: [Date] = []
         for event in events where !event.ganztaegig {
             let tag = AbendBezug.tag(von: event)
@@ -179,6 +180,7 @@ nonisolated enum AbendWidgetPhasen {
         }
         // 6 Uhr: Danach gehört die Nacht zum neuen Abend.
         zeiten.append(HeuteUhr.datum(am: EventKalender.tag(heute, plus: 1), minuten: AbendBezug.tageswechselStunde * 60))
+        zeiten.append(contentsOf: relevanzWechsel(events: events, heute: heute))
         return Array(Set(zeiten.filter { $0 > jetzt && $0 <= bis })).sorted()
     }
 

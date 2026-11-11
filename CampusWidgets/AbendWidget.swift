@@ -7,6 +7,8 @@ struct AbendEintrag: TimelineEntry {
     let anzeige: AbendWidgetAnzeige
     /// Nur für Previews: zeichnet auch ohne Tönung des Systems so, wie „Getönt / Klar“ aussieht.
     var getoentVorschau = false
+    /// Wie wichtig der Eintrag im Smart Stack gerade ist (`AbendWidgetPhasen.relevanz`).
+    var relevance: TimelineEntryRelevance?
 }
 
 /// Liefert die Zeitleiste: ein Eintrag zu jedem Beginn und Ende (dann wechselt „Läuft gerade“ ohne Nachladen),
@@ -56,10 +58,13 @@ struct AbendProvider: TimelineProvider {
     static func eintraege(snapshot: WidgetSnapshot, ab jetzt: Date) -> [AbendEintrag] {
         let gemerkt = Set(snapshot.gemerkteEventIDs)
         let zeitpunkte = [jetzt] + AbendWidgetPhasen.wechsel(events: snapshot.events, nach: jetzt)
-        return zeitpunkte.map { zeit in
+        // Ein Eintrag hat einen Wert; dafür gibt es auch zu 17 Uhr und 30 Minuten vor jedem Beginn einen Eintrag.
+        let relevanzen = AbendWidgetPhasen.relevanzen(events: snapshot.events, zeitpunkte: zeitpunkte)
+        return zip(zeitpunkte, relevanzen).map { zeit, relevanz in
             AbendEintrag(
                 date: zeit,
-                anzeige: AbendWidgetPhasen.anzeige(events: snapshot.events, gemerkteIDs: gemerkt, woche: snapshot.woche, jetzt: zeit)
+                anzeige: AbendWidgetPhasen.anzeige(events: snapshot.events, gemerkteIDs: gemerkt, woche: snapshot.woche, jetzt: zeit),
+                relevance: TimelineEntryRelevance(score: relevanz.score, duration: relevanz.dauer)
             )
         }
     }
