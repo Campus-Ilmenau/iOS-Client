@@ -53,6 +53,9 @@ nonisolated struct MensaWidgetAnzeige: Equatable, Sendable {
     /// `nil` ohne Schalter und bei leerem App-Filter: dann verhält sich das Widget wie ohne Schalter.
     var filterung: Filterung?
 
+    /// Wie viele Gerichte der gezeigte Plan hat, nach dem Filter und vor der Kappung auf `maxZeilen`.
+    var gesamt = 0
+
     var hatPlan: Bool { !zeilen.isEmpty }
 
     /// Es gibt Gerichte, aber der Filter lässt keins davon durch.
@@ -124,6 +127,32 @@ nonisolated enum MensaWidgetPhasen {
             .reduce(into: [Date]()) { liste, datum in if liste.last != datum { liste.append(datum) } }
     }
 
+    // MARK: Zugänge für Siri
+
+    /// Mensen mit Abendessen an diesem Berliner Tag, die Cafeteria Ehrenberg zuerst (der Normalfall).
+    static func abendessenOrte(snapshot: WidgetSnapshot, tag: String) -> [MensaVenue] {
+        let reihenfolge: [MensaVenue] = [.cafeteriaEhrenberg, .mensaEhrenberg, .nanoteria, .roentgenbau]
+        return reihenfolge.filter { plan($0, tag: tag, in: snapshot)?.gerichte.contains { $0.abendessen } == true }
+    }
+
+    /// Der Ort, den das Widget für diese Mensa als Abendessen zeigt; `nil` ohne Abendessen heute.
+    static func abendessenOrt(snapshot: WidgetSnapshot, mensaID: String, jetzt: Date) -> MensaVenue? {
+        Rechner(
+            snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: .studierende,
+            jetzt: jetzt, filter: nil
+        ).abendessenOrt
+    }
+
+    /// Der nächste Tag, an dem die Mensa öffnet, mit Öffnungszeit in Minuten (wie das Widget ihn bestimmt).
+    static func naechsterOeffnungstag(snapshot: WidgetSnapshot, mensaID: String, jetzt: Date) -> (tag: String, datum: Date, oeffnet: Int?) {
+        let rechner = Rechner(
+            snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: .studierende,
+            jetzt: jetzt, filter: nil
+        )
+        let (tag, datum) = rechner.naechsterTag
+        return (tag, datum, rechner.oeffnetAm(datum))
+    }
+
     // MARK: Öffnungszeiten und Pläne
 
     /// Öffnungszeit der Mensa am Tag in Minuten; `nil` bei geschlossen oder ohne Angabe.
@@ -187,14 +216,11 @@ private nonisolated struct Rechner {
 
     /// Mensen mit Abendessen heute, die Cafeteria Ehrenberg zuerst (der Normalfall).
     private var abendessenOrte: [MensaVenue] {
-        let reihenfolge: [MensaVenue] = [.cafeteriaEhrenberg, .mensaEhrenberg, .nanoteria, .roentgenbau]
-        return reihenfolge.filter { ort in
-            P.plan(ort, tag: heuteTag, in: snapshot)?.gerichte.contains { $0.abendessen } == true
-        }
+        P.abendessenOrte(snapshot: snapshot, tag: heuteTag)
     }
 
     /// Der Ort, den das Widget zeigt: die gewählte Mensa, sonst ein Ort im selben Haus, sonst der erste.
-    private var abendessenOrt: MensaVenue? {
+    var abendessenOrt: MensaVenue? {
         let orte = abendessenOrte
         return orte.first { $0 == venue } ?? orte.first { Self.haus($0) == Self.haus(venue) } ?? orte.first
     }
@@ -238,6 +264,11 @@ private nonisolated struct Rechner {
         }
     }
 
+    /// Anzahl der Gerichte nach dem Filter, vor der Kappung auf `maxZeilen`.
+    private func gesamt(_ gerichte: [WidgetGericht]) -> Int {
+        (filter?.apply(to: gerichte) ?? gerichte).count
+    }
+
     /// Der Filterzustand für die Anzeige eines Plans mit diesen (ungefilterten) Gerichten.
     private func filterzustand(_ gerichte: [WidgetGericht]) -> Anzeige.Filterung? {
         filter.map { Anzeige.Filterung(kurztext: $0.activeDescription, ohneFilterAnzahl: gerichte.count) }
@@ -255,7 +286,7 @@ private nonisolated struct Rechner {
     // MARK: Nächster Öffnungstag
 
     /// Der nächste Tag, an dem die Mensa öffnet: aus dem Speicher, sonst nach den Öffnungszeiten, sonst morgen.
-    private var naechsterTag: (text: String, datum: Date) {
+    var naechsterTag: (text: String, datum: Date) {
         let morgen = EventKalender.tag(jetzt, plus: 1)
         if let tag = snapshot.mensa(id: venue.rawValue)?.naechsterOeffnungstag?.tag, tag > heuteTag,
            let datum = P.datum(tag) {
@@ -268,7 +299,7 @@ private nonisolated struct Rechner {
         return (EventKalender.berlinDatum(morgen), morgen)
     }
 
-    private func oeffnetAm(_ datum: Date) -> Int? {
+    func oeffnetAm(_ datum: Date) -> Int? {
         P.zeiten(venue, am: datum, in: snapshot)?.oeffnet
     }
 
@@ -320,7 +351,8 @@ private nonisolated struct Rechner {
             termine: Array(termine.prefix(2)),
             planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag),
             kopfLink: kopf,
-            filterung: filterung
+            filterung: filterung,
+            gesamt: gesamt(gerichte)
         )
     }
 
@@ -335,7 +367,7 @@ private nonisolated struct Rechner {
                 phase: phase, mensaID: venue.rawValue, kicker: "Heute geschlossen", titel: venue.displayName,
                 unterzeile: mitFilter("Mittagsangebot", filterung), zeilen: zeilen(gerichte, tag: heuteTag),
                 termine: folgetagTermine(), planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag), kopfLink: kopf,
-                filterung: filterung
+                filterung: filterung, gesamt: gesamt(gerichte)
             )
         }
 
@@ -373,7 +405,7 @@ private nonisolated struct Rechner {
             phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: titel,
             unterzeile: mitFilter(unterzeile, filterung),
             zeilen: zeilen(gerichte, tag: heuteTag), termine: Array(termine.prefix(2)), planTag: heuteTag,
-            kopfLink: ortLink, filterung: filterung
+            kopfLink: ortLink, filterung: filterung, gesamt: gesamt(gerichte)
         )
     }
 
@@ -413,14 +445,14 @@ private nonisolated struct Rechner {
             phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName,
             unterzeile: mitFilter(unterzeile, filterung),
             zeilen: zeilen(gerichte, tag: tag),
-            termine: Array(termine.prefix(2)), planTag: plan?.tag, kopfLink: kopf, filterung: filterung
+            termine: Array(termine.prefix(2)), planTag: plan?.tag, kopfLink: kopf, filterung: filterung,
+            gesamt: gesamt(gerichte)
         )
     }
 
     /// Abendessen am Folgetag, wenn der Speicher es kennt.
     private func abendessenOrtAm(_ tag: String) -> MensaVenue? {
-        let reihenfolge: [MensaVenue] = [.cafeteriaEhrenberg, .mensaEhrenberg, .nanoteria, .roentgenbau]
-        return reihenfolge.first { P.plan($0, tag: tag, in: snapshot)?.gerichte.contains { $0.abendessen } == true }
+        P.abendessenOrte(snapshot: snapshot, tag: tag).first
     }
 
     // „Als Nächstes“ am Abend
