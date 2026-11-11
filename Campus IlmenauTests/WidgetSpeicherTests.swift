@@ -61,7 +61,13 @@ struct DeepLinkTests {
         ("campusilmenau://events?filter=heute-abend", DeepLink.eventsHeuteAbend),
         ("campusilmenau://events/evt_dec1b86b", DeepLink.event(id: "evt_dec1b86b")),
         ("campusilmenau://thoska/auslesen", DeepLink.thoskaAuslesen),
-        ("campusilmenau://katalog/suche", DeepLink.katalogSuche)
+        ("campusilmenau://katalog/suche", DeepLink.katalogSuche),
+        ("campusilmenau://katalog/suche?q=Analysis", DeepLink.katalogSuchen(begriff: "Analysis")),
+        ("campusilmenau://katalog/suche?q=lineare%20Algebra", DeepLink.katalogSuchen(begriff: "lineare Algebra")),
+        ("campusilmenau://katalog/suche?q=", DeepLink.katalogSuche),
+        ("campusilmenau://katalog/titel/ppn_123", DeepLink.katalogTitel(id: "ppn_123")),
+        ("campusilmenau://mensa/zeiten", DeepLink.mensaZeiten),
+        ("campusilmenau://bibliothek/merkliste", DeepLink.merkliste)
     ])
     func tabelle(_ text: String, _ erwartet: DeepLink) throws {
         let url = try #require(URL(string: text))
@@ -74,7 +80,12 @@ struct DeepLinkTests {
         "campusilmenau://events?filter=anderes",
         "campusilmenau://thoska",
         "campusilmenau://mensa/gericht",
-        "campusilmenau://katalog/suche/zuviel"
+        "campusilmenau://katalog/suche/zuviel",
+        "campusilmenau://katalog/titel",
+        "campusilmenau://katalog/titel/a/b",
+        "campusilmenau://mensa/zeiten/zuviel",
+        "campusilmenau://bibliothek",
+        "campusilmenau://bibliothek/ausleihen"
     ])
     func unbekanntes(_ text: String) throws {
         let url = try #require(URL(string: text))
@@ -85,7 +96,9 @@ struct DeepLinkTests {
         let links: [DeepLink] = [
             .mensa(id: "roentgenbau"), .mensa(id: nil),
             .gericht(id: "meal_a/b c?d", tag: "2026-11-02"), .gericht(id: "x", tag: nil),
-            .events, .eventsHeuteAbend, .event(id: "evt 1/2"), .thoskaAuslesen, .katalogSuche
+            .events, .eventsHeuteAbend, .event(id: "evt 1/2"), .thoskaAuslesen, .katalogSuche,
+            .katalogSuchen(begriff: "C++ & Swift = 100% ä/ö"), .katalogTitel(id: "ppn 1/2"),
+            .mensaZeiten, .merkliste
         ]
         for link in links {
             #expect(DeepLink(url: link.url) == link, "\(link.url)")

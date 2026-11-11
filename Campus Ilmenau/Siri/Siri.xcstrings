@@ -1,0 +1,728 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "%lld Titel" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld title"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "%lld titles"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Abendessen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dinner"
+          }
+        }
+      }
+    },
+    "Alle Treffer ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "All results ›"
+          }
+        }
+      }
+    },
+    "Alle ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "All ›"
+          }
+        }
+      }
+    },
+    "Bibliothek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Library"
+          }
+        }
+      }
+    },
+    "Cafete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cafe"
+          }
+        }
+      }
+    },
+    "Cafeteria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria"
+          }
+        }
+      }
+    },
+    "Cafeteria Ehrenberg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Ehrenberg"
+          }
+        }
+      }
+    },
+    "Cafeteria Nanoteria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Nanoteria"
+          }
+        }
+      }
+    },
+    "Cafeteria Röntgenbau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Röntgenbau"
+          }
+        }
+      }
+    },
+    "Dieses Ziel kenne ich nicht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "I don’t know that destination."
+          }
+        }
+      }
+    },
+    "Ehrenberg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ehrenberg"
+          }
+        }
+      }
+    },
+    "Ernährung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Diet"
+          }
+        }
+      }
+    },
+    "Filter aus der App anwenden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Apply filter from the app"
+          }
+        }
+      }
+    },
+    "Fällt aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "Geht auch auf dem HomePod, wenn „Persönliche Anfragen“ in der Home-App an ist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Also works on HomePod when “Personal Requests” is turned on in the Home app."
+          }
+        }
+      }
+    },
+    "Gemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Saved"
+          }
+        }
+      }
+    },
+    "Hat die Mensa offen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Is the canteen open?"
+          }
+        }
+      }
+    },
+    "Heute Abend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tonight"
+          }
+        }
+      }
+    },
+    "Im Katalog suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Search catalog"
+          }
+        }
+      }
+    },
+    "Katalog fragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Ask the catalog"
+          }
+        }
+      }
+    },
+    "Link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        }
+      }
+    },
+    "Läuft gerade" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Happening now"
+          }
+        }
+      }
+    },
+    "Mensa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Canteen"
+          }
+        }
+      }
+    },
+    "Mensa Ehrenberg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mensa Ehrenberg"
+          }
+        }
+      }
+    },
+    "Mensa heute" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Canteen today"
+          }
+        }
+      }
+    },
+    "Mensa offen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Canteen open?"
+          }
+        }
+      }
+    },
+    "Merkliste" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reading list"
+          }
+        }
+      }
+    },
+    "Merkliste ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reading list ›"
+          }
+        }
+      }
+    },
+    "Nanoteria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nanoteria"
+          }
+        }
+      }
+    },
+    "Nichts eingetragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Nothing scheduled"
+          }
+        }
+      }
+    },
+    "Röntgenbau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Röntgenbau"
+          }
+        }
+      }
+    },
+    "Sagt dir, ob die Mensa gerade offen hat und welche als Nächstes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you whether the canteen is open right now and which one opens next."
+          }
+        }
+      }
+    },
+    "Sagt dir, ob es heute Abendessen gibt, wo und was." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you whether there is dinner today, where and what."
+          }
+        }
+      }
+    },
+    "Sagt dir, was es heute in der Mensa gibt, mit dem Filter aus der App." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you what is in the canteen today, using the filter from the app."
+          }
+        }
+      }
+    },
+    "Sagt dir, was heute Abend los ist, und nennt Absagen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you what’s on tonight and mentions cancellations."
+          }
+        }
+      }
+    },
+    "Sagt dir, wie viele Titel deiner Merkliste im Regal stehen und wo. Ohne Anmeldung." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you how many titles on your reading list are on the shelf and where. No sign-in needed."
+          }
+        }
+      }
+    },
+    "Siri & Kurzbefehle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Siri & Shortcuts"
+          }
+        }
+      }
+    },
+    "Speiseplan ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Menu ›"
+          }
+        }
+      }
+    },
+    "Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung. „Thoska auslesen“ geht nur auf dem iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Instead of “Campus Ilmenau” you can also say “Campus”. The phrases work right away, no setup needed. “Read Thoska” only works on iPhone."
+          }
+        }
+      }
+    },
+    "Suchbegriff" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Search term"
+          }
+        }
+      }
+    },
+    "Sucht im Bestand der UB Ilmenau und sagt dir die ersten Treffer. Ohne Anmeldung." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Searches the UB Ilmenau collection and tells you the first results. No sign-in needed."
+          }
+        }
+      }
+    },
+    "Thoska auslesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "Vegan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegan"
+          }
+        }
+      }
+    },
+    "Veganes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "vegan food"
+          }
+        }
+      }
+    },
+    "Vegetarisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Vegetarian"
+          }
+        }
+      }
+    },
+    "Vegetarisches" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "vegetarian food"
+          }
+        }
+      }
+    },
+    "Was du Siri fragen kannst" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "What you can ask Siri"
+          }
+        }
+      }
+    },
+    "Welche Cafeteria meinst du?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Which cafeteria do you mean?"
+          }
+        }
+      }
+    },
+    "Wonach soll ich im Katalog suchen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "What should I search for in the catalog?"
+          }
+        }
+      }
+    },
+    "Zeigt alle Veranstaltungen heute Abend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Shows all events tonight"
+          }
+        }
+      }
+    },
+    "Ziel öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Open destination"
+          }
+        }
+      }
+    },
+    "fleischlos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "meatless"
+          }
+        }
+      }
+    },
+    "offen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "open"
+          }
+        }
+      }
+    },
+    "ohne Fleisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "without meat"
+          }
+        }
+      }
+    },
+    "vegan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vegan"
+          }
+        }
+      }
+    },
+    "vegetarisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "vegetarian"
+          }
+        }
+      }
+    },
+    "zu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "closed"
+          }
+        }
+      }
+    },
+    "Öffnet den Speiseplan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the menu"
+          }
+        }
+      }
+    },
+    "Öffnet die Kurzbefehle von Campus Ilmenau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the shortcuts for Campus Ilmenau"
+          }
+        }
+      }
+    },
+    "Öffnet die Suche im Katalog" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the catalog search"
+          }
+        }
+      }
+    },
+    "„Gibt es heute Abendessen bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Is there dinner today in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Hat die Mensa bei Campus Ilmenau offen?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Is the canteen open in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Lies meine Thoska mit Campus Ilmenau aus“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Read my Thoska with Campus Ilmenau”"
+          }
+        }
+      }
+    },
+    "„Suche im Katalog von Campus Ilmenau“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Search the catalog in Campus Ilmenau”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s heute Vegetarisches bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s vegetarian today at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s heute in der Mensa bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s in the canteen today at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s zu essen in der Nanoteria bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s to eat at Nanoteria in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was ist heute Abend los bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s on tonight at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was steht auf meiner Merkliste bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s on my reading list in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Welche Mensa hat bei Campus Ilmenau offen?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Which canteen is open in Campus Ilmenau?”"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

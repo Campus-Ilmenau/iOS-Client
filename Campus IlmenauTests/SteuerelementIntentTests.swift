@@ -103,5 +103,96 @@ struct SteuerelementIntentTests {
     @Test func dieIntentsOeffnenDieApp() {
         #expect(ThoskaAuslesenIntent.openAppWhenRun)
         #expect(KatalogSuchenIntent.openAppWhenRun)
+        #expect(OeffneZielIntent.openAppWhenRun)
+    }
+
+    // MARK: OeffneZielIntent
+
+    @Test func oeffneZielIstNichtEntdeckbar() {
+        #expect(!OeffneZielIntent.isDiscoverable)
+    }
+
+    /// Jedes neue Ziel landet über den Intent im Router wie über den Link.
+    @Test(arguments: [
+        "campusilmenau://katalog/suche?q=Analysis",
+        "campusilmenau://katalog/titel/ppn_123",
+        "campusilmenau://mensa/zeiten",
+        "campusilmenau://bibliothek/merkliste"
+    ])
+    func oeffneZielLandetWieDerLink(_ text: String) async throws {
+        let url = try #require(URL(string: text))
+        let ueberIntent = AppRouter(), ueberLink = AppRouter()
+        try await mitRouter(ueberIntent) { _ = try await OeffneZielIntent(url: url).perform() }
+        ueberLink.oeffne(try #require(DeepLink(url: url)))
+
+        #expect(ueberIntent.tab == ueberLink.tab)
+        #expect(ueberIntent.katalogBegriff == ueberLink.katalogBegriff)
+        #expect(ueberIntent.katalogTitelWunsch == ueberLink.katalogTitelWunsch)
+        #expect(ueberIntent.merklisteOeffnen == ueberLink.merklisteOeffnen)
+        #expect(ueberIntent.mensaOeffnungszeiten == ueberLink.mensaOeffnungszeiten)
+    }
+
+    @Test func oeffneZielMitUnbekanntemLinkMeldetNichtsUndWirftEinenFehler() async throws {
+        let router = AppRouter()
+        let url = try #require(URL(string: "https://campus-ilmenau.de"))
+        try await mitRouter(router) {
+            await #expect(throws: OeffneZielFehler.self) {
+                _ = try await OeffneZielIntent(url: url).perform()
+            }
+        }
+        #expect(router.tab == .heute)
+    }
+
+    // MARK: Router
+
+    @Test func routerWaehltTabUndZiel() {
+        let suche = AppRouter()
+        suche.oeffne(.katalogSuchen(begriff: "Analysis"))
+        #expect(suche.tab == .bibliothek)
+        #expect(suche.katalogBegriff == "Analysis")
+        #expect(!suche.katalogSuche)
+
+        let titel = AppRouter()
+        titel.oeffne(.katalogTitel(id: "ppn_123"))
+        #expect(titel.tab == .bibliothek)
+        #expect(titel.katalogTitelWunsch == "ppn_123")
+
+        let zeiten = AppRouter()
+        zeiten.oeffne(.mensaZeiten)
+        #expect(zeiten.tab == .mensa)
+        #expect(zeiten.mensaOeffnungszeiten)
+        #expect(zeiten.mensaWunsch == nil)
+
+        let merkliste = AppRouter()
+        merkliste.oeffne(.merkliste)
+        #expect(merkliste.tab == .bibliothek)
+        #expect(merkliste.merklisteOeffnen)
+    }
+
+    // MARK: AppEnums
+
+    @Test func mensaOrtHatDieVierMensenPlusCafeteria() {
+        #expect(MensaOrt.allCases.count == MensaVenue.allCases.count + 1)
+        for venue in MensaVenue.allCases {
+            #expect(MensaOrt(venue).venue == venue)
+        }
+        #expect(MensaOrt.cafeteria.venue == nil)
+    }
+
+    /// Fehlt eine Darstellung, stürzt der Aufruf zur Laufzeit ab.
+    @Test func jederFallHatEineDarstellung() {
+        for fall in MensaOrt.allCases {
+            #expect(MensaOrt.caseDisplayRepresentations[fall] != nil)
+        }
+        for fall in Ernaehrung.allCases {
+            #expect(Ernaehrung.caseDisplayRepresentations[fall] != nil)
+        }
+    }
+
+    /// Die Rohwerte werden gespeichert und dürfen sich nicht ändern.
+    @Test func rohwerteBleibenStabil() {
+        #expect(MensaOrt.allCases.map(\.rawValue)
+            == ["mensaEhrenberg", "cafeteriaEhrenberg", "nanoteria", "roentgenbau", "cafeteria"])
+        #expect(Ernaehrung.allCases.map(\.rawValue) == ["vegetarisch", "vegan"])
     }
 }

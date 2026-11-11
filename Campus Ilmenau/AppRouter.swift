@@ -21,6 +21,19 @@ final class AppRouter {
         self.wartetAufStart = wartetAufStart
     }
 
+    /// Wann zuletzt ein Ziel von außen geöffnet wurde (Widget, Steuerelement, Siri, Vorschlag). Dafür meldet die App
+    /// nichts an Siri, denn iOS zählt solche Aktionen selbst.
+    @ObservationIgnored private var letzteAussenAktion: Date?
+    /// So lange gilt eine Öffnung von außen als „gerade ausgelöst“.
+    static let aussenFenster: TimeInterval = 3
+
+    /// Wurde die Ansicht gerade durch ein Widget, ein Steuerelement, Siri oder einen Vorschlag geöffnet?
+    /// Dann zählt die Aktion nicht als Handlung in der App.
+    func kamGeradeVonAussen(jetzt: Date = .now) -> Bool {
+        guard let letzteAussenAktion else { return false }
+        return jetzt.timeIntervalSince(letzteAussenAktion) < Self.aussenFenster
+    }
+
     /// Hängt den Router an den `DeepLinkEingang`, damit auch Intents ihn erreichen.
     func verbinden() {
         DeepLinkEingang.verbinde { [weak self] link in self?.eingang(link) }
@@ -89,10 +102,18 @@ final class AppRouter {
     var thoskaAuslesen = false
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche mit offener Tastatur.
     var katalogSuche = false
+    /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche und lädt die Treffer zu diesem Begriff (ohne Fokus).
+    var katalogBegriff: String?
+    /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen das Detail dieses Katalog-Titels.
+    var katalogTitelWunsch: String?
+    /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Merkliste.
+    var merklisteOeffnen = false
 
     /// Wählt Tab und Ziel zu einem Deeplink (`campusilmenau://…`). Die Tabs lesen den Wunsch beim Erscheinen,
     /// auch wenn sie erst durch den Link zum ersten Mal aufgebaut werden.
-    func oeffne(_ link: DeepLink) {
+    func oeffne(_ link: DeepLink, jetzt: Date = .now) {
+        // Alles, was hier ankommt, kam von außen: aus einem Link, einem Steuerelement oder einem Intent.
+        letzteAussenAktion = jetzt
         switch link {
         case .mensa(let id):
             zeigeMensa(id.flatMap(MensaVenue.init(rawValue:)))
@@ -112,6 +133,17 @@ final class AppRouter {
             tab = .thoska
         case .katalogSuche:
             katalogSuche = true
+            tab = .bibliothek
+        case .katalogSuchen(let begriff):
+            katalogBegriff = begriff
+            tab = .bibliothek
+        case .katalogTitel(let id):
+            katalogTitelWunsch = id
+            tab = .bibliothek
+        case .mensaZeiten:
+            zeigeOeffnungszeiten()
+        case .merkliste:
+            merklisteOeffnen = true
             tab = .bibliothek
         }
     }

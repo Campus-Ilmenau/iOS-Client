@@ -12,6 +12,10 @@ import Foundation
 /// | Event-Detail | `campusilmenau://events/<id>` |
 /// | Thoska auslesen (NFC-Sheet) | `campusilmenau://thoska/auslesen` |
 /// | Katalogsuche mit Fokus | `campusilmenau://katalog/suche` |
+/// | Katalogsuche mit Begriff (Siri) | `campusilmenau://katalog/suche?q=<begriff>` |
+/// | Katalog-Titel (Siri) | `campusilmenau://katalog/titel/<id>` |
+/// | Mensa-Öffnungszeiten (Siri) | `campusilmenau://mensa/zeiten` |
+/// | Merkliste (Siri) | `campusilmenau://bibliothek/merkliste` |
 ///
 /// `<id>` der Mensa ist `MensaVenue.rawValue` (z. B. `mensaEhrenberg`). Die Datei gehört zu App und Widget-Extension.
 nonisolated enum DeepLink: Equatable, Sendable {
@@ -28,6 +32,11 @@ nonisolated enum DeepLink: Equatable, Sendable {
     case event(id: String)
     case thoskaAuslesen
     case katalogSuche
+    /// Die Katalogsuche mit Begriff: Treffer gleich laden, kein Fokus im Suchfeld.
+    case katalogSuchen(begriff: String)
+    case katalogTitel(id: String)
+    case mensaZeiten
+    case merkliste
 
     // MARK: Lesen
 
@@ -56,8 +65,14 @@ nonisolated enum DeepLink: Equatable, Sendable {
             self = .event(id: pfad[0])
         case "thoska" where pfad == ["auslesen"]:
             self = .thoskaAuslesen
+        case "mensa" where pfad == ["zeiten"]:
+            self = .mensaZeiten
         case "katalog" where pfad == ["suche"]:
-            self = .katalogSuche
+            self = parameter("q").map { .katalogSuchen(begriff: $0) } ?? .katalogSuche
+        case "katalog" where pfad.count == 2 && pfad[0] == "titel":
+            self = .katalogTitel(id: pfad[1])
+        case "bibliothek" where pfad == ["merkliste"]:
+            self = .merkliste
         default:
             return nil
         }
@@ -91,6 +106,19 @@ nonisolated enum DeepLink: Equatable, Sendable {
         case .katalogSuche:
             komponenten.host = "katalog"
             komponenten.path = "/suche"
+        case .katalogSuchen(let begriff):
+            komponenten.host = "katalog"
+            komponenten.path = "/suche"
+            komponenten.queryItems = [URLQueryItem(name: "q", value: begriff)]
+        case .katalogTitel(let id):
+            komponenten.host = "katalog"
+            komponenten.percentEncodedPath = "/titel/" + Self.pfadteil(id)
+        case .mensaZeiten:
+            komponenten.host = "mensa"
+            komponenten.path = "/zeiten"
+        case .merkliste:
+            komponenten.host = "bibliothek"
+            komponenten.path = "/merkliste"
         }
         // Die Bestandteile sind fest oder kodiert; ein Fehlschlag wäre ein Programmierfehler.
         return komponenten.url ?? URL(fileURLWithPath: "/")

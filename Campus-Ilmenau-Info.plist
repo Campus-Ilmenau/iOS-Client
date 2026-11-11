@@ -19,6 +19,13 @@
 	<array>
 		<string>D2760000850100</string>
 	</array>
+	<key>INAlternativeAppNames</key>
+	<array>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>Campus</string>
+		</dict>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>

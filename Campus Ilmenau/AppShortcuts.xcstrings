@@ -1,0 +1,282 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "Abendessen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abendessen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Dinner"
+          }
+        }
+      }
+    },
+    "Gibt es heute Abendessen bei ${applicationName}?" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Gibt es heute Abendessen bei ${applicationName}?",
+              "Abendessen bei ${applicationName}"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "Is there dinner today in ${applicationName}?",
+              "Dinner in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Hat die Mensa bei ${applicationName} offen?" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Hat die Mensa bei ${applicationName} offen?",
+              "Hat die ${mensa} bei ${applicationName} offen?",
+              "Welche Mensa hat bei ${applicationName} offen?"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "Is the canteen open in ${applicationName}?",
+              "Is ${mensa} open in ${applicationName}?",
+              "Which canteen is open in ${applicationName}?"
+            ]
+          }
+        }
+      }
+    },
+    "Hat die Mensa offen?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hat die Mensa offen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Is the canteen open?"
+          }
+        }
+      }
+    },
+    "Heute Abend" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute Abend"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tonight"
+          }
+        }
+      }
+    },
+    "Im Katalog suchen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Im Katalog suchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Search catalog"
+          }
+        }
+      }
+    },
+    "Lies meine Thoska mit ${applicationName} aus" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Lies meine Thoska mit ${applicationName} aus",
+              "Thoska auslesen mit ${applicationName}"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "Read my Thoska with ${applicationName}",
+              "Read Thoska with ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Mensa heute" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mensa heute"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Canteen today"
+          }
+        }
+      }
+    },
+    "Merkliste" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merkliste"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Reading list"
+          }
+        }
+      }
+    },
+    "Suche im Katalog von ${applicationName}" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Suche im Katalog von ${applicationName}",
+              "Such ein Buch mit ${applicationName}"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "Search the catalog in ${applicationName}",
+              "Find a book with ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Thoska auslesen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thoska auslesen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "Was gibt’s heute in der Mensa bei ${applicationName}?" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Was gibt’s heute in der Mensa bei ${applicationName}?",
+              "Was gibt’s zu essen bei ${applicationName}?",
+              "Mensa heute bei ${applicationName}",
+              "Was gibt’s in der ${mensa} bei ${applicationName}?",
+              "Was gibt’s zu essen in der ${mensa} bei ${applicationName}?",
+              "Was gibt’s heute ${ernaehrung} bei ${applicationName}?"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "What’s in the canteen today at ${applicationName}?",
+              "What’s to eat at ${applicationName}?",
+              "Canteen today at ${applicationName}",
+              "What’s at ${mensa} in ${applicationName}?",
+              "What’s to eat at ${mensa} in ${applicationName}?",
+              "What’s ${ernaehrung} today at ${applicationName}?"
+            ]
+          }
+        }
+      }
+    },
+    "Was ist heute Abend los bei ${applicationName}?" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Was ist heute Abend los bei ${applicationName}?",
+              "Heute Abend bei ${applicationName}"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "What’s on tonight at ${applicationName}?",
+              "Tonight at ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Was steht auf meiner Merkliste bei ${applicationName}?" : {
+      "localizations" : {
+        "de" : {
+          "stringSet" : {
+            "state" : "translated",
+            "values" : [
+              "Was steht auf meiner Merkliste bei ${applicationName}?",
+              "Merkliste bei ${applicationName}"
+            ]
+          }
+        },
+        "en" : {
+          "stringSet" : {
+            "state" : "needs_review",
+            "values" : [
+              "What’s on my reading list in ${applicationName}?",
+              "Reading list in ${applicationName}"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}
