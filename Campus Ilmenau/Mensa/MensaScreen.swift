@@ -20,6 +20,8 @@ struct MensaScreen: View {
     var now: Date = .now
     let onRetry: () -> Void
     let onOpenFilter: () -> Void
+    /// Der Siri-Tipp oben im Speiseplan, wenn er gezeigt werden soll.
+    var tipp: AnyView?
 
     @State private var pagerPosition: MensaVenue?
     @State private var pageProgress: CGFloat
@@ -40,7 +42,8 @@ struct MensaScreen: View {
         canteens: [Canteen],
         now: Date = .now,
         onRetry: @escaping () -> Void,
-        onOpenFilter: @escaping () -> Void
+        onOpenFilter: @escaping () -> Void,
+        tipp: AnyView? = nil
     ) {
         self.days = days
         self._selectedDayIndex = selectedDayIndex
@@ -53,6 +56,7 @@ struct MensaScreen: View {
         self.now = now
         self.onRetry = onRetry
         self.onOpenFilter = onOpenFilter
+        self.tipp = tipp
         self._loader = State(initialValue: LoadingGate(isLoading: loadState == .loading))
         self._pagerPosition = State(initialValue: selectedVenue.wrappedValue)
         self._pageProgress = State(initialValue: CGFloat(MensaVenue.allCases.firstIndex(of: selectedVenue.wrappedValue) ?? 0))
@@ -63,6 +67,11 @@ struct MensaScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             header
+            if let tipp {
+                tipp
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+            }
             venueStrip
             dayStrip
             filterBar

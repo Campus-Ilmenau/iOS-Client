@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppIntents
 
 /// Verdrahtet die Oberfläche (`MensaScreen`) mit dem `MensaService` und dem Filter.
 struct MensaView: View {
@@ -23,10 +24,21 @@ struct MensaView: View {
     /// Wunsch von der Startseite („Ganzer Speiseplan“): wechselt auf diese Mensa.
     @Environment(AppRouter.self) private var router: AppRouter?
     @State private var zeigtOeffnungszeiten = false
+    /// Siri-Tipp: wie oft der Speiseplan geöffnet wurde, und ob der Nutzer den Tipp mit × geschlossen hat.
+    @AppStorage(SiriTipp.mensaOeffnungen) private var tippOeffnungen = 0
+    @AppStorage(SiriTipp.mensaVerborgen) private var tippVerborgen = false
     /// Gericht aus einem Deeplink, das nach dem Laden des Tages geöffnet wird.
     @State private var wartendesGericht: String?
     /// ID des Gerichts, dessen Detail gerade offen ist.
     @State private var geoeffnetesGericht: String?
+
+    /// Das × des Tipps verbirgt ihn für immer.
+    private var tippSichtbar: Binding<Bool> {
+        Binding(
+            get: { SiriTipp.zeigtMensa(oeffnungen: tippOeffnungen, verborgen: tippVerborgen) },
+            set: { if !$0 { tippVerborgen = true } }
+        )
+    }
 
     private var selectedVenue: Binding<MensaVenue> {
         Binding(
@@ -46,7 +58,10 @@ struct MensaView: View {
             filter: $filter,
             canteens: mensaService.canteens,
             onRetry: { load(days[selectedDayIndex]) },
-            onOpenFilter: { showFilterSheet = true }
+            onOpenFilter: { showFilterSheet = true },
+            tipp: SiriTipp.zeigtMensa(oeffnungen: tippOeffnungen, verborgen: tippVerborgen)
+                ? AnyView(SiriTipView(intent: MensaHeuteIntent(), isVisible: tippSichtbar))
+                : nil
         )
         .sheet(isPresented: $showFilterSheet) {
             MensaFilterSheet(
@@ -57,7 +72,20 @@ struct MensaView: View {
             .presentationDragIndicator(.visible)
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
-        .onAppear { uebernehmeMensaWunsch() }
+        .onAppear {
+            uebernehmeMensaWunsch()
+            tippOeffnungen += 1
+            meldeAnSiri(neueOeffnung: true)
+        }
+        // Die Tabs bleiben nach dem ersten Besuch bestehen: Jedes Wählen des Tabs ist ein neues Öffnen.
+        .onChange(of: router?.tab) { _, neu in
+            guard neu == .mensa else { return }
+            uebernehmeMensaWunsch()
+            tippOeffnungen += 1
+            meldeAnSiri(neueOeffnung: true)
+        }
+        .onChange(of: storedVenue) { _, _ in meldeAnSiri() }
+        .onChange(of: mealtime) { _, _ in meldeAnSiri() }
         .onChange(of: router?.mensaWunsch) { _, _ in uebernehmeMensaWunsch() }
         .onChange(of: router?.mensaOeffnungszeiten) { _, _ in uebernehmeMensaWunsch() }
         .onChange(of: router?.gerichtWunsch) { _, _ in uebernehmeMensaWunsch() }
@@ -72,9 +100,11 @@ struct MensaView: View {
                 MensaMealDetailView(meal: meal, canteens: mensaService.canteens)
             }
         }
-        .onChange(of: filter) { _, newValue in
+        .onChange(of: filter) { alt, newValue in
             MensaFilterStore.save(newValue)
             WidgetSync.shared.mensaFilterGeaendert()
+            // „vegetarisch“ oder „vegan“ gesetzt: Das wird mit der Mensa gemeldet.
+            if newValue.diet != alt.diet, newValue.diet != .alle { meldeAnSiri() }
         }
         .onChange(of: selectedDayIndex) { _, newIndex in
             load(days[newIndex])
@@ -84,6 +114,25 @@ struct MensaView: View {
             // Öffnungszeiten für den Status-Chip; ohne sie fehlt der Chip einfach.
             try? await mensaService.fetchCanteens()
             WidgetSync.shared.speichereOeffnungszeiten(mensaService.canteens)
+        }
+    }
+
+    /// Meldet „Mensa heute“ (mit Ernährung, wenn der Filter sie setzt) und nachmittags/abends den Plan mit Abendessen.
+    /// Höchstens einmal pro Öffnen; was Siri, ein Widget oder ein Vorschlag gerade ausgelöst hat, zählt iOS selbst.
+    private func meldeAnSiri(neueOeffnung: Bool = false) {
+        guard (router?.tab ?? .mensa) == .mensa else { return }
+        let melder = SiriMelder.gemeinsam
+        if neueOeffnung {
+            melder.neueOeffnung(.mensa)
+            melder.neueOeffnung(.mensaAbendessen)
+        }
+        let venue = selectedVenue.wrappedValue
+        melder.melde(.mensa(venue, filter: filter), in: .mensa, router: router)
+        if days.indices.contains(selectedDayIndex),
+           SiriMeldung.zeigtAbendessen(
+               venue: venue, mealtime: mealtime, tag: days[selectedDayIndex], jetzt: .now, snapshot: WidgetStore().lesen()
+           ) {
+            melder.melde(.abendessen, in: .mensaAbendessen, router: router)
         }
     }
 

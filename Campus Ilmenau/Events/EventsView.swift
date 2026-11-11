@@ -1,4 +1,5 @@
 import SwiftUI
+import AppIntents
 
 /// Der Tab „Events“: Kopf, Tagesleiste, Chipleiste und die nach Tagen gruppierte Liste.
 /// Nach `Events.dc.html` und `EventsAbend.dc.html`.
@@ -6,6 +7,9 @@ struct EventsView: View {
     @State private var model: EventsModel
     @State private var pfad: [EventsRoute] = []
     @State private var zeigtFilter = false
+    /// Der Siri-Tipp in „Heute Abend“ ist gerade zu sehen, und ob er schon einmal erschienen ist.
+    @State private var zeigtAbendTipp = false
+    @AppStorage(SiriTipp.abendGezeigt) private var abendTippGezeigt = false
     /// Wunsch von der Heute-Seite („Alle“ bei „Heute Abend“).
     @Environment(AppRouter.self) private var router: AppRouter?
 
@@ -33,11 +37,19 @@ struct EventsView: View {
                 EventsChipleiste(
                     auswahl: model.auswahl,
                     veranstalter: model.veranstalter,
-                    onHeuteAbend: { model.schalteHeuteAbend() },
+                    onHeuteAbend: {
+                        model.schalteHeuteAbend()
+                        if model.auswahl.heuteAbend { SiriMelder.gemeinsam.melde(.heuteAbend, in: .events, router: router) }
+                    },
                     onGemerkt: { model.auswahl.nurGemerkt.toggle() },
                     onVeranstalter: { model.auswahl.schalteVeranstalter($0.name, id: $0.id) }
                 )
                 .padding(.bottom, 4)
+                if zeigtAbendTipp, model.auswahl.heuteAbend {
+                    SiriTipView(intent: HeuteAbendIntent(), isVisible: $zeigtAbendTipp)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                }
                 EventsListe(model: model, onVergangene: { pfad.append(.vergangene) })
             }
             .background(Color(.background))
@@ -81,6 +93,11 @@ struct EventsView: View {
             uebernehmeAlleWunsch()
             uebernehmeHeuteAbendWunsch()
             uebernehmeEventWunsch()
+            pruefeAbendTipp()
+        }
+        .onChange(of: model.auswahl.heuteAbend) { _, _ in pruefeAbendTipp() }
+        .onChange(of: router?.tab) { _, neu in
+            if neu == .events { SiriMelder.gemeinsam.neueOeffnung(.events) }
         }
         .onChange(of: router?.eventsAlle) { _, _ in uebernehmeAlleWunsch() }
         .onChange(of: router?.eventsHeuteAbend) { _, _ in uebernehmeHeuteAbendWunsch() }
@@ -96,11 +113,21 @@ struct EventsView: View {
         }
     }
 
+    /// Der Siri-Tipp erscheint einmal, beim ersten Mal, dass „Heute Abend“ aktiv ist. Nach dem × oder dem Wechsel der
+    /// Auswahl kommt er nie wieder (`@AppStorage`).
+    private func pruefeAbendTipp() {
+        guard SiriTipp.zeigtAbendErstmals(heuteAbendAktiv: model.auswahl.heuteAbend, schonGezeigt: abendTippGezeigt) else { return }
+        abendTippGezeigt = true
+        zeigtAbendTipp = true
+    }
+
     private func uebernehmeHeuteAbendWunsch() {
         guard router?.eventsHeuteAbend == true else { return }
         router?.eventsHeuteAbend = false
         pfad = []
         model.auswahl = EventsAuswahl.heuteAbend(jetzt: model.jetztZeit)
+        // Kam die Wahl von der Startseite („Alle ›“), ist es eine Handlung in der App; ein Link von außen zählt iOS selbst.
+        SiriMelder.gemeinsam.melde(.heuteAbend, in: .events, router: router)
     }
 
     /// Link `campusilmenau://events`: die Liste ab heute, ohne die Filter vom letzten Besuch.

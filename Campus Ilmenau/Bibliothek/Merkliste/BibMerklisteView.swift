@@ -10,6 +10,10 @@ struct BibMerklisteView: View {
 
     @Environment(\.merkliste) private var merkliste
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router: AppRouter?
+    /// Die Meldung an Siri ging für dieses Öffnen schon hinaus (die Ansicht erscheint auch wieder, wenn man aus einem
+    /// Titel zurückkommt).
+    @State private var anSiriGemeldet = false
 
     @State private var status: BibMerklisteStatus
     @State private var loadsStatus: Bool
@@ -53,6 +57,12 @@ struct BibMerklisteView: View {
             }
         }
         .background(Color(.background))
+        .onAppear {
+            guard !anSiriGemeldet else { return }
+            anSiriGemeldet = true
+            SiriMelder.gemeinsam.neueOeffnung(.merkliste)
+            SiriMelder.gemeinsam.melde(.merkliste, in: .merkliste, router: router)
+        }
         .navigationBarBackButtonHidden()
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)

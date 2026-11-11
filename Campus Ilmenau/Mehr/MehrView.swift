@@ -1,4 +1,5 @@
 import SwiftUI
+import AppIntents
 
 /// Zustand des Bibliothekskontos für die Anzeige in „Mehr“.
 enum MehrKonto: Equatable {
@@ -59,6 +60,7 @@ struct MehrScreen: View {
             darstellungAbschnitt
             mensaAbschnitt
             kontoAbschnitt
+            siriAbschnitt
             allgemeinAbschnitt
         }
         .listStyle(.insetGrouped)
@@ -151,6 +153,31 @@ struct MehrScreen: View {
         .listRowBackground(Color(.surface))
     }
 
+    /// „Siri & Kurzbefehle“: Link in die Kurzbefehle-App, die Sätze zum Nachlesen und der Hinweis zum HomePod.
+    private var siriAbschnitt: some View {
+        Section {
+            // Das System beschriftet den Link selbst und öffnet die Kurzbefehle bei Campus Ilmenau.
+            ShortcutsLink()
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .accessibilityHint(Text("Öffnet die Kurzbefehle von Campus Ilmenau", tableName: "Siri"))
+            NavigationLink {
+                SiriFragenView()
+            } label: {
+                Text("Was du Siri fragen kannst", tableName: "Siri")
+                    .frame(minHeight: 44, alignment: .leading)
+            }
+        } header: {
+            kopf(Text("Siri & Kurzbefehle", tableName: "Siri"))
+        } footer: {
+            Text("Geht auch auf dem HomePod, wenn „Persönliche Anfragen“ in der Home-App an ist.", tableName: "Siri")
+                .font(.footnote)
+                .foregroundStyle(Color(.textSecondary))
+        }
+        .listRowBackground(Color(.surface))
+        .listRowSeparatorTint(Color(.separator))
+        .foregroundStyle(Color(.textPrimary))
+    }
+
     private var allgemeinAbschnitt: some View {
         Section {
             // Die Sprache stellt man in den Einstellungen des Systems ein, dort pro App
@@ -203,7 +230,12 @@ struct MehrScreen: View {
     // MARK: - Bausteine
 
     private func kopf(_ text: LocalizedStringKey) -> some View {
-        Text(text)
+        kopf(Text(text))
+    }
+
+    /// Wie `kopf(_:)`, für Texte aus einer anderen Tabelle (Siri).
+    private func kopf(_ text: Text) -> some View {
+        text
             .font(.footnote.weight(.semibold))
             .textCase(.uppercase)
             .tracking(0.6)

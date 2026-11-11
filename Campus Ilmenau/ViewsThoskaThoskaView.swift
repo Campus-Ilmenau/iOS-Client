@@ -20,6 +20,8 @@ struct ThoskaView: View {
     /// Wunsch aus dem Link `campusilmenau://thoska/auslesen`: Auslesen sofort starten.
     @Environment(AppRouter.self) private var router: AppRouter?
     @Environment(\.scenePhase) private var scenePhase
+    /// Das laufende Auslesen hat ein Link, Siri oder ein Vorschlag gestartet: Das zählt iOS selbst, die App meldet es nicht.
+    @State private var startKamVonAussen = false
 
     var body: some View {
         ThoskaScreen(
@@ -32,11 +34,19 @@ struct ThoskaView: View {
             isScanning: reader.isScanning,
             isNFCAvailable: NFCTagReaderSession.readingAvailable,
             errorMessage: reader.errorMessage,
-            onScan: { reader.scan() }
+            onScan: {
+                startKamVonAussen = false
+                reader.scan()
+            }
         )
+        .onChange(of: router?.tab) { _, neu in
+            if neu == .thoska { SiriMelder.gemeinsam.neueOeffnung(.thoska) }
+        }
         .onChange(of: reader.balance?.scannedAt) { _, newValue in
             guard newValue != nil, let balance = reader.balance else { return }
             showsConfirmation = true
+            // Erfolgreich ausgelesen, und zwar vom Nutzer in der App: an Siri melden.
+            if !startKamVonAussen { SiriMelder.gemeinsam.melde(.thoskaAuslesen, in: .thoska, router: router) }
             // Jedes erfolgreiche Auslesen landet im Verlauf. Die Daten bleiben nur auf dem Gerät.
             modelContext.insert(ThoskaBalanceRecord(balance))
         }
@@ -50,6 +60,7 @@ struct ThoskaView: View {
     private func startetAuslesenAufWunsch() {
         guard router?.thoskaAuslesen == true, scenePhase == .active else { return }
         router?.thoskaAuslesen = false
+        startKamVonAussen = true
         reader.scan()
     }
 }
