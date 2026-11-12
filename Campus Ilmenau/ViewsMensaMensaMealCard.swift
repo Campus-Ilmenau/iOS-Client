@@ -28,6 +28,7 @@ struct MensaMealCard: View {
                     Text(meal.name)
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Color(.textPrimary))
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(meal.price.formatted(for: priceGroup))
                         .font(.subheadline.weight(.semibold))
@@ -40,6 +41,7 @@ struct MensaMealCard: View {
                         .font(.subheadline)
                         .foregroundStyle(Color(.textSecondary))
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 3)
                 }
 
@@ -56,6 +58,7 @@ struct MensaMealCard: View {
                     Text("Enthält \(meal.uniqueAllergies.joined(separator: ", "))")
                         .font(.footnote)
                         .foregroundStyle(Color(.textTertiary))
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 8)
                 }
