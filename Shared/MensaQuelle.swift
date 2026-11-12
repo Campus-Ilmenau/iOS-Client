@@ -35,16 +35,18 @@ private struct HeuteZeitablauf: Error {}
 
 /// Führt `arbeit` mit Zeitlimit aus. Fehler und Zeitablauf ergeben `nil`, die Seite hängt nie.
 /// Bei Abbruch der Aufgabe kommt ebenfalls `nil`.
+/// - Parameter clock: Die Uhr, nach der das Limit läuft. Tests geben eine, die nur vorläuft, wenn sie es sagen.
 @MainActor
 func heuteMitZeitlimit<T: Sendable>(
     _ limit: Duration,
+    clock: any Clock<Duration> = ContinuousClock(),
     _ arbeit: @escaping @MainActor @Sendable () async throws -> T
 ) async -> T? {
     do {
         return try await withThrowingTaskGroup(of: T.self) { gruppe in
             gruppe.addTask { try await arbeit() }
             gruppe.addTask {
-                try await Task.sleep(for: limit)
+                try await clock.sleep(for: limit)
                 throw HeuteZeitablauf()
             }
             defer { gruppe.cancelAll() }

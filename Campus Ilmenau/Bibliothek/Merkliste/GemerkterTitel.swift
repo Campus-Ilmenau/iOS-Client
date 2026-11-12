@@ -13,6 +13,13 @@ struct GemerkterTitel: Codable, Identifiable, Equatable, Hashable {
     var medientyp: String
     var coverURL: URL?
     var gemerktAm: Date
+    /// Wann der Titel am Regal als „Gefunden“ abgehakt wurde. `nil`: noch offen.
+    var foundAt: Date?
+    /// Zeitpunkt der letzten Aktion an diesem Eintrag (Merken, Abhaken, Zurücknehmen, Wiederherstellen). Beim
+    /// Abgleich mit der Apple Watch gewinnt je Eintrag die jüngere Aktion.
+    var changedAt: Date
+
+    var istGefunden: Bool { foundAt != nil }
 
     init(
         id: String,
@@ -21,7 +28,9 @@ struct GemerkterTitel: Codable, Identifiable, Equatable, Hashable {
         jahr: String? = nil,
         medientyp: String = "print_book",
         coverURL: URL? = nil,
-        gemerktAm: Date = .now
+        gemerktAm: Date = .now,
+        foundAt: Date? = nil,
+        changedAt: Date? = nil
     ) {
         self.id = id
         self.titel = titel
@@ -30,6 +39,27 @@ struct GemerkterTitel: Codable, Identifiable, Equatable, Hashable {
         self.medientyp = medientyp
         self.coverURL = coverURL
         self.gemerktAm = gemerktAm
+        self.foundAt = foundAt
+        self.changedAt = changedAt ?? gemerktAm
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, titel, personen, jahr, medientyp, coverURL, gemerktAm, foundAt, changedAt
+    }
+
+    /// Dateien aus früheren Versionen kennen `foundAt` und `changedAt` nicht: dann offen, und `changedAt` ist
+    /// der Zeitpunkt des Merkens.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        titel = try container.decode(String.self, forKey: .titel)
+        personen = try container.decode(String.self, forKey: .personen)
+        jahr = try container.decodeIfPresent(String.self, forKey: .jahr)
+        medientyp = try container.decode(String.self, forKey: .medientyp)
+        coverURL = try container.decodeIfPresent(URL.self, forKey: .coverURL)
+        gemerktAm = try container.decode(Date.self, forKey: .gemerktAm)
+        foundAt = try container.decodeIfPresent(Date.self, forKey: .foundAt)
+        changedAt = try container.decodeIfPresent(Date.self, forKey: .changedAt) ?? gemerktAm
     }
 
     /// Aus einem Titel des Katalogs. `coverURL` ist die absolute Adresse, wenn es ein Cover gibt.
@@ -70,6 +100,13 @@ struct GemerkterTitel: Codable, Identifiable, Equatable, Hashable {
             mediaType: mediaType
         )
     }
+}
+
+/// Grabstein eines entfernten Eintrags. Bleibt 30 Tage, damit eine verspätete Änderung von der Apple Watch
+/// den Eintrag nicht zurückholt.
+struct MerklisteGrabstein: Codable, Equatable {
+    let id: String
+    var deletedAt: Date
 }
 
 extension LibraryMediaType {

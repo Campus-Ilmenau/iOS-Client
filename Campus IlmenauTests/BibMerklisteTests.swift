@@ -182,6 +182,123 @@ struct BibMerklisteTests {
         #expect(!text.contains("available"))
     }
 
+    // MARK: - Gefunden
+
+    @Test func markingFoundSetsFoundAtAndChangedAt() throws {
+        let store = memoryStore()
+        store.merken(titel("med_1", age: 100))
+        let before = try #require(store.eintraege.first)
+        #expect(before.foundAt == nil)
+        #expect(before.changedAt == before.gemerktAm)
+
+        let moment = Date.now
+        let previous = try #require(store.setzeGefunden(true, fuer: "med_1", am: moment))
+        #expect(previous == before)
+        #expect(store.eintraege.first?.foundAt == moment)
+        #expect(store.eintraege.first?.changedAt == moment)
+        #expect(store.setzeGefunden(true, fuer: "med_1") == nil)       // nichts zu ändern
+        #expect(store.setzeGefunden(true, fuer: "med_x") == nil)       // unbekannte ID
+
+        let later = moment.addingTimeInterval(5)
+        store.setzeGefunden(false, fuer: "med_1", am: later)
+        #expect(store.eintraege.first?.foundAt == nil)
+        #expect(store.eintraege.first?.changedAt == later)
+    }
+
+    @Test func foundEntriesAreSortedByFoundAtAndNeverLeaveByThemselves() {
+        let store = memoryStore()
+        for (index, id) in ["med_a", "med_b", "med_c"].enumerated() {
+            store.merken(titel(id, age: Double(100 - index)))
+        }
+        let now = Date.now
+        store.setzeGefunden(true, fuer: "med_a", am: now.addingTimeInterval(-20))
+        store.setzeGefunden(true, fuer: "med_c", am: now.addingTimeInterval(-10))
+        #expect(store.offen.map(\.id) == ["med_b"])
+        #expect(store.gefunden.map(\.id) == ["med_c", "med_a"])
+        #expect(store.anzahlGefunden == 2)
+
+        // Nachladen der Angaben ändert nichts am Status.
+        store.aktualisieren(GemerkterTitel(id: "med_a", titel: "Neu", gemerktAm: .now))
+        #expect(store.eintraege.first { $0.id == "med_a" }?.foundAt == now.addingTimeInterval(-20))
+    }
+
+    @Test func undoingRestoresFoundAtAndTouchesChangedAt() throws {
+        let store = memoryStore()
+        store.merken(titel("med_1"))
+        let found = Date.now.addingTimeInterval(-60)
+        store.setzeGefunden(true, fuer: "med_1", am: found)
+        let previous = try #require(store.setzeGefunden(false, fuer: "med_1", am: found.addingTimeInterval(10)))
+        let undone = found.addingTimeInterval(20)
+        store.widerrufeGefunden(previous, am: undone)
+        #expect(store.eintraege.first?.foundAt == found)
+        #expect(store.eintraege.first?.changedAt == undone)
+    }
+
+    @Test func removingLeavesATombstoneAndRestoringTakesItAway() throws {
+        let store = memoryStore()
+        store.merken(titel("med_1"))
+        store.setzeGefunden(true, fuer: "med_1")
+        let moment = Date.now
+        let removed = try #require(store.entfernen("med_1", am: moment))
+        #expect(store.grabsteine == [MerklisteGrabstein(id: "med_1", deletedAt: moment)])
+
+        store.wiederherstellen(removed.eintrag, an: removed.position, am: moment.addingTimeInterval(3))
+        #expect(store.grabsteine.isEmpty)
+        #expect(store.eintraege.first?.istGefunden == true)             // „Gefunden“ bleibt beim Widerrufen
+        #expect(store.eintraege.first?.changedAt == moment.addingTimeInterval(3))
+    }
+
+    @Test func removingAllLeavesTombstonesAndRememberingClearsOne() {
+        let store = memoryStore()
+        store.merken(titel("med_1"))
+        store.merken(titel("med_2", age: 5))
+        store.alleEntfernen()
+        #expect(Set(store.grabsteine.map(\.id)) == ["med_1", "med_2"])
+        store.merken(titel("med_1"))
+        #expect(store.grabsteine.map(\.id) == ["med_2"])
+    }
+
+    @Test func tombstonesAreKeptThirtyDays() throws {
+        let file = tempFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = BibMerklisteStore(fileURL: file, legacyDefaults: nil)
+        store.merken(titel("med_1"))
+        store.merken(titel("med_2", age: 5))
+        store.entfernen("med_1", am: Date.now.addingTimeInterval(-29 * 86_400))
+        store.entfernen("med_2", am: Date.now.addingTimeInterval(-31 * 86_400))
+        let reloaded = BibMerklisteStore(fileURL: file, legacyDefaults: nil)
+        #expect(reloaded.grabsteine.map(\.id) == ["med_1"])
+    }
+
+    @Test func foundStateSurvivesANewStoreInstance() throws {
+        let file = tempFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = BibMerklisteStore(fileURL: file, legacyDefaults: nil)
+        store.merken(titel("med_1"))
+        store.setzeGefunden(true, fuer: "med_1")
+        store.merken(titel("med_2", age: 5))
+        store.entfernen("med_2")
+        let reloaded = BibMerklisteStore(fileURL: file, legacyDefaults: nil)
+        #expect(reloaded.eintraege.first?.istGefunden == true)
+        #expect(reloaded.grabsteine.map(\.id) == ["med_2"])
+    }
+
+    @Test func oldFileWithoutFoundAndChangedAtIsMigrated() throws {
+        let file = tempFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let old = """
+        [{"id":"med_1","titel":"Alt","personen":"A B","jahr":"2020","medientyp":"print_book","gemerktAm":"2026-01-02T03:04:05Z"}]
+        """
+        try Data(old.utf8).write(to: file)
+        let store = BibMerklisteStore(fileURL: file, legacyDefaults: nil)
+        let entry = try #require(store.eintraege.first)
+        #expect(entry.foundAt == nil)
+        #expect(entry.changedAt == entry.gemerktAm)
+        #expect(store.grabsteine.isEmpty)
+        // Danach liegt die Datei im neuen Format und lässt sich wieder lesen.
+        #expect(BibMerklisteStore(fileURL: file, legacyDefaults: nil).eintraege == store.eintraege)
+    }
+
     // MARK: - Übernahme der früheren Favoriten
 
     @Test func earlierFavoritesAreTakenOverAndThenRemoved() throws {

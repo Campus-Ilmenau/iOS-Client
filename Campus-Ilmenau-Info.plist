@@ -28,6 +28,10 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>de.kai-gothe.Campus-Ilmenau.event</string>
+	</array>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>Damit du Veranstaltungen in deinen Kalender übernehmen kannst.</string>
 	<key>NSCameraUsageDescription</key>

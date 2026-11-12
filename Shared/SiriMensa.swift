@@ -75,11 +75,14 @@ nonisolated enum SiriMensa {
 
     // MARK: Einstieg
 
+    /// - Parameter maxZeilen: So viele Gerichte nennt und zeigt die Antwort. Vorgabe sind die 3 von Siri und Widget;
+    ///   die Apple Watch zeigt alle.
     static func heute(
-        _ frage: SiriMensaFrage, snapshot: WidgetSnapshot, einstellungen: SiriMensaEinstellungen, jetzt: Date
+        _ frage: SiriMensaFrage, snapshot: WidgetSnapshot, einstellungen: SiriMensaEinstellungen, jetzt: Date,
+        maxZeilen: Int = P.maxZeilen
     ) -> SiriMensaErgebnis {
         guard !snapshot.mensen.isEmpty else { return .antwort(SiriMensaAntwort(sagt: keineDaten, karte: nil)) }
-        let kontext = Kontext(frage: frage, snapshot: snapshot, einstellungen: einstellungen, jetzt: jetzt)
+        let kontext = Kontext(frage: frage, snapshot: snapshot, einstellungen: einstellungen, jetzt: jetzt, maxZeilen: maxZeilen)
 
         var venue = einstellungen.startseite
         var cafeteriaZu = false
@@ -156,6 +159,7 @@ nonisolated enum SiriMensa {
         let snapshot: WidgetSnapshot
         let einstellungen: SiriMensaEinstellungen
         let jetzt: Date
+        let maxZeilen: Int
 
         /// Der Filter für diese Antwort. Die Ernährung aus der Frage ersetzt die Stufe des App-Filters und gilt nur hier;
         /// „Nur Bio“ und ausgeschlossene Allergene aus der App gelten weiter, solange `filterAnwenden` an ist.
@@ -173,7 +177,8 @@ nonisolated enum SiriMensa {
 
         func anzeige(_ venue: MensaVenue, _ zeit: Date) -> Anzeige {
             P.anzeige(
-                snapshot: snapshot, mensaID: venue.rawValue, preisgruppe: einstellungen.preisgruppe, jetzt: zeit, filter: filter
+                snapshot: snapshot, mensaID: venue.rawValue, preisgruppe: einstellungen.preisgruppe, jetzt: zeit, filter: filter,
+                maxZeilen: maxZeilen
             )
         }
     }

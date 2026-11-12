@@ -35,20 +35,29 @@ struct Chip: View {
 
     private let title: LocalizedStringKey
     private let variant: Variant
+    private let systemImage: String?
 
-    init(_ title: LocalizedStringKey, variant: Variant = .neutral) {
+    init(_ title: LocalizedStringKey, variant: Variant = .neutral, systemImage: String? = nil) {
         self.title = title
         self.variant = variant
+        self.systemImage = systemImage
     }
 
     var body: some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(variant.foreground)
-            .lineLimit(1)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 3)
-            .background(variant.background, in: Capsule())
+        HStack(spacing: 4) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.caption2.weight(.heavy))
+                    .accessibilityHidden(true)
+            }
+            Text(title)
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(variant.foreground)
+        .lineLimit(1)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 3)
+        .background(variant.background, in: Capsule())
     }
 }
 

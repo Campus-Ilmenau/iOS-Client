@@ -21,8 +21,14 @@ final class BibMerklisteStore {
     /// Schlüssel der früheren Favoriten (nur IDs), deren Einträge übernommen werden.
     static let legacyKey = "libraryFavoriteTitles"
 
-    /// Alle Einträge, nach `gemerktAm` sortiert, neueste zuerst.
+    /// So lange bleibt ein Grabstein erhalten.
+    static let grabsteinDauer: TimeInterval = 30 * 24 * 60 * 60
+
+    /// Alle Einträge, offene und gefundene, nach `gemerktAm` sortiert, neueste zuerst.
     private(set) var eintraege: [GemerkterTitel] = []
+
+    /// Entfernte Einträge der letzten 30 Tage, für den Abgleich mit der Apple Watch.
+    private(set) var grabsteine: [MerklisteGrabstein] = []
 
     @ObservationIgnored private let fileURL: URL?
 
@@ -46,6 +52,16 @@ final class BibMerklisteStore {
 
     var anzahl: Int { eintraege.count }
 
+    /// Noch nicht gefundene Titel, nach `gemerktAm`, neueste oben.
+    var offen: [GemerkterTitel] { eintraege.filter { !$0.istGefunden } }
+
+    /// Gefundene Titel, nach `foundAt`, neueste oben.
+    var gefunden: [GemerkterTitel] {
+        eintraege.filter(\.istGefunden).sorted { ($0.foundAt ?? .distantPast) > ($1.foundAt ?? .distantPast) }
+    }
+
+    var anzahlGefunden: Int { eintraege.count(where: \.istGefunden) }
+
     func istGemerkt(_ id: String) -> Bool {
         eintraege.contains { $0.id == id }
     }
@@ -67,17 +83,22 @@ final class BibMerklisteStore {
 
     /// Nimmt einen Titel von der Merkliste und gibt ihn mit seiner Stelle zurück, damit er sich wiederherstellen lässt.
     @discardableResult
-    func entfernen(_ id: String) -> EntfernterTitel? {
+    func entfernen(_ id: String, am zeitpunkt: Date = .now) -> EntfernterTitel? {
         guard let index = eintraege.firstIndex(where: { $0.id == id }) else { return nil }
         let eintrag = eintraege.remove(at: index)
+        setzeGrabstein(id, am: zeitpunkt)
         speichern()
         return EntfernterTitel(eintrag: eintrag, position: index)
     }
 
-    /// Setzt einen entfernten Eintrag an seine alte Stelle zurück. Gibt es die ID inzwischen wieder, passiert nichts.
-    func wiederherstellen(_ eintrag: GemerkterTitel, an position: Int) {
+    /// Setzt einen entfernten Eintrag an seine alte Stelle zurück (mit seinem „Gefunden“) und nimmt den Grabstein
+    /// weg. Gibt es die ID inzwischen wieder, passiert nichts.
+    func wiederherstellen(_ eintrag: GemerkterTitel, an position: Int, am zeitpunkt: Date = .now) {
         guard !istGemerkt(eintrag.id) else { return }
+        var eintrag = eintrag
+        eintrag.changedAt = zeitpunkt
         eintraege.insert(eintrag, at: min(max(0, position), eintraege.count))
+        grabsteine.removeAll { $0.id == eintrag.id }
         speichern()
     }
 
@@ -87,15 +108,62 @@ final class BibMerklisteStore {
 
     func alleEntfernen() {
         guard !eintraege.isEmpty else { return }
+        let jetzt = Date.now
+        for eintrag in eintraege { setzeGrabstein(eintrag.id, am: jetzt) }
         eintraege = []
         speichern()
+    }
+
+    /// Hakt einen Titel als gefunden ab (`foundAt` = jetzt) oder nimmt das zurück (`nil`). Setzt `changedAt`.
+    /// Gibt den Eintrag vorher zurück, damit sich die Aktion widerrufen lässt; `nil`, wenn es die ID nicht gibt
+    /// oder sich nichts ändert.
+    @discardableResult
+    func setzeGefunden(_ gefunden: Bool, fuer id: String, am zeitpunkt: Date = .now) -> GemerkterTitel? {
+        guard let index = eintraege.firstIndex(where: { $0.id == id }),
+              eintraege[index].istGefunden != gefunden else { return nil }
+        let vorher = eintraege[index]
+        eintraege[index].foundAt = gefunden ? zeitpunkt : nil
+        eintraege[index].changedAt = zeitpunkt
+        speichern()
+        return vorher
+    }
+
+    /// Widerruft das Abhaken: stellt `foundAt` des früheren Eintrags wieder her. Das ist eine neue Aktion und setzt
+    /// `changedAt` auf jetzt, sonst würde der Abgleich mit der Uhr sie übersehen.
+    func widerrufeGefunden(_ vorher: GemerkterTitel, am zeitpunkt: Date = .now) {
+        guard let index = eintraege.firstIndex(where: { $0.id == vorher.id }) else { return }
+        eintraege[index].foundAt = vorher.foundAt
+        eintraege[index].changedAt = zeitpunkt
+        speichern()
+    }
+
+    /// Eine Änderung von der Apple Watch („gefunden“ bzw. zurückgenommen). Die Konfliktregel steht in
+    /// `MerklisteAbgleich`: Das iPhone hat die Datenhoheit, je Eintrag gewinnt das jüngere `changedAt`, und ein Eintrag mit
+    /// Grabstein bleibt gelöscht.
+    @discardableResult
+    func uebernimm(_ aenderung: UhrAenderung) -> MerklisteAbgleich.Entscheidung {
+        let index = eintraege.firstIndex { $0.id == aenderung.id }
+        let entscheidung = MerklisteAbgleich.entscheide(
+            aenderung,
+            aktuell: index.map { (eintraege[$0].foundAt, eintraege[$0].changedAt) },
+            geloescht: grabsteine.contains { $0.id == aenderung.id }
+        )
+        if case .uebernehmen(let foundAt, let changedAt) = entscheidung, let index {
+            eintraege[index].foundAt = foundAt
+            eintraege[index].changedAt = changedAt
+            speichern()
+        }
+        return entscheidung
     }
 
     /// Ersetzt die Angaben eines gemerkten Titels (z. B. nach dem Laden des Details), `gemerktAm` und Stelle bleiben.
     func aktualisieren(_ titel: GemerkterTitel) {
         guard let index = eintraege.firstIndex(where: { $0.id == titel.id }) else { return }
         var neu = titel
+        // Angaben nachladen ist keine Aktion des Nutzers: Datum, „Gefunden“ und Zeitstempel bleiben.
         neu.gemerktAm = eintraege[index].gemerktAm
+        neu.foundAt = eintraege[index].foundAt
+        neu.changedAt = eintraege[index].changedAt
         guard neu != eintraege[index] else { return }
         eintraege[index] = neu
         speichern()
@@ -105,16 +173,40 @@ final class BibMerklisteStore {
 
     /// Neueste oben: nach `gemerktAm` einsortieren.
     private func einfuegen(_ titel: GemerkterTitel) {
+        grabsteine.removeAll { $0.id == titel.id }
         let index = eintraege.firstIndex { $0.gemerktAm <= titel.gemerktAm } ?? eintraege.count
         eintraege.insert(titel, at: index)
+    }
+
+    private func setzeGrabstein(_ id: String, am zeitpunkt: Date) {
+        grabsteine.removeAll { $0.id == id }
+        grabsteine.append(MerklisteGrabstein(id: id, deletedAt: zeitpunkt))
+    }
+
+    private func raeumeGrabsteineAuf() {
+        let grenze = Date.now.addingTimeInterval(-Self.grabsteinDauer)
+        grabsteine.removeAll { $0.deletedAt < grenze }
+    }
+
+    /// Inhalt der Datei. Frühere Versionen schrieben nur das Array der Einträge; `load()` liest beides.
+    private struct Datei: Codable {
+        var eintraege: [GemerkterTitel]
+        var grabsteine: [MerklisteGrabstein]
     }
 
     private func load() {
         guard let fileURL, let data = try? Data(contentsOf: fileURL) else { return }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        guard let geladen = try? decoder.decode([GemerkterTitel].self, from: data) else { return }
-        eintraege = geladen.sorted { $0.gemerktAm > $1.gemerktAm }
+        if let datei = try? decoder.decode(Datei.self, from: data) {
+            eintraege = datei.eintraege.sorted { $0.gemerktAm > $1.gemerktAm }
+            grabsteine = datei.grabsteine
+        } else if let alt = try? decoder.decode([GemerkterTitel].self, from: data) {
+            // Alte Datei: alle offen, `changedAt` = gemerkt am (siehe `GemerkterTitel.init(from:)`).
+            eintraege = alt.sorted { $0.gemerktAm > $1.gemerktAm }
+            speichern()
+        }
+        raeumeGrabsteineAuf()
     }
 
     private func speichern() {
@@ -122,7 +214,8 @@ final class BibMerklisteStore {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         // Schlägt das Schreiben fehl, bleibt die Liste im Speicher; beim nächsten Ändern wird es erneut versucht.
-        guard let data = try? encoder.encode(eintraege) else { return }
+        raeumeGrabsteineAuf()
+        guard let data = try? encoder.encode(Datei(eintraege: eintraege, grabsteine: grabsteine)) else { return }
         try? data.write(to: fileURL, options: [.atomic])
     }
 

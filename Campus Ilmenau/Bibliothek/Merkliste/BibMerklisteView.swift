@@ -7,6 +7,8 @@ struct BibMerklisteView: View {
     let coverLoader: LibraryCoverLoader
     /// Beschriftung des Zurück-Knopfs: „Bibliothek“ oder, wenn man aus einem Titel kam, „Titel“.
     var backTitle = "Bibliothek"
+    /// Previews legen fest, ob eine Watch bereit ist; sonst entscheidet `WatchVerbindung`.
+    var watchBereit: Bool?
 
     @Environment(\.merkliste) private var merkliste
     @Environment(\.dismiss) private var dismiss
@@ -24,10 +26,17 @@ struct BibMerklisteView: View {
     /// Lageplan im Browser-Fenster (Sheet).
     @State private var lageplan: LibraryExternalLink?
 
+    /// Was „Widerrufen“ rückgängig macht.
+    private enum Widerruf: Equatable {
+        case entfernt(EntfernterTitel)
+        /// Der Eintrag vor dem Abhaken bzw. Zurücknehmen.
+        case gefunden(GemerkterTitel)
+    }
+
     /// Meldung unten, ggf. mit „Widerrufen“.
     private struct MerklisteToast: Equatable {
         let message: String
-        let undo: EntfernterTitel?
+        let undo: Widerruf?
     }
 
     init(
@@ -35,11 +44,13 @@ struct BibMerklisteView: View {
         coverLoader: LibraryCoverLoader,
         backTitle: String = "Bibliothek",
         status: BibMerklisteStatus? = nil,
-        loadsStatus: Bool = true
+        loadsStatus: Bool = true,
+        watchBereit: Bool? = nil
     ) {
         self.service = service
         self.coverLoader = coverLoader
         self.backTitle = backTitle
+        self.watchBereit = watchBereit
         _status = State(initialValue: status ?? BibMerklisteStatus())
         _loadsStatus = State(initialValue: loadsStatus)
     }
@@ -130,57 +141,39 @@ struct BibMerklisteView: View {
     }
 
     private var summary: String {
-        switch eintraege.count {
-        case 0: "Noch keine Titel"
-        case 1: "1 Titel"
-        default: "\(eintraege.count) Titel · zuletzt gemerkt zuerst"
-        }
+        let anzahl = eintraege.count
+        let gefunden = merkliste.anzahlGefunden
+        let titel = anzahl == 1 ? "1 Titel" : "\(anzahl) Titel"
+        if anzahl == 0 { return "Noch keine Titel" }
+        if gefunden > 0 { return "\(titel) · \(gefunden) gefunden" }
+        return anzahl == 1 ? titel : "\(titel) · zuletzt gemerkt zuerst"
     }
 
     // MARK: - Liste
 
     private var list: some View {
-        List {
-            Section {
-                ForEach(eintraege) { eintrag in
-                    NavigationLink {
-                        LibraryTitleView(
-                            media: eintrag.alsMedia,
-                            searchId: nil,
-                            service: service,
-                            coverLoader: coverLoader,
-                            origin: .merkliste
-                        )
-                    } label: {
-                        BibMerklisteZeile(
-                            eintrag: eintrag,
-                            status: status.status(for: eintrag.id),
-                            exemplar: status.exemplar(for: eintrag.id),
-                            onLageplan: { lageplan = LibraryExternalLink(url: $0) }
-                        )
-                    }
-                    .listRowBackground(Color(.surface))
-                    // Wie in Mail: kurz wischen lässt „Entfernen“ offen, weit wischen entfernt sofort.
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            entfernen(eintrag)
-                        } label: {
-                            Label("Entfernen", systemImage: "trash")
-                        }
-                    }
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            entfernen(eintrag)
-                        } label: {
-                            Label("Von der Merkliste entfernen", systemImage: "trash")
-                        }
-                    }
+        let offen = merkliste.offen
+        let gefunden = merkliste.gefunden
+        return List {
+            if !offen.isEmpty {
+                Section {
+                    ForEach(offen) { zeile($0) }
+                } footer: {
+                    if gefunden.isEmpty { fussnote }
                 }
-            } footer: {
-                Text("Zum Entfernen nach links wischen. Die Merkliste liegt nur auf diesem iPhone, eine Anmeldung ist nicht nötig. Die Verfügbarkeit kann bis zu 5 Minuten alt sein.")
-                    .font(.caption)
-                    .foregroundStyle(Color(.textTertiary))
-                    .padding(.top, 4)
+            }
+
+            if !gefunden.isEmpty {
+                Section {
+                    ForEach(gefunden) { zeile($0) }
+                } header: {
+                    Text("Gefunden · \(gefunden.count)")
+                        .font(.footnote.weight(.semibold))
+                        .textCase(.uppercase)
+                        .foregroundStyle(Color(.textSecondary))
+                } footer: {
+                    fussnote
+                }
             }
 
             Section {
@@ -194,6 +187,78 @@ struct BibMerklisteView: View {
         .refreshable {
             await ergaenzen()
             await ladeStatus()
+        }
+    }
+
+    private var fussnote: some View {
+        // Mit gekoppelter Uhr und installierter Watch-App liegt die Liste auch dort.
+        let ort = (watchBereit ?? WatchVerbindung.shared.istWatchBereit) ? "auf diesem iPhone und auf deiner Apple Watch" : "nur auf diesem iPhone"
+        return Text("Nach links wischen: gefunden. Nach rechts wischen: entfernen. „Gefunden“ bleibt, bis du es zurücknimmst. Die Merkliste liegt \(ort), eine Anmeldung ist nicht nötig. Die Verfügbarkeit kann bis zu 5 Minuten alt sein.")
+            .font(.caption)
+            .foregroundStyle(Color(.textTertiary))
+            .padding(.top, 4)
+    }
+
+    /// Wischen ist bewusst umgekehrt zu Mail: nach rechts „Entfernen“ (links), nach links „Gefunden“ (rechts).
+    private func zeile(_ eintrag: GemerkterTitel) -> some View {
+        NavigationLink {
+            LibraryTitleView(
+                media: eintrag.alsMedia,
+                searchId: nil,
+                service: service,
+                coverLoader: coverLoader,
+                origin: .merkliste
+            )
+        } label: {
+            BibMerklisteZeile(
+                eintrag: eintrag,
+                status: status.status(for: eintrag.id),
+                exemplar: status.exemplar(for: eintrag.id),
+                onLageplan: { lageplan = LibraryExternalLink(url: $0) }
+            )
+        }
+        .listRowBackground(Color(.surface))
+        // iOS setzt die Schrift der Wischtasten immer weiß, `.tint` färbt nur die Fläche (Assets `swipe…`).
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                entfernen(eintrag)
+            } label: {
+                Label("Entfernen", systemImage: "trash")
+            }
+            .tint(Color(.swipeDelete))
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if eintrag.istGefunden {
+                Button {
+                    setzeGefunden(false, eintrag)
+                } label: {
+                    Label("Nicht gefunden", systemImage: "arrow.uturn.backward")
+                }
+                .tint(Color(.swipeNeutral))
+            } else {
+                Button {
+                    setzeGefunden(true, eintrag)
+                } label: {
+                    Label("Gefunden", systemImage: "checkmark")
+                }
+                .tint(Color(.swipeFound))
+            }
+        }
+        .contextMenu {
+            Button {
+                setzeGefunden(!eintrag.istGefunden, eintrag)
+            } label: {
+                if eintrag.istGefunden {
+                    Label("Nicht mehr gefunden", systemImage: "arrow.uturn.backward")
+                } else {
+                    Label("Als gefunden markieren", systemImage: "checkmark")
+                }
+            }
+            Button(role: .destructive) {
+                entfernen(eintrag)
+            } label: {
+                Label("Von der Merkliste entfernen", systemImage: "trash")
+            }
         }
     }
 
@@ -230,14 +295,28 @@ struct BibMerklisteView: View {
         var removed: EntfernterTitel?
         withAnimation { removed = merkliste.entfernen(eintrag.id) }
         guard let removed else { return }
-        show(MerklisteToast(message: "„\(eintrag.anzeigeTitel)“ entfernt", undo: removed))
+        show(MerklisteToast(message: "„\(eintrag.anzeigeTitel)“ entfernt", undo: .entfernt(removed)))
     }
 
-    /// Setzt den Eintrag an die alte Stelle zurück.
-    private func widerrufen(_ entfernt: EntfernterTitel) {
-        withAnimation { merkliste.wiederherstellen(entfernt) }
+    /// Hakt ab oder nimmt zurück; die Zeile wandert mit Animation in den anderen Abschnitt.
+    private func setzeGefunden(_ gefunden: Bool, _ eintrag: GemerkterTitel) {
+        var vorher: GemerkterTitel?
+        withAnimation { vorher = merkliste.setzeGefunden(gefunden, fuer: eintrag.id) }
+        guard let vorher else { return }
+        let text = gefunden ? "„\(eintrag.anzeigeTitel)“ gefunden" : "„\(eintrag.anzeigeTitel)“ wieder offen"
+        show(MerklisteToast(message: text, undo: .gefunden(vorher)))
+    }
+
+    private func widerrufen(_ widerruf: Widerruf) {
+        switch widerruf {
+        case .entfernt(let entfernt):
+            // Setzt den Eintrag an die alte Stelle zurück.
+            withAnimation { merkliste.wiederherstellen(entfernt) }
+            Task { await ladeStatus() }
+        case .gefunden(let vorher):
+            withAnimation { merkliste.widerrufeGefunden(vorher) }
+        }
         toast = nil
-        Task { await ladeStatus() }
     }
 
     private func leeren() {
@@ -281,7 +360,9 @@ struct BibMerklisteView: View {
 #if DEBUG
 /// Beispiele aus `BibMerkliste.dc.html`, ohne Netzwerk und ohne Datei.
 enum MerklisteBeispiele {
-    static func store(filled: Bool = true) -> BibMerklisteStore {
+    /// - Parameter gefunden: Nummern der Beispiele (1 bis 6), die als gefunden abgehakt sind.
+    /// - Parameter anzahl: Nur die ersten so viele Beispiele, damit die Fußnote ohne Scrollen zu sehen ist.
+    static func store(filled: Bool = true, gefunden: [Int] = [], anzahl: Int = 6) -> BibMerklisteStore {
         let store = BibMerklisteStore(fileURL: nil, legacyDefaults: nil)
         guard filled else { return store }
         let samples: [(String, String, String, String?, String)] = [
@@ -292,16 +373,21 @@ enum MerklisteBeispiele {
             ("med_5", "at – Automatisierungstechnik", "", "2024", "journal"),
             ("med_6", "Signale und Systeme", "Martin Werner", nil, "print_book")
         ]
+        let gewaehlt = Array(samples.prefix(anzahl))
         // Das zuerst Gemerkte steht unten.
-        for (offset, sample) in samples.reversed().enumerated() {
+        for (offset, sample) in gewaehlt.reversed().enumerated() {
             store.merken(GemerkterTitel(
                 id: sample.0,
                 titel: sample.1,
                 personen: sample.2,
                 jahr: sample.3,
                 medientyp: sample.4,
-                gemerktAm: Date(timeIntervalSinceNow: -Double(samples.count - offset) * 60)
+                gemerktAm: Date(timeIntervalSinceNow: -Double(gewaehlt.count - offset) * 60)
             ))
+        }
+        // Wer zuletzt gefunden wurde, steht oben.
+        for (offset, nummer) in gefunden.enumerated() {
+            store.setzeGefunden(true, fuer: "med_\(nummer)", am: Date(timeIntervalSinceNow: -Double(gefunden.count - offset) * 30))
         }
         return store
     }
@@ -341,11 +427,45 @@ private struct MerklistePreview: View {
     }
 }
 
+/// Zwei Titel, damit die Fußnote unter der Liste zu sehen ist.
+private struct MerklisteFussnotePreview: View {
+    let watchBereit: Bool
+
+    var body: some View {
+        let service = LibraryCatalogService()
+        NavigationStack {
+            BibMerklisteView(
+                service: service, coverLoader: LibraryCoverLoader(service: service), status: MerklisteBeispiele.status,
+                loadsStatus: false, watchBereit: watchBereit
+            )
+        }
+        .environment(\.merkliste, MerklisteBeispiele.store(gefunden: [2], anzahl: 2))
+    }
+}
+
 #Preview("Merkliste – Light") {
     MerklistePreview(store: MerklisteBeispiele.store(), status: MerklisteBeispiele.status).preferredColorScheme(.light)
 }
 #Preview("Merkliste – Dark") {
     MerklistePreview(store: MerklisteBeispiele.store(), status: MerklisteBeispiele.status).preferredColorScheme(.dark)
+}
+#Preview("Merkliste – Fußnote mit Apple Watch") {
+    MerklisteFussnotePreview(watchBereit: true)
+}
+#Preview("Merkliste – Fußnote ohne Apple Watch") {
+    MerklisteFussnotePreview(watchBereit: false)
+}
+#Preview("Merkliste – Fußnote mit Apple Watch, Dark") {
+    MerklisteFussnotePreview(watchBereit: true).preferredColorScheme(.dark)
+}
+#Preview("Merkliste – mit Gefunden, Light") {
+    MerklistePreview(store: MerklisteBeispiele.store(gefunden: [5]), status: MerklisteBeispiele.status).preferredColorScheme(.light)
+}
+#Preview("Merkliste – mit Gefunden, Dark") {
+    MerklistePreview(store: MerklisteBeispiele.store(gefunden: [5]), status: MerklisteBeispiele.status).preferredColorScheme(.dark)
+}
+#Preview("Merkliste – alles gefunden, Light") {
+    MerklistePreview(store: MerklisteBeispiele.store(gefunden: [1, 2, 3, 4, 5, 6]), status: MerklisteBeispiele.status).preferredColorScheme(.light)
 }
 #Preview("Merkliste – xxxLarge") {
     MerklistePreview(store: MerklisteBeispiele.store(), status: MerklisteBeispiele.status).dynamicTypeSize(.xxxLarge)

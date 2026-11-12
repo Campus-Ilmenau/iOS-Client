@@ -114,30 +114,52 @@ struct SiriKatalogSatzTests {
 
 // MARK: - Katalogsuche: Laden
 
-/// Der Status antwortet erst nach 2 Sekunden, die Suche sofort.
-private final class LangsamerStatusStub: URLProtocol {
-    private var arbeit: DispatchWorkItem?
+/// Der Status antwortet nie; das Zeitlimit bricht die Anfrage ab. Die Suche antwortet sofort, oder erst, wenn der Test das
+/// Tor des Hosts öffnet (Host mit Präfix „tor.“). So kommt keine echte Zeit ins Spiel, nur die Uhr des Tests.
+private final class HaengenderStatusStub: URLProtocol {
+    nonisolated(unsafe) private static var tore: [String: DispatchSemaphore] = [:]
+    nonisolated(unsafe) private static var statusAnfragen: [String: Int] = [:]
+    private static let sperre = NSLock()
+
+    static func tor(fuer host: String) -> DispatchSemaphore {
+        sperre.withLock {
+            if let vorhanden = tore[host] { return vorhanden }
+            let neu = DispatchSemaphore(value: 0)
+            tore[host] = neu
+            return neu
+        }
+    }
+
+    /// Wie oft der Status bei diesem Host angefragt wurde.
+    static func anzahlStatusAnfragen(host: String) -> Int {
+        sperre.withLock { statusAnfragen[host] ?? 0 }
+    }
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
-        guard let url = request.url else { return }
-        let istStatus = url.path.hasSuffix("/availability")
-        let json = istStatus
-            ? #"{"object":"list","data":[{"id":"med_1","availabilityStatus":"available","items":[]}]}"#
-            : SiriKatalogStubs.suche(medien: [SiriKatalogStubs.buch(1, "Regelungstechnik 1")], gesamt: 1)
-        let arbeit = DispatchWorkItem { [self] in
+        guard let url = request.url, let host = url.host else { return }
+        if url.path.hasSuffix("/availability") {
+            Self.sperre.withLock { Self.statusAnfragen[host, default: 0] += 1 }
+            return   // antwortet nie
+        }
+        let json = SiriKatalogStubs.suche(medien: [SiriKatalogStubs.buch(1, "Regelungstechnik 1")], gesamt: 1)
+        let antworten = { [self] in
             let antwort = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Type": "application/json"])!
             client?.urlProtocol(self, didReceive: antwort, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: Data(json.utf8))
             client?.urlProtocolDidFinishLoading(self)
         }
-        self.arbeit = arbeit
-        DispatchQueue.global().asyncAfter(deadline: .now() + (istStatus ? 2 : 0), execute: arbeit)
+        if host.hasPrefix("tor.") {
+            let tor = Self.tor(fuer: host)
+            DispatchQueue.global().async { tor.wait(); antworten() }
+        } else {
+            antworten()
+        }
     }
 
-    override func stopLoading() { arbeit?.cancel() }
+    override func stopLoading() {}
 }
 
 private enum SiriKatalogStubs {
@@ -162,15 +184,22 @@ private enum SiriKatalogStubs {
         return #"{"object":"list","data":[\#(daten.joined(separator: ","))]}"#
     }
 
+    /// Ein Katalog, dessen Status nie antwortet. Mit `mitTor` antwortet auch die Suche erst, wenn der Test das Tor öffnet.
     @MainActor
-    static func langsamerService() -> LibraryCatalogService {
+    static func haengenderService(mitTor: Bool = false) -> (service: LibraryCatalogService, host: String) {
+        let host = (mitTor ? "tor." : "haengt.") + UUID().uuidString.lowercased() + ".test"
         let konfiguration = URLSessionConfiguration.ephemeral
-        konfiguration.protocolClasses = [LangsamerStatusStub.self]
-        return LibraryCatalogService(baseURL: "https://langsam.test/develop", session: URLSession(configuration: konfiguration))
+        konfiguration.protocolClasses = [HaengenderStatusStub.self]
+        let service = LibraryCatalogService(baseURL: "https://\(host)/develop", session: URLSession(configuration: konfiguration))
+        return (service, host)
     }
 }
 
 @MainActor
+private final class Ende { var erreicht = false }
+
+@MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct SiriKatalogDatenTests {
     private let h = Harness()
     private let statusPfad = "/develop/v1/library/availability"
@@ -234,22 +263,48 @@ struct SiriKatalogDatenTests {
 
     /// Ist der Status zu langsam, kommen die Treffer sofort ohne Chip. Siri wartet nicht auf die 2 Sekunden des Stubs.
     @Test func zuLangsamerStatusErgibtTrefferOhneChip() async {
-        let start = ContinuousClock.now
-        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: SiriKatalogStubs.langsamerService(), statuslimit: .milliseconds(150))
-        #expect(ContinuousClock.now - start < .seconds(1.5))
+        let (service, _) = SiriKatalogStubs.haengenderService()
+        let clock = ManualClock()
+        let aufgabe = Task {
+            // Mindestzeit unter dem Limit, sonst fragt `suche` den Status gar nicht erst (Vorgabe 250 ms).
+            await SiriKatalogDaten.suche(
+                "Regelungstechnik", service: service, statuslimit: .milliseconds(150),
+                mindestZeitFuerStatus: .milliseconds(50), clock: clock
+            )
+        }
+        // Die Suche war sofort da, der Status hat 150 ms und antwortet nie.
+        await clock.warte(bisFrist: .milliseconds(150))
+        await clock.advance(by: .milliseconds(150))
+        let a = await aufgabe.value
         #expect(a.sagt == "Ich habe einen Treffer für „Regelungstechnik“: „Regelungstechnik 1“.")
         #expect(a.karte?.treffer.first?.status == nil)
     }
 
     /// Suche und Status zusammen bleiben unter dem Gesamtlimit: Was die Suche übrig lässt, gilt für den Status.
     @Test func derStatusBekommtNurDieRestzeitDesGesamtlimits() async {
-        let start = ContinuousClock.now
-        // Der Status ließe 3 s zu, aber insgesamt sind es nur 400 ms: Der Stub antwortet erst nach 2 s.
-        let a = await SiriKatalogDaten.suche(
-            "Regelungstechnik", service: SiriKatalogStubs.langsamerService(), statuslimit: .seconds(3),
-            gesamtlimit: .milliseconds(400), mindestZeitFuerStatus: .milliseconds(50)
-        )
-        #expect(ContinuousClock.now - start < .seconds(1.2))
+        let (service, host) = SiriKatalogStubs.haengenderService(mitTor: true)
+        let clock = ManualClock()
+        let ende = Ende()
+        // Der Status ließe 3 s zu, aber insgesamt sind es nur 400 ms.
+        let aufgabe = Task {
+            let antwort = await SiriKatalogDaten.suche(
+                "Regelungstechnik", service: service, statuslimit: .seconds(3),
+                gesamtlimit: .milliseconds(400), mindestZeitFuerStatus: .milliseconds(50), clock: clock
+            )
+            ende.erreicht = true
+            return antwort
+        }
+        await clock.warte(bisFrist: .milliseconds(400))   // Suchlimit: höchstens das Gesamtlimit
+        await clock.advance(by: .milliseconds(300))       // Die Suche braucht 300 ms ...
+        HaengenderStatusStub.tor(fuer: host).signal()
+        // ... dann bleiben dem Status 100 ms, also Frist bei 400 ms (nicht 3 s): erst jetzt wird der Status gefragt.
+        await warteBis { HaengenderStatusStub.anzahlStatusAnfragen(host: host) == 1 }
+        await clock.warte(bisFrist: .milliseconds(400))
+        await clock.advance(by: .milliseconds(99))
+        #expect(!ende.erreicht)
+        await clock.advance(by: .milliseconds(1))
+        let a = await aufgabe.value
+        #expect(ende.erreicht)
         #expect(a.karte?.treffer.first?.status == nil)
     }
 
@@ -448,6 +503,7 @@ struct SiriMerklisteSatzTests {
 // MARK: - Merkliste: Laden
 
 @MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct SiriMerklisteDatenTests {
     private let h = Harness()
     private let statusPfad = "/develop/v1/library/availability"
@@ -483,9 +539,13 @@ struct SiriMerklisteDatenTests {
     }
 
     @Test func zuLangsamErgibtUnbekannt() async {
-        let start = ContinuousClock.now
-        let a = await SiriKatalogDaten.merkliste(merkliste([(1, "A")]), service: SiriKatalogStubs.langsamerService(), limit: .milliseconds(150))
-        #expect(ContinuousClock.now - start < .seconds(1.5))
+        let (service, _) = SiriKatalogStubs.haengenderService()
+        let clock = ManualClock()
+        let eintraege = merkliste([(1, "A")])
+        let aufgabe = Task { await SiriKatalogDaten.merkliste(eintraege, service: service, limit: .milliseconds(150), clock: clock) }
+        await clock.warte(bisFrist: .milliseconds(150))
+        await clock.advance(by: .milliseconds(150))
+        let a = await aufgabe.value
         #expect(a.sagt == "Auf deiner Merkliste steht ein Titel. Den Stand im Regal kenne ich gerade nicht.")
     }
 

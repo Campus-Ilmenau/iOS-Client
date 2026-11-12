@@ -2,18 +2,15 @@ import Foundation
 import Testing
 @testable import Campus_Ilmenau
 
-/// Wartet, bis eine Bedingung gilt (höchstens `timeout`), statt feste Pausen zu setzen.
+/// Wartet, bis eine Bedingung gilt, statt feste Pausen zu setzen. Ohne Frist in echter Zeit (siehe `warteBis`).
 @MainActor
-private func eventually(timeout: Duration = .seconds(3), _ condition: @MainActor () -> Bool) async -> Bool {
-    let deadline = ContinuousClock.now + timeout
-    while ContinuousClock.now < deadline {
-        if condition() { return true }
-        try? await Task.sleep(for: .milliseconds(25))
-    }
-    return condition()
+private func eventually(_ condition: @MainActor () -> Bool) async -> Bool {
+    await warteBis(condition)
+    return true
 }
 
 @MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct LibrarySearchModelTests {
     // MARK: - Kopfzeilen nach der Tabelle in Uebergabe.md
 
@@ -150,14 +147,20 @@ struct LibrarySearchModelTests {
     @Test func debounceCollapsesQuickTypingIntoOneRequest() async {
         let h = Harness()
         let json = Sample.list(data: [Sample.book], total: 1)
-        let model = LibrarySearchModel(service: h.service(json: json))
+        let clock = ManualClock()
+        let model = LibrarySearchModel(service: h.service(json: json), clock: clock)
 
+        // Vier Eingaben im Abstand von 100 ms: Jede neue setzt die Pause von 700 ms zurück.
         for text in ["j", "ja", "jav", "java"] {
             model.text = text
             model.textChanged()
-            try? await Task.sleep(for: .milliseconds(100))
+            await clock.advance(by: .milliseconds(100))
         }
         #expect(h.requestURLs.isEmpty)   // noch in der Pause
+        await clock.warte(bisFrist: .milliseconds(1000))   // letzte Eingabe bei 300 ms + 700 ms
+        await clock.advance(by: .milliseconds(599))
+        #expect(h.requestURLs.isEmpty)   // 699 ms nach der letzten Eingabe
+        await clock.advance(by: .milliseconds(1))   // 700 ms: die Suche startet
 
         #expect(await eventually { model.phase == .results })
         #expect(h.requestURLs.count == 1)
@@ -203,9 +206,10 @@ struct LibrarySearchModelTests {
 
     @Test func failureShowsRetryAndRetryRecovers() async {
         let h = Harness()
+        let clock = ManualClock()
         let model = LibrarySearchModel(service: h.service(
             status: 503, json: Sample.error(code: "catalog_unavailable", message: "x", type: "api_error")
-        ))
+        ), clock: clock)
         model.text = "java"
         model.submit()
         #expect(await eventually { if case .failed = model.phase { true } else { false } })
@@ -312,10 +316,14 @@ struct LibrarySearchModelTests {
 
     @Test func availabilityIsRequestedInBatchesOfTwenty() async {
         let h = Harness()
-        let model = LibrarySearchModel(service: h.service(json: "{\"object\":\"list\",\"data\":[]}"))
+        let clock = ManualClock()
+        let model = LibrarySearchModel(service: h.service(json: "{\"object\":\"list\",\"data\":[]}"), clock: clock)
         for number in 1...25 { model.requestAvailability(for: "med_\(number)") }
         model.requestAvailability(for: "med_1")   // doppelt: wird nicht noch einmal gefragt
 
+        // Die Karten werden 80 ms lang gesammelt, dann gehen sie in Stapeln los.
+        await clock.warte(bisFrist: .milliseconds(80))
+        await clock.advance(by: .milliseconds(80))
         #expect(await eventually { model.availability.count == 25 })
         let counts = h.requestURLs.compactMap { url -> Int? in
             URLComponents(url: url, resolvingAgainstBaseURL: false)?
@@ -328,20 +336,26 @@ struct LibrarySearchModelTests {
 
     @Test func availabilityFailureFallsBackToUnknown() async {
         let h = Harness()
+        let clock = ManualClock()
         let model = LibrarySearchModel(service: h.service(
             status: 503, json: Sample.error(code: "catalog_unavailable", message: "x", type: "api_error")
-        ))
+        ), clock: clock)
         model.requestAvailability(for: "med_1")
+        await clock.warte(bisFrist: .milliseconds(80))
+        await clock.advance(by: .milliseconds(80))
         #expect(await eventually { model.availability["med_1"] != nil })
         #expect(model.availability["med_1"]?.status == .unknown)
     }
 
     @Test func staleAvailabilityMarksTheList() async {
         let h = Harness()
+        let clock = ManualClock()
         let model = LibrarySearchModel(service: h.service(
             headers: ["X-Cache-Status": "stale"], json: "{\"object\":\"list\",\"data\":[]}"
-        ))
+        ), clock: clock)
         model.requestAvailability(for: "med_1")
+        await clock.warte(bisFrist: .milliseconds(80))
+        await clock.advance(by: .milliseconds(80))
         #expect(await eventually { model.isStale })
         #expect(model.staleNotice != nil)
     }

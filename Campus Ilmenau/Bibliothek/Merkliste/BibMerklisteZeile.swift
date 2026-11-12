@@ -24,14 +24,18 @@ struct BibMerklisteZeile: View {
     /// „Lageplan“: öffnet den Plan des Standorts.
     var onLageplan: (URL) -> Void = { _ in }
 
+    private var gefunden: Bool { eintrag.istGefunden }
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             cover
 
             VStack(alignment: .leading, spacing: 0) {
+                // Gefunden: durchgestrichen, Medium in textSecondary.
                 Text(eintrag.anzeigeTitel)
-                    .font(.callout.weight(.semibold))
-                    .foregroundStyle(Color(.textPrimary))
+                    .font(.callout.weight(gefunden ? .medium : .semibold))
+                    .strikethrough(gefunden)
+                    .foregroundStyle(Color(gefunden ? .textSecondary : .textPrimary))
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
@@ -121,7 +125,9 @@ struct BibMerklisteZeile: View {
 
     @ViewBuilder
     private var statusChip: some View {
-        if let status {
+        if gefunden {
+            Chip("Gefunden", variant: .green, systemImage: "checkmark")
+        } else if let status {
             Chip(LocalizedStringKey(status.chipText), variant: status.chipVariant)
         } else {
             Chip("…", variant: .neutral)
@@ -132,7 +138,7 @@ struct BibMerklisteZeile: View {
         var parts: [String] = [
             eintrag.anzeigeTitel,
             eintrag.untertitel,
-            status?.chipText ?? "Verfügbarkeit wird geladen",
+            gefunden ? "gefunden" : (status?.chipText ?? "Verfügbarkeit wird geladen"),
             eintrag.mediaType.displayName
         ]
         if let signatur = exemplar?.signatur { parts.append("Signatur \(signatur)") }
@@ -162,6 +168,7 @@ struct BibMerklisteZeile: View {
         }
         .frame(width: 44, height: 62)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .opacity(gefunden ? 0.45 : 1)
         .accessibilityHidden(true)
     }
 }

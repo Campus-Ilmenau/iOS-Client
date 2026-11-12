@@ -115,6 +115,8 @@ struct WidgetSync {
         let sortiert = ids.sorted()
         let aenderung = store.aendern { $0.gemerkteEventIDs = sortiert }
         if aenderung { neuLaden([WidgetKinds.heuteAbend]) }
+        // Der Stern in „Heute Abend“ auf der Uhr.
+        WatchVerbindung.shared.sendeEinstellungen()
     }
 
     // MARK: Einstellungen

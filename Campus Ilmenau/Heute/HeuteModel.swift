@@ -47,6 +47,8 @@ final class HeuteModel {
     /// Der Mensa-Filter der App (aus der App Group); die Mensa-Karte zeigt nur, was zu ihm passt.
     @ObservationIgnored private let mensaFilter: () -> MensaFilter
     @ObservationIgnored private let zeitlimit: Duration
+    /// Die Uhr für Zeitlimits und Wecker. Tests geben eine, die nur vorläuft, wenn sie es sagen.
+    @ObservationIgnored private let clock: any Clock<Duration>
     /// Schreibt, was geladen wurde, für die Widgets. `nil` in Tests, die den Speicher nicht berühren sollen.
     @ObservationIgnored private let widgetSync: WidgetSync?
     @ObservationIgnored private var geladenAm: Date?
@@ -65,7 +67,8 @@ final class HeuteModel {
         },
         mensaFilter: @escaping () -> MensaFilter = { MensaFilterStore.load() },
         zeitlimit: Duration = .seconds(8),
-        widgetSync: WidgetSync? = nil
+        widgetSync: WidgetSync? = nil,
+        clock: any Clock<Duration> = ContinuousClock()
     ) {
         self.now = now
         self.mensaQuelle = mensaQuelle ?? MensaHeuteQuelle()
@@ -76,6 +79,7 @@ final class HeuteModel {
         self.preisgruppe = preisgruppe
         self.mensaFilter = mensaFilter
         self.zeitlimit = zeitlimit
+        self.clock = clock
         self.widgetSync = widgetSync
         self.mensa = mensaSpeicher.venue
         self.filter = mensaFilter()
@@ -121,38 +125,39 @@ final class HeuteModel {
         let eventsQuelle = eventsQuelle
         let hinweiseQuelle = hinweiseQuelle
         let limit = zeitlimit
+        let clock = clock
         let zeit = jetzt
 
         await withTaskGroup(of: Void.self) { gruppe in
             gruppe.addTask { @MainActor in
-                if let daten = await heuteMitZeitlimit(limit, { try await mensaQuelle.mensen() }) { self.mensen = daten }
+                if let daten = await heuteMitZeitlimit(limit, clock: clock, { try await mensaQuelle.mensen() }) { self.mensen = daten }
             }
             gruppe.addTask { @MainActor in
-                if let daten = await heuteMitZeitlimit(limit, { try await mensaQuelle.speiseplan(am: heute) }) {
+                if let daten = await heuteMitZeitlimit(limit, clock: clock, { try await mensaQuelle.speiseplan(am: heute) }) {
                     self.speiseplanHeute = daten
                 }
             }
             gruppe.addTask { @MainActor in
-                if let daten = await heuteMitZeitlimit(limit, { try await mensaQuelle.speiseplan(am: morgen) }) {
+                if let daten = await heuteMitZeitlimit(limit, clock: clock, { try await mensaQuelle.speiseplan(am: morgen) }) {
                     self.speiseplanMorgen = daten
                 }
             }
             gruppe.addTask { @MainActor in
                 let filter = HeuteAbendModel.filter
-                let seite = await heuteMitZeitlimit(limit) {
+                let seite = await heuteMitZeitlimit(limit, clock: clock) {
                     try await eventsQuelle.liste(filter: filter, seite: 1, jetzt: zeit)
                 }
                 if let seite { self.eventsAbend = seite.events.filter { $0.status != .abgesagt } }
             }
             gruppe.addTask { @MainActor in
                 let filter = EventFilter(tag: morgen, abgesagteAusblenden: true)
-                let seite = await heuteMitZeitlimit(limit) {
+                let seite = await heuteMitZeitlimit(limit, clock: clock) {
                     try await eventsQuelle.liste(filter: filter, seite: 1, jetzt: zeit)
                 }
                 if let seite { self.eventsMorgen = seite.events.filter { $0.status != .abgesagt } }
             }
             gruppe.addTask { @MainActor in
-                if let daten = await heuteMitZeitlimit(limit, { try await hinweiseQuelle.hinweise(jetzt: zeit) }) {
+                if let daten = await heuteMitZeitlimit(limit, clock: clock, { try await hinweiseQuelle.hinweise(jetzt: zeit) }) {
                     self.geladeneHinweise = daten
                 }
             }
@@ -200,7 +205,7 @@ final class HeuteModel {
         jetzt = now()
         while !Task.isCancelled {
             let ziel = min(naechsterWechsel, Self.naechsteMinute(nach: jetzt))
-            do { try await Task.sleep(for: .seconds(max(0.5, ziel.timeIntervalSince(jetzt)))) } catch { return }
+            do { try await clock.sleep(for: .seconds(max(0.5, ziel.timeIntervalSince(jetzt)))) } catch { return }
             let vorher = jetzt
             jetzt = now()
             if Tagesphase(vorher) != phase || !HeuteUhr.istGleicherTag(vorher, jetzt) {

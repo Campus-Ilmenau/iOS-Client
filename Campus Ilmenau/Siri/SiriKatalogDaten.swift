@@ -21,30 +21,34 @@ enum SiriKatalogDaten {
 
     /// Freitextsuche wie in der App („Gedruckt“), aber nur im Bestand der UB (`in=local`) und ohne die langsame
     /// Gesamtkatalog-Abfrage.
-    /// - Parameter service: Vorgabe ist der Katalog der App; Tests geben einen mit Stub.
+    /// - Parameters:
+    ///   - service: Vorgabe ist der Katalog der App; Tests geben einen mit Stub.
+    ///   - clock: Die Uhr für alle Limits. Tests geben eine, die nur vorläuft, wenn sie es sagen.
     static func suche(
         _ begriff: String, service: LibraryCatalogService? = nil, suchlimit: Duration = SiriKatalogDaten.suchlimit,
         statuslimit: Duration = SiriKatalogDaten.statuslimit, gesamtlimit: Duration = SiriKatalogDaten.gesamtlimit,
-        mindestZeitFuerStatus: Duration = SiriKatalogDaten.mindestZeitFuerStatus
+        mindestZeitFuerStatus: Duration = SiriKatalogDaten.mindestZeitFuerStatus,
+        clock: any Clock<Duration> = ContinuousClock()
     ) async -> SiriKatalogAntwort {
-        let start = ContinuousClock.now
         let text = begriff.trimmingCharacters(in: .whitespacesAndNewlines)
         let query = LibrarySearchQuery(text: text, scope: .local, mediaType: .printBook)
         guard query.validate().isEmpty else { return SiriKatalog.ungueltig }
 
         let service = service ?? LibraryCatalogService()
-        guard let antwort = await heuteMitZeitlimit(min(suchlimit, gesamtlimit), { try await service.search(query).value }) else {
-            return SiriKatalog.nichtErreichbar
+        var gefunden: LibrarySearchResponse?
+        let verstrichen = await clock.measure {
+            gefunden = await heuteMitZeitlimit(min(suchlimit, gesamtlimit), clock: clock) { try await service.search(query).value }
         }
+        guard let antwort = gefunden else { return SiriKatalog.nichtErreichbar }
 
         let medien = Array(antwort.items.prefix(SiriKatalog.maxTreffer))
         // Der Status kommt nur für diese Treffer und nur, wenn er rechtzeitig da ist.
         let ids = medien.map(\.id)
-        let uebrig = gesamtlimit - (ContinuousClock.now - start)
+        let uebrig = gesamtlimit - verstrichen
         let limit = min(statuslimit, uebrig)
         let verfuegbar = ids.isEmpty || limit < mindestZeitFuerStatus
             ? nil
-            : await heuteMitZeitlimit(limit) { try await service.availability(ids: ids).value }
+            : await heuteMitZeitlimit(limit, clock: clock) { try await service.availability(ids: ids).value }
 
         let treffer = medien.map { medium in
             SiriKatalogTreffer(
@@ -80,13 +84,14 @@ enum SiriKatalogDaten {
 
     /// Die Merkliste auf dem Gerät mit frischem `/availability`. Kommt der Stand nicht rechtzeitig, bleibt er unbekannt.
     static func merkliste(
-        _ eintraege: [GemerkterTitel], service: LibraryCatalogService? = nil, limit: Duration = SiriKatalogDaten.merklistenlimit
+        _ eintraege: [GemerkterTitel], service: LibraryCatalogService? = nil, limit: Duration = SiriKatalogDaten.merklistenlimit,
+        clock: any Clock<Duration> = ContinuousClock()
     ) async -> SiriMerklisteAntwort {
         guard !eintraege.isEmpty else { return SiriMerkliste.leer }
         let service = service ?? LibraryCatalogService()
         let stand = BibMerklisteStatus()
         let ids = eintraege.map(\.id)
-        _ = await heuteMitZeitlimit(limit) {
+        _ = await heuteMitZeitlimit(limit, clock: clock) {
             await stand.load(ids: ids, using: service)
             return true
         }

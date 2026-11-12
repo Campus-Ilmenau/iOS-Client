@@ -36,7 +36,10 @@ enum WidgetMensaPflege {
                     preisGaeste: meal.price.guest,
                     waehrung: meal.price.currency,
                     chips: meal.widgetChips,
-                    allergene: meal.allergies
+                    allergene: meal.allergies,
+                    zusatzstoffe: meal.additives.reduce(into: [String]()) { liste, stoff in
+                        if !liste.contains(stoff) { liste.append(stoff) }
+                    }
                 )
             }
     }

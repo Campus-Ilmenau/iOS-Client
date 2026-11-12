@@ -19,15 +19,19 @@ final class HeuteAbendModel {
     private(set) var events: [CampusEvent] = []
 
     @ObservationIgnored private let jetzt: @MainActor () -> Date
+    /// Die Uhr für das Zeitlimit. Tests geben eine, die nur vorläuft, wenn sie es sagen.
+    @ObservationIgnored private let clock: any Clock<Duration>
 
     init(
         quelle: (any EventsDatenquelle)? = nil,
         zeitlimit: Duration = .seconds(5),
-        jetzt: @escaping @MainActor () -> Date = { .now }
+        jetzt: @escaping @MainActor () -> Date = { .now },
+        clock: any Clock<Duration> = ContinuousClock()
     ) {
         self.quelle = quelle ?? EventsService()
         self.zeitlimit = zeitlimit
         self.jetzt = jetzt
+        self.clock = clock
     }
 
     /// Die Uhrzeit, auf die sich „heute“ in den Zeitzeilen bezieht.
@@ -55,11 +59,11 @@ final class HeuteAbendModel {
     }
 
     private func mitZeitlimit<T: Sendable>(_ arbeit: @escaping @MainActor @Sendable () async throws -> T) async throws -> T {
-        let limit = zeitlimit
+        let limit = zeitlimit, clock = clock
         return try await withThrowingTaskGroup(of: T.self) { gruppe in
             gruppe.addTask { try await arbeit() }
             gruppe.addTask {
-                try await Task.sleep(for: limit)
+                try await clock.sleep(for: limit)
                 throw Zeitablauf()
             }
             defer { gruppe.cancelAll() }

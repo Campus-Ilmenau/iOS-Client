@@ -17,6 +17,13 @@
 		0E71AB23309FD4790043D99E /* PlusJakartaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB13309FD4790043D99E /* PlusJakartaSans-Bold.ttf */; };
 		0E71AB24309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */; };
 		0E71AC6E30A0F1F80043D99E /* Suche-API-Analyse.md in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AC6D30A0F1F80043D99E /* Suche-API-Analyse.md */; };
+		0E83037630A5D44500D3E5FF /* Campus Ilmenau Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 0E83037530A5D44500D3E5FF /* Campus Ilmenau Watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0E83038F30A5D46900D3E5FF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E71AA81309FD4780043D99E /* WidgetKit.framework */; };
+		0E83039030A5D46900D3E5FF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E71AA83309FD4780043D99E /* SwiftUI.framework */; };
+		0E83039B30A5D46A00D3E5FF /* Watch-WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0E83038E30A5D46900D3E5FF /* Watch-WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0E8303B130A6000000D3E5FF /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB01309FD4790043D99E /* Colors.xcassets */; };
+		0E8303B230A6000000D3E5FF /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB01309FD4790043D99E /* Colors.xcassets */; };
+		0E8303B330A7000000D3E5FF /* PlusJakartaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E71AB14309FD4790043D99E /* PlusJakartaSans-ExtraBold.ttf */; };
 		0EBED7F4308F5273009A8BEC /* APIConfig.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +35,20 @@
 			remoteGlobalIDString = 0E71AA7E309FD4780043D99E;
 			remoteInfo = CampusWidgetsExtension;
 		};
+		0E83037730A5D44500D3E5FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0E7D873C3048BC3C005E1A2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0E83037430A5D44500D3E5FF;
+			remoteInfo = "Campus Ilmenau Watch";
+		};
+		0E83039930A5D46A00D3E5FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0E7D873C3048BC3C005E1A2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0E83038D30A5D46900D3E5FF;
+			remoteInfo = "Watch-WidgetsExtension";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,6 +59,28 @@
 			dstSubfolderSpec = 13;
 			files = (
 				0E71AA91309FD4790043D99E /* CampusWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E83038630A5D44600D3E5FF /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				0E83037630A5D44500D3E5FF /* Campus Ilmenau Watch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E8303A030A5D46A00D3E5FF /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0E83039B30A5D46A00D3E5FF /* Watch-WidgetsExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -58,6 +101,8 @@
 		0E71AC6D30A0F1F80043D99E /* Suche-API-Analyse.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Suche-API-Analyse.md"; sourceTree = "<group>"; };
 		0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Campus IlmenauTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Campus Ilmenau.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E83037530A5D44500D3E5FF /* Campus Ilmenau Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Campus Ilmenau Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E83038E30A5D46900D3E5FF /* Watch-WidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Watch-WidgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0EBED7F3308F5273009A8BEC /* APIConfig.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = APIConfig.swift.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -68,6 +113,13 @@
 				Info.plist,
 			);
 			target = 0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */;
+		};
+		0E83039C30A5D46A00D3E5FF /* Exceptions for "Watch-Widgets" folder in "Watch-WidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0E83038D30A5D46900D3E5FF /* Watch-WidgetsExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -95,6 +147,24 @@
 			path = "Campus Ilmenau";
 			sourceTree = "<group>";
 		};
+		0E83037930A5D44500D3E5FF /* Campus Ilmenau Watch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Campus Ilmenau Watch";
+			sourceTree = "<group>";
+		};
+		0E83039130A5D46900D3E5FF /* Watch-Widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0E83039C30A5D46A00D3E5FF /* Exceptions for "Watch-Widgets" folder in "Watch-WidgetsExtension" target */,
+			);
+			path = "Watch-Widgets";
+			sourceTree = "<group>";
+		};
+		0E8303B030A6000000D3E5FF /* WatchShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WatchShared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +188,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E83037230A5D44500D3E5FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E83038B30A5D46900D3E5FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E83039030A5D46900D3E5FF /* SwiftUI.framework in Frameworks */,
+				0E83038F30A5D46900D3E5FF /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,7 +242,10 @@
 				0E7CCFCA309B3F900069A9C8 /* Campus IlmenauTests */,
 				0E71AA85309FD4780043D99E /* CampusWidgets */,
 				0E71AB00309FD4790043D99E /* Shared */,
+				0E8303B030A6000000D3E5FF /* WatchShared */,
 				0E71AB30309FD4790043D99E /* Widget-Ressourcen */,
+				0E83037930A5D44500D3E5FF /* Campus Ilmenau Watch */,
+				0E83039130A5D46900D3E5FF /* Watch-Widgets */,
 				0E71AA80309FD4780043D99E /* Frameworks */,
 				0E7D87453048BC3C005E1A2C /* Products */,
 			);
@@ -168,6 +257,8 @@
 				0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */,
 				0E7CCFC9309B3F900069A9C8 /* Campus IlmenauTests.xctest */,
 				0E71AA7F309FD4780043D99E /* CampusWidgetsExtension.appex */,
+				0E83037530A5D44500D3E5FF /* Campus Ilmenau Watch.app */,
+				0E83038E30A5D46900D3E5FF /* Watch-WidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -228,15 +319,18 @@
 				0E7D87413048BC3C005E1A2C /* Frameworks */,
 				0E7D87423048BC3C005E1A2C /* Resources */,
 				0E71AA96309FD4790043D99E /* Embed Foundation Extensions */,
+				0E83038630A5D44600D3E5FF /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				0E71AA90309FD4790043D99E /* PBXTargetDependency */,
+				0E83037830A5D44500D3E5FF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				0E71AB00309FD4790043D99E /* Shared */,
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
+				0E8303B030A6000000D3E5FF /* WatchShared */,
 			);
 			name = "Campus Ilmenau";
 			packageProductDependencies = (
@@ -244,6 +338,56 @@
 			productName = "Campus Ilmenau";
 			productReference = 0E7D87443048BC3C005E1A2C /* Campus Ilmenau.app */;
 			productType = "com.apple.product-type.application";
+		};
+		0E83037430A5D44500D3E5FF /* Campus Ilmenau Watch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E83038330A5D44600D3E5FF /* Build configuration list for PBXNativeTarget "Campus Ilmenau Watch" */;
+			buildPhases = (
+				0E83037130A5D44500D3E5FF /* Sources */,
+				0E83037230A5D44500D3E5FF /* Frameworks */,
+				0E83037330A5D44500D3E5FF /* Resources */,
+				0E8303A030A5D46A00D3E5FF /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0E83039A30A5D46A00D3E5FF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0E71AB00309FD4790043D99E /* Shared */,
+				0E83037930A5D44500D3E5FF /* Campus Ilmenau Watch */,
+				0E8303B030A6000000D3E5FF /* WatchShared */,
+			);
+			name = "Campus Ilmenau Watch";
+			packageProductDependencies = (
+			);
+			productName = "Campus Ilmenau Watch";
+			productReference = 0E83037530A5D44500D3E5FF /* Campus Ilmenau Watch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0E83038D30A5D46900D3E5FF /* Watch-WidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E83039D30A5D46A00D3E5FF /* Build configuration list for PBXNativeTarget "Watch-WidgetsExtension" */;
+			buildPhases = (
+				0E83038A30A5D46900D3E5FF /* Sources */,
+				0E83038B30A5D46900D3E5FF /* Frameworks */,
+				0E83038C30A5D46900D3E5FF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0E71AB00309FD4790043D99E /* Shared */,
+				0E83039130A5D46900D3E5FF /* Watch-Widgets */,
+				0E8303B030A6000000D3E5FF /* WatchShared */,
+			);
+			name = "Watch-WidgetsExtension";
+			packageProductDependencies = (
+			);
+			productName = "Watch-WidgetsExtension";
+			productReference = 0E83038E30A5D46900D3E5FF /* Watch-WidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -263,6 +407,12 @@
 					};
 					0E7D87433048BC3C005E1A2C = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					0E83037430A5D44500D3E5FF = {
+						CreatedOnToolsVersion = 27.2;
+					};
+					0E83038D30A5D46900D3E5FF = {
+						CreatedOnToolsVersion = 27.2;
 					};
 				};
 			};
@@ -284,6 +434,8 @@
 				0E7D87433048BC3C005E1A2C /* Campus Ilmenau */,
 				0E7CCFC8309B3F900069A9C8 /* Campus IlmenauTests */,
 				0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */,
+				0E83037430A5D44500D3E5FF /* Campus Ilmenau Watch */,
+				0E83038D30A5D46900D3E5FF /* Watch-WidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -318,6 +470,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0E83037330A5D44500D3E5FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E8303B330A7000000D3E5FF /* PlusJakartaSans-ExtraBold.ttf in Resources */,
+				0E8303B130A6000000D3E5FF /* Colors.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E83038C30A5D46900D3E5FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E8303B230A6000000D3E5FF /* Colors.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -342,6 +511,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0E83037130A5D44500D3E5FF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0E83038A30A5D46900D3E5FF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -349,6 +532,16 @@
 			isa = PBXTargetDependency;
 			target = 0E71AA7E309FD4780043D99E /* CampusWidgetsExtension */;
 			targetProxy = 0E71AA8F309FD4790043D99E /* PBXContainerItemProxy */;
+		};
+		0E83037830A5D44500D3E5FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0E83037430A5D44500D3E5FF /* Campus Ilmenau Watch */;
+			targetProxy = 0E83037730A5D44500D3E5FF /* PBXContainerItemProxy */;
+		};
+		0E83039A30A5D46A00D3E5FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0E83038D30A5D46900D3E5FF /* Watch-WidgetsExtension */;
+			targetProxy = 0E83039930A5D46A00D3E5FF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -701,6 +894,144 @@
 			};
 			name = Release;
 		};
+		0E83038430A5D44600D3E5FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Campus Ilmenau Watch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Campus-Ilmenau-Watch-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Campus Ilmenau Watch";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "de.kai-gothe.Campus-Ilmenau";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		0E83038530A5D44600D3E5FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Campus Ilmenau Watch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Campus-Ilmenau-Watch-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Campus Ilmenau Watch";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "de.kai-gothe.Campus-Ilmenau";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
+		0E83039E30A5D46A00D3E5FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Watch-Widgets.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Watch-Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Watch-Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.watchkitapp.Watch-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		0E83039F30A5D46A00D3E5FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Watch-Widgets.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E6S8Q9K2MG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Watch-Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Watch-Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.kai-gothe.Campus-Ilmenau.watchkitapp.Watch-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -736,6 +1067,24 @@
 			buildConfigurations = (
 				0E7D87503048BC3E005E1A2C /* Debug */,
 				0E7D87513048BC3E005E1A2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0E83038330A5D44600D3E5FF /* Build configuration list for PBXNativeTarget "Campus Ilmenau Watch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E83038430A5D44600D3E5FF /* Debug */,
+				0E83038530A5D44600D3E5FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0E83039D30A5D46A00D3E5FF /* Build configuration list for PBXNativeTarget "Watch-WidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0E83039E30A5D46A00D3E5FF /* Debug */,
+				0E83039F30A5D46A00D3E5FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

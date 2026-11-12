@@ -92,16 +92,19 @@ nonisolated enum MensaWidgetPhasen {
 
     // MARK: Anzeige
 
+    /// - Parameter maxZeilen: So viele Gerichte kommen in `zeilen`; `gesamt` zählt immer alle. Die Vorgabe sind die 3 des
+    ///   Widgets, die Apple Watch nimmt alle (`Int.max`).
     static func anzeige(
         snapshot: WidgetSnapshot,
         mensaID: String,
         preisgruppe: MensaPriceGroup,
         jetzt: Date,
-        filter: MensaFilter? = nil
+        filter: MensaFilter? = nil,
+        maxZeilen: Int = MensaWidgetPhasen.maxZeilen
     ) -> MensaWidgetAnzeige {
         Rechner(
             snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: preisgruppe, jetzt: jetzt,
-            filter: filter.flatMap { $0.isActive ? $0 : nil }
+            filter: filter.flatMap { $0.isActive ? $0 : nil }, maxZeilen: maxZeilen
         ).anzeige()
     }
 
@@ -139,7 +142,7 @@ nonisolated enum MensaWidgetPhasen {
     static func abendessenOrt(snapshot: WidgetSnapshot, mensaID: String, jetzt: Date) -> MensaVenue? {
         Rechner(
             snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: .studierende,
-            jetzt: jetzt, filter: nil
+            jetzt: jetzt, filter: nil, maxZeilen: MensaWidgetPhasen.maxZeilen
         ).abendessenOrt
     }
 
@@ -147,7 +150,7 @@ nonisolated enum MensaWidgetPhasen {
     static func naechsterOeffnungstag(snapshot: WidgetSnapshot, mensaID: String, jetzt: Date) -> (tag: String, datum: Date, oeffnet: Int?) {
         let rechner = Rechner(
             snapshot: snapshot, venue: MensaVenue(rawValue: mensaID) ?? .mensaEhrenberg, preisgruppe: .studierende,
-            jetzt: jetzt, filter: nil
+            jetzt: jetzt, filter: nil, maxZeilen: MensaWidgetPhasen.maxZeilen
         )
         let (tag, datum) = rechner.naechsterTag
         return (tag, datum, rechner.oeffnetAm(datum))
@@ -201,6 +204,8 @@ private nonisolated struct Rechner {
     let jetzt: Date
     /// Der App-Filter, wenn das Widget ihn anwendet und etwas gesetzt ist.
     let filter: MensaFilter?
+    /// Obergrenze für `Anzeige.zeilen`.
+    let maxZeilen: Int
 
     typealias Anzeige = MensaWidgetAnzeige
     typealias P = MensaWidgetPhasen
@@ -253,7 +258,7 @@ private nonisolated struct Rechner {
     // MARK: Zeilen
 
     private func zeilen(_ gerichte: [WidgetGericht], tag: String?) -> [Anzeige.Zeile] {
-        (filter?.apply(to: gerichte) ?? gerichte).prefix(P.maxZeilen).map { gericht in
+        (filter?.apply(to: gerichte) ?? gerichte).prefix(maxZeilen).map { gericht in
             Anzeige.Zeile(
                 id: gericht.id,
                 name: gericht.name,

@@ -16,6 +16,8 @@ struct Campus_IlmenauApp: App {
         AppGroup.uebernimmEinstellungenEinmalig()
         // Intents (Steuerelemente) erreichen die Navigation über denselben Router wie die Deeplinks.
         AppRouter.gemeinsam.verbinden()
+        // Mensa der Startseite, Preisgruppe und Filter gehen an die Apple Watch.
+        WatchVerbindung.shared.starten()
         #if DEBUG
         Self.uebernimmWidgetFotoArgumente()
         #endif

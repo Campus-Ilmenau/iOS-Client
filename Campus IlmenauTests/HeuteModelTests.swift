@@ -697,19 +697,22 @@ struct HeuteZustandTests {
         @MainActor final class Uhr { var jetzt = Date.now }
         let uhr = Uhr()
         let aufbau = Aufbau()
+        let clock = ManualClock()
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2),
+            clock: clock
         )
-        // Knapp vor der vollen Minute: der Wecker klingelt nach höchstens einer Sekunde
+        // Knapp vor der vollen Minute: der Wecker klingelt nach 0,6 s (Uhr des Tests, nicht echte Zeit).
         let minute = HeuteModel.naechsteMinute(nach: .now)
         uhr.jetzt = minute.addingTimeInterval(-0.6)
         let aufgabe = Task { await modell.beobachten() }
-        try await Task.sleep(for: .seconds(0.2))
+        await clock.warteBisTimer()
         let vorher = modell.jetzt
         uhr.jetzt = minute.addingTimeInterval(1) // die Zeit ist weitergelaufen
-        try await Task.sleep(for: .seconds(1.5))
+        await clock.advance(by: .seconds(1))
+        await warteBis { modell.jetzt > vorher }
         aufgabe.cancel()
         #expect(modell.jetzt > vorher, "Die Uhr im Kopf muss ohne Zutun weiterlaufen")
     }

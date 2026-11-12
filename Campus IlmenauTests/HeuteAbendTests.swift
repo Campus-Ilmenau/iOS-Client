@@ -4,13 +4,19 @@ import Foundation
 
 /// Die Karte „Heute Abend“: höchstens 3, nie hängen, bei Fehler leer.
 @MainActor
+private final class Ende { var erreicht = false }
+
+@MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct HeuteAbendTests {
     private func abend(_ id: String, status: EventStatus = .findetStatt) -> CampusEvent {
         CampusEvent(id: id, titel: "E\(id)", beginn: EventsVorschauQuelle.zeit(0, "20:00"), status: status)
     }
 
-    private func modell(_ quelle: any EventsDatenquelle, zeitlimit: Duration = .seconds(2)) -> HeuteAbendModel {
-        HeuteAbendModel(quelle: quelle, zeitlimit: zeitlimit, jetzt: { EventsVorschauQuelle.jetzt })
+    private func modell(
+        _ quelle: any EventsDatenquelle, zeitlimit: Duration = .seconds(2), clock: any Clock<Duration> = ContinuousClock()
+    ) -> HeuteAbendModel {
+        HeuteAbendModel(quelle: quelle, zeitlimit: zeitlimit, jetzt: { EventsVorschauQuelle.jetzt }, clock: clock)
     }
 
     @Test func showsAtMostThree() async {
@@ -66,11 +72,18 @@ struct HeuteAbendTests {
     }
 
     @Test func aSourceThatNeverAnswersEndsAtTheTimeLimit() async {
-        let modell = modell(EventsVorschauQuelle(verhalten: .laedt), zeitlimit: .milliseconds(100))
-        let start = ContinuousClock.now
-        await modell.laden()
+        // Die Quelle antwortet nie. Das Limit läuft nach der Uhr des Tests: erst mit 100 ms ist Schluss, nicht davor.
+        let clock = ManualClock()
+        let modell = modell(EventsVorschauQuelle(verhalten: .laedt), zeitlimit: .milliseconds(100), clock: clock)
+        let ende = Ende()
+        let aufgabe = Task { await modell.laden(); ende.erreicht = true }
+        await clock.warte(bisFrist: .milliseconds(100))
+        await clock.advance(by: .milliseconds(99))
+        #expect(!ende.erreicht)
+        await clock.advance(by: .milliseconds(1))
+        await aufgabe.value
         #expect(modell.events.isEmpty)
-        #expect(ContinuousClock.now - start < .seconds(2))
+        #expect(ende.erreicht)
     }
 
     @Test func tonightSelectionForTheAllLink() {

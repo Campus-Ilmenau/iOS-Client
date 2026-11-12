@@ -1,12 +1,17 @@
 import Foundation
 
-/// Die App Group, die App und Widget-Extension teilen. Hier liegt nur, was nicht veraltet: Mensa auf der Startseite,
+/// Die App Group, die App und Widget-Extension teilen (auf der Uhr die eigene Gruppe von Watch-App und Watch-Widgets). Hier liegt nur, was nicht veraltet: Mensa auf der Startseite,
 /// Preisgruppe und der Speicher für Widgets (`WidgetStore`). Keine Kontodaten (kein Thoska-Guthaben, keine Ausleihen,
 /// kein Bibliotheks-Token).
 ///
 /// Diese Datei gehört zu App und Widget-Extension. Ihre Typen sind darum ausdrücklich `nonisolated`.
 nonisolated enum AppGroup {
+    #if os(watchOS)
+    /// Die Uhr kann die Gruppe des iPhones nicht lesen; Watch-App und Watch-Widgets haben eine eigene.
+    static let kennung = "group.de.kai-gothe.Campus-Ilmenau.watch"
+    #else
     static let kennung = "group.de.kai-gothe.Campus-Ilmenau"
+    #endif
 
     /// Die gemeinsamen Einstellungen. Fehlt die Gruppe (z. B. in Tests ohne Entitlement), gilt `.standard`.
     static var defaults: UserDefaults {

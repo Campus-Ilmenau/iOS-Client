@@ -46,6 +46,12 @@ struct ContentView: View {
             guard let link = DeepLink(url: url) else { return }
             router.eingang(link)
         }
+        // „Auf iPhone öffnen“ von der Apple Watch (Handoff): derselbe Weg wie ein Deeplink.
+        .onContinueUserActivity(UhrHandoff.eventTyp) { aktivitaet in
+            guard let text = aktivitaet.userInfo?[UhrHandoff.urlSchluessel] as? String,
+                  let url = URL(string: text), let link = DeepLink(url: url) else { return }
+            router.eingang(link)
+        }
     }
 
     /// Setzt `tastaturSichtbar` nach den Tastatur-Meldungen des Systems. `willShow` kommt vor der Animation,

@@ -102,10 +102,14 @@ final class LibrarySearchModel {
     @ObservationIgnored private var pendingAvailability: [String] = []
     @ObservationIgnored private var requestedAvailability = Set<String>()
     @ObservationIgnored private var didLoadFeatures = false
+    @ObservationIgnored private let clock: any Clock<Duration>
 
-    init(service: LibraryCatalogService? = nil) {
+    /// - Parameter clock: Die Uhr für Pause nach dem Tippen, Katalog-Hinweis und Sammeln der Status-Abfragen. Tests geben
+    ///   eine, die nur vorläuft, wenn sie es sagen.
+    init(service: LibraryCatalogService? = nil, clock: any Clock<Duration> = ContinuousClock()) {
         let service = service ?? LibraryCatalogService()
         self.service = service
+        self.clock = clock
         self.coverLoader = LibraryCoverLoader(service: service)
     }
 
@@ -136,8 +140,8 @@ final class LibrarySearchModel {
             reset()
             return
         }
-        debounceTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.debounce)
+        debounceTask = Task { [weak self, clock] in
+            try? await clock.sleep(for: Self.debounce)
             guard !Task.isCancelled else { return }
             self?.startSearch()
         }
@@ -286,8 +290,8 @@ final class LibrarySearchModel {
         requestedAvailability = []
         showsCatalogHint = false
         hintTask?.cancel()
-        hintTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.catalogHintDelay)
+        hintTask = Task { [weak self, clock] in
+            try? await clock.sleep(for: Self.catalogHintDelay)
             guard !Task.isCancelled else { return }
             self?.showsCatalogHint = true
         }
@@ -428,8 +432,8 @@ final class LibrarySearchModel {
         guard loadsAvailability, availability[id] == nil, requestedAvailability.insert(id).inserted else { return }
         pendingAvailability.append(id)
         guard availabilityTask == nil else { return }
-        availabilityTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(80))
+        availabilityTask = Task { [weak self, clock] in
+            try? await clock.sleep(for: .milliseconds(80))
             await self?.flushAvailability()
         }
     }

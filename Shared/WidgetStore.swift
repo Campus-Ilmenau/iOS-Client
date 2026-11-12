@@ -62,14 +62,16 @@ nonisolated struct WidgetGericht: Codable, Equatable, Sendable, Identifiable {
     var chips: [WidgetChip]
     /// Allergene wie in der API; der Filter „Allergene ausschließen“ prüft sie.
     var allergene: [String] = []
+    /// Zusatzstoffe wie in der API („Antioxidationsmittel“), ohne Doppelte. Nur die Apple Watch zeigt sie.
+    var zusatzstoffe: [String] = []
 
     enum CodingKeys: String, CodingKey {
-        case id, name, gruppe, abendessen, preisStudierende, preisBedienstete, preisGaeste, waehrung, chips, allergene
+        case id, name, gruppe, abendessen, preisStudierende, preisBedienstete, preisGaeste, waehrung, chips, allergene, zusatzstoffe
     }
 }
 
 extension WidgetGericht {
-    // Ältere Dateien kennen `allergene` noch nicht; sie werden beim nächsten Laden neu geschrieben.
+    // Ältere Dateien kennen `allergene` und `zusatzstoffe` noch nicht; sie werden beim nächsten Laden neu geschrieben.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
@@ -82,6 +84,7 @@ extension WidgetGericht {
         waehrung = try container.decode(String.self, forKey: .waehrung)
         chips = try container.decode([WidgetChip].self, forKey: .chips)
         allergene = try container.decodeIfPresent([String].self, forKey: .allergene) ?? []
+        zusatzstoffe = try container.decodeIfPresent([String].self, forKey: .zusatzstoffe) ?? []
     }
 }
 

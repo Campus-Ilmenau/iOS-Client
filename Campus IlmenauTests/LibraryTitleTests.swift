@@ -2,17 +2,15 @@ import Foundation
 import Testing
 @testable import Campus_Ilmenau
 
+/// Wartet, bis eine Bedingung gilt, statt feste Pausen zu setzen. Ohne Frist in echter Zeit (siehe `warteBis`).
 @MainActor
-private func eventually(timeout: Duration = .seconds(3), _ condition: @MainActor () -> Bool) async -> Bool {
-    let deadline = ContinuousClock.now + timeout
-    while ContinuousClock.now < deadline {
-        if condition() { return true }
-        try? await Task.sleep(for: .milliseconds(25))
-    }
-    return condition()
+private func eventually(_ condition: @MainActor () -> Bool) async -> Bool {
+    await warteBis(condition)
+    return true
 }
 
 @MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct LibraryTitleTests {
     // MARK: - Beispiele
 
