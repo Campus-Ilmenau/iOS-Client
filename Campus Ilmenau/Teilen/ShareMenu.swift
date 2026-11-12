@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 ///
 /// Kurz nach dem Erscheinen (0,5 s) entsteht das PNG als Datei im temporären Ordner; erst dann ist „Als Bild teilen“
 /// wählbar. Beide Einträge haben bewusst keine `SharePreview`: Mit Vorschau fehlt beim Text „Kopieren“, und Telegram
-/// nimmt das Bild nicht an.
+/// nimmt das Bild nicht an. Das Bild hat bewusst auch keinen `subject`, sonst sendet Messages zusätzlich eine Textnachricht.
 struct ShareMenuButton<Content: ShareImageContent & Sendable, ButtonLabel: View>: View {
     let content: Content
     /// Kopfzeile des Menüs, z. B. „Mensa Ehrenberg · Heute · Mittag“.
@@ -23,7 +23,8 @@ struct ShareMenuButton<Content: ShareImageContent & Sendable, ButtonLabel: View>
                 // Telegram an. Mit einem eigenen Transferable samt `SharePreview` bleibt Telegram beim Bild im Ladekreis hängen.
                 // Bis die Datei bereitliegt (rund 0,5 s nach dem Erscheinen), ist der Eintrag ausgegraut.
                 if let preparedFile {
-                    ShareLink(item: preparedFile, subject: Text(content.title)) {
+                    // Ohne `subject`: Messages schickt den Betreff sonst als eigene Textnachricht zusätzlich zum Bild.
+                    ShareLink(item: preparedFile) {
                         Label("Als Bild teilen", systemImage: "photo")
                     }
                 } else {
