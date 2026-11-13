@@ -87,8 +87,7 @@ struct UhrMensaAnzeige: Equatable {
             return anzeige
         }
 
-        var gezeigt = mensa
-        if case .mensa(let id)? = DeepLink(url: karte.kopfLink), let id, let venue = MensaVenue(rawValue: id) { gezeigt = venue }
+        let gezeigt = UhrSiri.mensa(karte) ?? mensa
 
         let gerichte = karte.gerichte.map { Gericht(id: $0.id, name: $0.name, preis: $0.preis, chips: $0.chips) }
 

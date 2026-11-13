@@ -165,6 +165,11 @@
 			path = WatchShared;
 			sourceTree = "<group>";
 		};
+		0E8303B430A8000000D3E5FF /* SiriShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SiriShared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -243,6 +248,7 @@
 				0E71AA85309FD4780043D99E /* CampusWidgets */,
 				0E71AB00309FD4790043D99E /* Shared */,
 				0E8303B030A6000000D3E5FF /* WatchShared */,
+				0E8303B430A8000000D3E5FF /* SiriShared */,
 				0E71AB30309FD4790043D99E /* Widget-Ressourcen */,
 				0E83037930A5D44500D3E5FF /* Campus Ilmenau Watch */,
 				0E83039130A5D46900D3E5FF /* Watch-Widgets */,
@@ -331,6 +337,7 @@
 				0E71AB00309FD4790043D99E /* Shared */,
 				0E7D87463048BC3C005E1A2C /* Campus Ilmenau */,
 				0E8303B030A6000000D3E5FF /* WatchShared */,
+				0E8303B430A8000000D3E5FF /* SiriShared */,
 			);
 			name = "Campus Ilmenau";
 			packageProductDependencies = (
@@ -357,6 +364,7 @@
 				0E71AB00309FD4790043D99E /* Shared */,
 				0E83037930A5D44500D3E5FF /* Campus Ilmenau Watch */,
 				0E8303B030A6000000D3E5FF /* WatchShared */,
+				0E8303B430A8000000D3E5FF /* SiriShared */,
 			);
 			name = "Campus Ilmenau Watch";
 			packageProductDependencies = (

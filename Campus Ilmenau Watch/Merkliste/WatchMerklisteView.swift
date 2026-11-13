@@ -50,6 +50,11 @@ struct WatchMerklisteView: View {
         }
         .navigationTitle("Merkliste")
         .containerBackground(Color(.watchBackground), for: .navigation)
+        .onAppear {
+            // Merkliste geöffnet: an Siri melden, einmal pro Öffnen (nicht, wenn ein Link von außen sie geöffnet hat).
+            UhrSiriMelder.neueOeffnung(.merkliste)
+            UhrSiriMelder.melde(.merkliste, in: .merkliste)
+        }
         .task {
             // Beim Öffnen: Stand vom iPhone erfragen (wenn erreichbar) und Standort und Signatur frisch laden.
             verbindung.frageNachMerkliste()

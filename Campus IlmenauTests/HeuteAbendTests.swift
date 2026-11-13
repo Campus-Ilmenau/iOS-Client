@@ -13,8 +13,10 @@ struct HeuteAbendTests {
         CampusEvent(id: id, titel: "E\(id)", beginn: EventsVorschauQuelle.zeit(0, "20:00"), status: status)
     }
 
+    /// Ohne eigene Uhr läuft das Zeitlimit nie ab: Diese Tests prüfen die Auswahl, nicht die Zeit. Mit der echten Uhr und
+    /// 2 s kippte ein Lauf auf einem ausgelasteten Rechner (der Hauptakteur stand für Sekunden still) in „Zeitablauf“.
     private func modell(
-        _ quelle: any EventsDatenquelle, zeitlimit: Duration = .seconds(2), clock: any Clock<Duration> = ContinuousClock()
+        _ quelle: any EventsDatenquelle, zeitlimit: Duration = .seconds(2), clock: any Clock<Duration> = ManualClock()
     ) -> HeuteAbendModel {
         HeuteAbendModel(quelle: quelle, zeitlimit: zeitlimit, jetzt: { EventsVorschauQuelle.jetzt }, clock: clock)
     }

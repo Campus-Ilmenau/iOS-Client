@@ -32,17 +32,3 @@ struct KatalogFragenIntent: AppIntent {
         return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriKatalogAntwortView(karte: antwort.karte))
     }
 }
-
-/// „Was steht auf meiner Merkliste?“: Anzahl und Standorte, keine Signaturen.
-struct MerklisteIntent: AppIntent {
-    static var title: LocalizedStringResource { LocalizedStringResource("Merkliste", table: "Siri") }
-    static var description: IntentDescription {
-        IntentDescription(LocalizedStringResource("Sagt dir, wie viele Titel deiner Merkliste im Regal stehen und wo. Ohne Anmeldung.", table: "Siri"))
-    }
-
-    @MainActor
-    func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
-        let antwort = await SiriKatalogDaten.merkliste(BibMerklisteStore.shared.eintraege)
-        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriMerklisteAntwortView(karte: antwort.karte))
-    }
-}

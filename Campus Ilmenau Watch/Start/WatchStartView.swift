@@ -31,9 +31,11 @@ struct WatchStartView: View {
     @Environment(\.dynamicTypeSize) private var schriftgroesse
     /// Previews legen die Uhrzeit fest.
     var jetzt: Date?
+    /// Der Weg durch die Ansichten; Links aus Widgets setzen ihn (`onOpenURL`).
+    @State private var pfad = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $pfad) {
             UhrZeitgeber(festgelegt: jetzt) { jetzt in
                 ScrollView {
                     VStack(spacing: 6) {
@@ -68,6 +70,37 @@ struct WatchStartView: View {
         }
         // Titel links oben in `watchAccent`.
         .tint(Color(.watchAccent))
+        .onOpenURL {
+            UhrEingang.vermerke()
+            oeffne($0)
+        }
+        // Der Button „In der App öffnen“ unter einer Siri-Antwort kommt über den Eingang.
+        .onAppear { UhrEingang.verbinde { oeffne($0) } }
+    }
+
+    /// Ein Link aus einem Widget: Mensa → Mensa bzw. Gericht, Heute Abend → Heute Abend, Merkliste → Merkliste.
+    private func oeffne(_ url: URL) {
+        guard let link = DeepLink(url: url) else { return }
+        // „Noch offen · Nanoteria“: Die Mensa gilt bis Mitternacht, wie bei der Hinweiskarte.
+        if let mensa = UhrMensaLink.gewaehlteMensa(url) { daten.waehleAndereMensa(mensa, jetzt: jetzt ?? .now) }
+        var neu = NavigationPath()
+        switch link {
+        case .mensa, .mensaZeiten:
+            neu.append(WatchZiel.mensa)
+        case .gericht(let id, _):
+            neu.append(WatchZiel.mensa)
+            neu.append(UhrGerichtZiel(id: id))
+        case .events, .eventsHeuteAbend:
+            neu.append(WatchZiel.heuteAbend)
+        case .event(let id):
+            neu.append(WatchZiel.heuteAbend)
+            neu.append(UhrEventZiel(id: id))
+        case .merkliste:
+            neu.append(WatchZiel.merkliste)
+        default:
+            break
+        }
+        pfad = neu
     }
 
     /// „3 im Regal · 1 gefunden“; ohne Einträge „Noch nichts gemerkt“.

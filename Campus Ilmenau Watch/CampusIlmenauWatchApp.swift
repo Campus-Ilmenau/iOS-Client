@@ -8,7 +8,20 @@ struct CampusIlmenauWatchApp: App {
 
     init() {
         UhrVerbindung.shared.starten()
+        #if DEBUG
+        Self.uebernimmWidgetUhr()
+        #endif
     }
+
+    #if DEBUG
+    /// Wie auf dem iPhone: `-WidgetUhr 11:45` (oder `aus`) stellt die Uhr der Watch-Widgets, danach laden sie neu.
+    /// Nur in Debug-Builds.
+    private static func uebernimmWidgetUhr() {
+        guard let uhr = UserDefaults.standard.string(forKey: "WidgetUhr") else { return }
+        if uhr == "aus" { AppGroup.defaults.removeObject(forKey: WidgetUhr.schluessel) } else { AppGroup.defaults.set(uhr, forKey: WidgetUhr.schluessel) }
+        UhrWidgetSync.neuLaden(UhrWidgetKinds.alle)
+    }
+    #endif
 
     var body: some Scene {
         WindowGroup {

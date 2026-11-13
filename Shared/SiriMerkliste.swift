@@ -21,7 +21,7 @@ nonisolated struct SiriMerklisteEintrag: Equatable, Sendable, Identifiable {
     let titel: String
     var stand: SiriMerklisteStand
     /// Am Regal abgehakt („Gefunden“). Gefundene Titel zählen weder „im Regal“ noch „nicht im Regal“; sie stehen
-    /// im Fuß („· Gefunden: n“). Die Merkliste der App kennt das Feld noch nicht, bis dahin ist es immer `false`.
+    /// im Fuß („· Gefunden: n“) und am Ende des gesprochenen Satzes.
     var gefunden = false
 }
 
@@ -171,7 +171,11 @@ nonisolated enum SiriMerkliste {
         if unbekannt > 0 {
             saetze.append("Bei \(unbekannt == 1 ? "einem Titel" : "\(unbekannt) Titeln") kenne ich den Standort nicht.")
         }
-        if gefunden > 0 { saetze.append("\(SiriSprache.satzanfang(wort(gefunden))) \(gefunden == 1 ? "ist" : "sind") schon gefunden.") }
+        // Die Gefundenen kommen ans Ende, auch hinter den Standort-Satz: „Einen hast du schon gefunden.“, „Zwei hast du
+        // schon gefunden.“ (Zahlwort bis drei, sonst die Ziffer).
+        if gefunden > 0 {
+            saetze.append("\(gefunden == 1 ? "Einen" : SiriSprache.satzanfang(wort(gefunden))) hast du schon gefunden.")
+        }
         return saetze.joined(separator: " ")
     }
 

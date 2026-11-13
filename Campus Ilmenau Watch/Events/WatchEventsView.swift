@@ -60,6 +60,11 @@ struct WatchEventsView: View {
             }
             .navigationTitle("Heute Abend")
             .containerBackground(Color(.watchBackground), for: .navigation)
+            .onAppear {
+                // „Heute Abend“ geöffnet: an Siri melden, einmal pro Öffnen (nicht, wenn ein Link von außen sie geöffnet hat).
+                UhrSiriMelder.neueOeffnung(.events)
+                UhrSiriMelder.melde(.heuteAbend, in: .events)
+            }
         }
     }
 

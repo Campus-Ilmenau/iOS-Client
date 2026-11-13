@@ -433,6 +433,19 @@
         }
       }
     },
+    "Das geht nur auf dem iPhone. Öffne dort Campus Ilmenau." : {
+
+    },
+    "Sagt dir, dass die Thoska nur auf dem iPhone ausgelesen wird." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you that Thoska can only be read on iPhone."
+          }
+        }
+      }
+    },
     "Thoska auslesen" : {
       "localizations" : {
         "en" : {

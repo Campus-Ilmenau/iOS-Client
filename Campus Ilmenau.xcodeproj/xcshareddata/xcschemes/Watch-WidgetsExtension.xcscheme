@@ -72,11 +72,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
+            BlueprintIdentifier = "0E83038D30A5D46900D3E5FF"
+            BuildableName = "Watch-WidgetsExtension.appex"
+            ReferencedContainer = "container:Campus Ilmenau.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
             BlueprintIdentifier = "0E7D87433048BC3C005E1A2C"
             BuildableName = "Campus Ilmenau.app"
             ReferencedContainer = "container:Campus Ilmenau.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "_XCWidgetKind"

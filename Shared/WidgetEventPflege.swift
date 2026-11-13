@@ -103,12 +103,15 @@ enum WidgetEventPflege {
 struct WidgetEventsAktualisierung {
     let store: WidgetStore
 
+    /// - Parameter clock: Die Uhr, nach der das Zeitlimit läuft. Tests geben eine, die nur vorläuft, wenn sie es sagen.
     /// - Returns: ob sich der Speicher geändert hat.
     @discardableResult
-    func ladeUndSpeichere(quelle: any EventsDatenquelle, jetzt: Date, zeitlimit: Duration) async -> Bool {
+    func ladeUndSpeichere(
+        quelle: any EventsDatenquelle, jetzt: Date, zeitlimit: Duration, clock: any Clock<Duration> = ContinuousClock()
+    ) async -> Bool {
         let heute = AbendBezug.tag(jetzt)
         let morgen = EventKalender.tag(heute, plus: 1)
-        let ergebnis = await heuteMitZeitlimit(zeitlimit) {
+        let ergebnis = await heuteMitZeitlimit(zeitlimit, clock: clock) {
             // Derselbe Filter wie auf Heute (ab 17 Uhr, ohne Ganztägige), aber mit Abgesagten: Das Widget zeigt sie.
             async let abendHeute = try? quelle.liste(
                 filter: EventFilter(tag: heute, heuteAbend: true, abgesagteAusblenden: false), seite: 1, jetzt: jetzt

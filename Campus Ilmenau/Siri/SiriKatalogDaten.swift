@@ -96,10 +96,11 @@ enum SiriKatalogDaten {
             return true
         }
         return SiriMerkliste.antwort(eintraege.map { eintrag in
-            // `gefunden:` kommt dazu, sobald `GemerkterTitel` das Feld hat („Gefunden“ am Regal, siehe Übergabe, Merkliste).
+            // „Gefunden“ am Regal steht in der Merkliste der App; Gefundene zählen nicht „im Regal“, sie stehen im Fuß.
             SiriMerklisteEintrag(
                 id: eintrag.id, titel: eintrag.anzeigeTitel,
-                stand: merklisteStand(status: stand.status(for: eintrag.id), exemplar: stand.exemplar(for: eintrag.id))
+                stand: merklisteStand(status: stand.status(for: eintrag.id), exemplar: stand.exemplar(for: eintrag.id)),
+                gefunden: eintrag.istGefunden
             )
         })
     }

@@ -56,6 +56,8 @@ final class UhrVerbindung: NSObject, WCSessionDelegate {
         if kontext.einstellungen != einstellungen {
             einstellungen = kontext.einstellungen
             defaults.set(kontext.einstellungen.kontext, forKey: UhrEinstellungen.speicherSchluessel)
+            // Mensa, Preisgruppe und Filter bestimmen das Widget „Mensa heute“.
+            UhrWidgetSync.mensaGeaendert()
         }
         if let liste = kontext.merkliste { merkliste.uebernimm(vomIPhone: liste) }
     }

@@ -138,7 +138,10 @@ private struct Aufbau {
             ausblendSpeicher: HinweiseAusblendSpeicher(defaults: defaults),
             preisgruppe: { .studierende },
             mensaFilter: { filter },
-            zeitlimit: .seconds(2)
+            zeitlimit: .seconds(2),
+            // Diese Tests prüfen Inhalte, nicht die Zeit: Die Uhr läuft nie vor, das Limit greift nie. Mit der echten Uhr
+            // kippte ein Lauf auf einem ausgelasteten Rechner in „Zeitablauf“ (leere Karten, dann Index außerhalb).
+            clock: ManualClock()
         )
     }
 }
@@ -630,7 +633,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2), clock: ManualClock()
         )
         await modell.laden()
         #expect(modell.phase == .morgen)
@@ -658,7 +661,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2), clock: ManualClock()
         )
         await modell.laden()
         #expect(aufbau.mensa.tage.count == 2)
@@ -676,7 +679,7 @@ struct HeuteZustandTests {
         let modell = HeuteModel(
             now: { uhr.jetzt }, mensaQuelle: aufbau.mensa, eventsQuelle: aufbau.events,
             mensaSpeicher: HeuteMensaSpeicher(defaults: aufbau.defaults),
-            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2)
+            ausblendSpeicher: HinweiseAusblendSpeicher(defaults: aufbau.defaults), mensaFilter: { MensaFilter() }, zeitlimit: .seconds(2), clock: ManualClock()
         )
         await modell.laden()
         uhr.jetzt = zeit("12:09")

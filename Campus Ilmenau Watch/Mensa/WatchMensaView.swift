@@ -40,6 +40,23 @@ struct WatchMensaView: View {
             }
             .navigationTitle("Mensa")
             .containerBackground(Color(.watchBackground), for: .navigation)
+            .onAppear {
+                UhrSiriMelder.neueOeffnung(.mensa)
+                UhrSiriMelder.neueOeffnung(.mensaAbendessen)
+                meldeAnSiri(anzeige)
+            }
+            .onChange(of: anzeige.mensa) { meldeAnSiri(anzeige) }
+            .onChange(of: anzeige.kicker) { meldeAnSiri(anzeige) }
+        }
+    }
+
+    /// Siri-Vorschläge: Mensa geöffnet oder gewechselt → „Mensa heute“ mit der gezeigten Mensa; läuft die Phase
+    /// Abendessen → „Abendessen“. Höchstens einmal pro Öffnen, nichts, was ein Link von außen geöffnet hat.
+    private func meldeAnSiri(_ anzeige: UhrMensaAnzeige) {
+        guard anzeige.zustand == .plan else { return }
+        UhrSiriMelder.melde(.mensaHeute(mensa: MensaOrt(anzeige.mensa), ernaehrung: nil), in: .mensa)
+        if anzeige.kicker.hasPrefix("Abendessen") {
+            UhrSiriMelder.melde(.abendessen, in: .mensaAbendessen)
         }
     }
 

@@ -211,7 +211,7 @@ struct SiriKatalogDatenTests {
             ("med_1", "available", "60 ELT", "ELT 1", nil), ("med_2", "on_loan", nil, "ELT 2", "2026-11-17"), ("med_3", "reference_only", nil, "ELT 3", nil)
         ]))
 
-        let a = await SiriKatalogDaten.suche("  Regelungstechnik ", service: service)
+        let a = await SiriKatalogDaten.suche("  Regelungstechnik ", service: service, clock: ManualClock())
 
         // Eine Suchanfrage im Bestand (`in=local`, „Gedruckt“), keine zum Gesamtkatalog.
         let suchen = h.requestURLs.filter { $0.path.hasSuffix("/search") }
@@ -235,13 +235,13 @@ struct SiriKatalogDatenTests {
     @Test func korrigierteSucheKommtAusDerAntwort() async {
         let service = h.service(json: SiriKatalogStubs.suche(medien: [SiriKatalogStubs.buch(1, "Regelungstechnik 1")], gesamt: 7, korrigiert: "Regelungstechnik"))
         h.route(statusPfad, json: SiriKatalogStubs.status([("med_1", "available", nil, "ELT 1", nil)]))
-        let a = await SiriKatalogDaten.suche("Regelungstechnk", service: service)
+        let a = await SiriKatalogDaten.suche("Regelungstechnk", service: service, clock: ManualClock())
         #expect(a.sagt.hasPrefix("Ich habe nach „Regelungstechnik“ gesucht. Das sind 7 Treffer."))
     }
 
     @Test func nullTrefferFragtKeinenStatusAb() async {
         let service = h.service(json: SiriKatalogStubs.suche(medien: [], gesamt: 0))
-        let a = await SiriKatalogDaten.suche("Qxzvw", service: service)
+        let a = await SiriKatalogDaten.suche("Qxzvw", service: service, clock: ManualClock())
         #expect(a.sagt == "Für „Qxzvw“ habe ich nichts gefunden.")
         #expect(h.requestURLs.contains { $0.path.hasSuffix("/availability") } == false)
     }
@@ -249,7 +249,7 @@ struct SiriKatalogDatenTests {
     @Test func fehlerBeimStatusLaesstDieTrefferOhneChip() async {
         let service = h.service(json: SiriKatalogStubs.suche(medien: [SiriKatalogStubs.buch(1, "Regelungstechnik 1")], gesamt: 1))
         h.route(statusPfad, status: 503, json: Sample.error(code: "unavailable", message: "Katalog nicht erreichbar"))
-        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service)
+        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service, clock: ManualClock())
         #expect(a.sagt == "Ich habe einen Treffer für „Regelungstechnik“: „Regelungstechnik 1“.")
         #expect(a.karte?.treffer.first?.status == nil)
     }
@@ -257,7 +257,7 @@ struct SiriKatalogDatenTests {
     @Test func unbekannterStatusZeigtKeinenChip() async {
         let service = h.service(json: SiriKatalogStubs.suche(medien: [SiriKatalogStubs.buch(1, "Regelungstechnik 1")], gesamt: 1))
         h.route(statusPfad, json: SiriKatalogStubs.status([("med_1", "unknown", nil, "x", nil)]))
-        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service)
+        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service, clock: ManualClock())
         #expect(a.karte?.treffer.first?.status == nil)
     }
 
@@ -313,7 +313,7 @@ struct SiriKatalogDatenTests {
         h.route(statusPfad, json: SiriKatalogStubs.status([("med_1", "available", nil, "ELT 1", nil)]))
         // Das Gesamtlimit ist kleiner als die Mindestzeit für den Status.
         let a = await SiriKatalogDaten.suche(
-            "Regelungstechnik", service: service, gesamtlimit: .seconds(8), mindestZeitFuerStatus: .seconds(10)
+            "Regelungstechnik", service: service, gesamtlimit: .seconds(8), mindestZeitFuerStatus: .seconds(10), clock: ManualClock()
         )
         #expect(h.requestURLs.contains { $0.path.hasSuffix("/availability") } == false)
         #expect(a.sagt == "Ich habe einen Treffer für „Regelungstechnik“: „Regelungstechnik 1“.")
@@ -327,15 +327,15 @@ struct SiriKatalogDatenTests {
 
     @Test func scheitertDieSucheKommtDieFehlermeldung() async {
         let service = h.service(status: 503, json: Sample.error(code: "unavailable", message: "Katalog nicht erreichbar"))
-        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service)
+        let a = await SiriKatalogDaten.suche("Regelungstechnik", service: service, clock: ManualClock())
         #expect(a == SiriKatalog.nichtErreichbar)
         #expect(a.sagt == "Ich komme gerade nicht an den Katalog. Versuch es gleich noch mal.")
     }
 
     @Test func leererOderZuLangerBegriffWirdNichtGesendet() async {
         let service = h.service(json: SiriKatalogStubs.suche(medien: [], gesamt: 0))
-        let leer = await SiriKatalogDaten.suche("   ", service: service)
-        let lang = await SiriKatalogDaten.suche(String(repeating: "a", count: 201), service: service)
+        let leer = await SiriKatalogDaten.suche("   ", service: service, clock: ManualClock())
+        let lang = await SiriKatalogDaten.suche(String(repeating: "a", count: 201), service: service, clock: ManualClock())
         #expect(leer == SiriKatalog.ungueltig)
         #expect(lang == SiriKatalog.ungueltig)
         #expect(h.requestURLs.isEmpty)
@@ -455,7 +455,7 @@ struct SiriMerklisteSatzTests {
         #expect(karte.titel == "5 Titel im Regal")
     }
 
-    // „Gefunden“ gibt es in der Merkliste der App noch nicht. Der Fuß ist darauf vorbereitet und zeigt es von selbst.
+    // „Gefunden“ am Regal: zählt weder im Regal noch als ausgeliehen, steht im Fuß und am Ende des gesprochenen Satzes.
     @Test func gefundeneErscheinenImFussSobaldEsSieGibt() throws {
         let a = SiriMerkliste.antwort([
             eintrag(1, "A", regal("60 ELT", "S1")), eintrag(2, "B", regal("60 ELT", "S2")), eintrag(3, "C", regal("70 MB", "S3")),
@@ -464,7 +464,7 @@ struct SiriMerklisteSatzTests {
         let karte = try #require(a.karte)
         #expect(karte.titel == "3 Titel im Regal")
         #expect(karte.fuss == "Nicht im Regal: 1 · Gefunden: 1")
-        #expect(a.sagt == "Drei Titel stehen im Regal: zwei im Bereich 60 ELT, einer in 70 MB. Einer ist ausgeliehen. Einer ist schon gefunden.")
+        #expect(a.sagt == "Drei Titel stehen im Regal: zwei im Bereich 60 ELT, einer in 70 MB. Einer ist ausgeliehen. Einen hast du schon gefunden.")
     }
 
     @Test func gefundeneZaehlenWederImRegalNochAlsAusgeliehen() {
@@ -472,8 +472,29 @@ struct SiriMerklisteSatzTests {
             SiriMerklisteEintrag(id: "med_1", titel: "A", stand: .ausgeliehen, gefunden: true),
             eintrag(2, "B", regal("60 ELT"))
         ])
-        #expect(a.sagt == "Ein Titel steht im Regal, im Bereich 60 ELT. Einer ist schon gefunden.")
+        #expect(a.sagt == "Ein Titel steht im Regal, im Bereich 60 ELT. Einen hast du schon gefunden.")
         #expect(a.karte?.fuss == "Gefunden: 1")
+    }
+
+    @Test func mehrereGefundeneStehenMitZahlwortAmEnde() {
+        func gefunden(_ n: Int) -> [SiriMerklisteEintrag] {
+            (1...n).map { SiriMerklisteEintrag(id: "g\($0)", titel: "G\($0)", stand: .ausgeliehen, gefunden: true) }
+        }
+        let offen = [eintrag(9, "Z", regal("60 ELT"))]
+        let erwartet = [(2, "Zwei"), (3, "Drei"), (4, "4"), (7, "7")]
+        for (anzahl, wort) in erwartet {
+            let a = SiriMerkliste.antwort(offen + gefunden(anzahl))
+            #expect(a.sagt == "Ein Titel steht im Regal, im Bereich 60 ELT. \(wort) hast du schon gefunden.", "\(anzahl) Gefundene")
+            #expect(a.karte?.fuss == "Gefunden: \(anzahl)")
+        }
+    }
+
+    @Test func gefundeneStehenAuchHinterDemStandortSatz() {
+        let a = SiriMerkliste.antwort([
+            eintrag(1, "A", regal("60 ELT")), eintrag(2, "B", .unbekannt),
+            SiriMerklisteEintrag(id: "med_3", titel: "C", stand: .ausgeliehen, gefunden: true)
+        ])
+        #expect(a.sagt == "Ein Titel steht im Regal, im Bereich 60 ELT. Bei einem Titel kenne ich den Standort nicht. Einen hast du schon gefunden.")
     }
 
     @Test func nurGefundeneUndNichtsSonst() {
@@ -518,7 +539,7 @@ struct SiriMerklisteDatenTests {
             ("med_1", "available", "60 ELT", "ELT ZQ 5200", nil), ("med_2", "reference_only", "60 ELT", "ELT ZN 4000", nil),
             ("med_3", "available", "70 MB", "MB UF 1000", nil), ("med_4", "on_loan", nil, "X", "2026-11-17")
         ]))
-        let a = await SiriKatalogDaten.merkliste(merkliste([(1, "A"), (2, "B"), (3, "C"), (4, "D")]), service: service)
+        let a = await SiriKatalogDaten.merkliste(merkliste([(1, "A"), (2, "B"), (3, "C"), (4, "D")]), service: service, clock: ManualClock())
 
         #expect(h.requestURLs.filter { $0.path.hasSuffix("/availability") }.count == 1)
         #expect(a.sagt == "Drei Titel stehen im Regal: zwei im Bereich 60 ELT, einer in 70 MB. Einer ist ausgeliehen.")
@@ -527,14 +548,14 @@ struct SiriMerklisteDatenTests {
 
     @Test func leereMerklisteFragtNichtsAb() async {
         let service = h.service(json: "{}")
-        let a = await SiriKatalogDaten.merkliste([], service: service)
+        let a = await SiriKatalogDaten.merkliste([], service: service, clock: ManualClock())
         #expect(a == SiriMerkliste.leer)
         #expect(h.requestURLs.isEmpty)
     }
 
     @Test func fehlerBeiAvailabilityErgibtUnbekannt() async {
         let service = h.service(status: 503, json: Sample.error(code: "unavailable", message: "Katalog nicht erreichbar"))
-        let a = await SiriKatalogDaten.merkliste(merkliste([(1, "A"), (2, "B")]), service: service)
+        let a = await SiriKatalogDaten.merkliste(merkliste([(1, "A"), (2, "B")]), service: service, clock: ManualClock())
         #expect(a.sagt == "Auf deiner Merkliste stehen 2 Titel. Den Stand im Regal kenne ich gerade nicht.")
     }
 
@@ -553,8 +574,22 @@ struct SiriMerklisteDatenTests {
         let service = h.service(json: "{}")
         h.route(statusPfad, json: SiriKatalogStubs.status([("med_9", "available", "60 ELT", "S", nil)]))
         let unvollstaendig = GemerkterTitel(id: "med_9", titel: "")
-        let a = await SiriKatalogDaten.merkliste([unvollstaendig], service: service)
+        let a = await SiriKatalogDaten.merkliste([unvollstaendig], service: service, clock: ManualClock())
         #expect(a.karte?.standorte.first?.titel.first?.titel == "Titel 9")
+    }
+
+    @Test func gefundeneAusDerMerklisteDerAppKommenBeiSiriAn() async {
+        let service = h.service(json: "{}")
+        h.route(statusPfad, json: SiriKatalogStubs.status([
+            ("med_1", "available", "60 ELT", "ELT ZQ 5200", nil), ("med_2", "available", "70 MB", "MB UF 1000", nil)
+        ]))
+        let titel = [
+            GemerkterTitel(id: "med_1", titel: "A"),
+            GemerkterTitel(id: "med_2", titel: "B", foundAt: Date(timeIntervalSinceReferenceDate: 800_000_000))
+        ]
+        let a = await SiriKatalogDaten.merkliste(titel, service: service, clock: ManualClock())
+        #expect(a.sagt == "Ein Titel steht im Regal, im Bereich 60 ELT. Einen hast du schon gefunden.")
+        #expect(a.karte?.fuss == "Gefunden: 1")
     }
 
     @Test func standNurMitStandortImRegal() {

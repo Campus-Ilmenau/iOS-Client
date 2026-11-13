@@ -85,8 +85,8 @@ final class UhrMerkliste {
     @ObservationIgnored private var letzterStand: Date?
 
     private enum Schluessel {
-        static let eintraege = "uhrMerkliste"
-        static let staende = "uhrRegalStaende"
+        static let eintraege = UhrSpeicher.eintraege
+        static let staende = UhrSpeicher.staende
     }
 
     init(defaults: UserDefaults = AppGroup.defaults, client: UhrRegalClient = UhrRegalClient()) {
@@ -117,6 +117,7 @@ final class UhrMerkliste {
         guard neu != eintraege else { return }
         eintraege = neu
         speichern()
+        UhrWidgetSync.merklisteGeaendert()
     }
 
     /// Haken setzen oder zurücknehmen: sofort lokal, dann als Änderung an das iPhone.
@@ -125,6 +126,7 @@ final class UhrMerkliste {
         eintraege[index].foundAt = gefunden ? jetzt : nil
         eintraege[index].changedAt = jetzt
         speichern()
+        UhrWidgetSync.merklisteGeaendert()
         sender?(UhrAenderung(id: id, found: gefunden, changedAt: jetzt))
     }
 
@@ -139,6 +141,7 @@ final class UhrMerkliste {
         staende.merge(neu) { _, neu in neu }
         letzterStand = .now
         defaults.set(try? JSONEncoder().encode(staende), forKey: Schluessel.staende)
+        UhrWidgetSync.merklisteGeaendert()
     }
 
     private func speichern() {

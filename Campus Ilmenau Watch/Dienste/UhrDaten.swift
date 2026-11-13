@@ -1,21 +1,6 @@
 import Foundation
 import Observation
 
-/// „Andere Mensa“: gilt nur auf der Uhr und nur bis Mitternacht (Berliner Zeit).
-struct AndereMensa: Codable, Equatable {
-    var mensaID: String
-    var gueltigBis: Date
-
-    init(mensa: MensaVenue, jetzt: Date) {
-        mensaID = mensa.rawValue
-        gueltigBis = EventKalender.tag(EventKalender.tagesbeginn(jetzt), plus: 1)
-    }
-
-    func mensa(jetzt: Date) -> MensaVenue? {
-        jetzt < gueltigBis ? MensaVenue(rawValue: mensaID) : nil
-    }
-}
-
 /// Die Daten der Uhr: Speiseplan und Veranstaltungen im `WidgetStore` der Watch-Gruppe, geladen mit denselben Routinen
 /// wie die Widgets. Beim Öffnen ist sofort der letzte Stand da; das Laden hat ein Zeitlimit von 4 s
 /// (`heuteMitZeitlimit`) und lässt bei Misserfolg den Stand, wie er war.
@@ -37,7 +22,7 @@ final class UhrDaten {
     @ObservationIgnored private let eventsQuelle: any EventsDatenquelle
 
     private enum Schluessel {
-        static let andereMensa = "uhrAndereMensa"
+        static let andereMensa = AndereMensa.speicherSchluessel
     }
 
     /// - Parameters:
@@ -106,6 +91,9 @@ final class UhrDaten {
         async let events = WidgetEventsAktualisierung(store: store).ladeUndSpeichere(quelle: eventsQuelle, jetzt: jetzt, zeitlimit: Self.zeitlimit)
         _ = await (mensa, events)
         snapshot = store.lesen()
+        // Neuer Stand: Zifferblatt und Smart Stack lesen ihn neu.
+        UhrWidgetSync.mensaGeaendert()
+        UhrWidgetSync.veranstaltungenGeaendert()
 
         uebernimm(gemerkteEvents: gemerkteEvents)
     }
@@ -128,6 +116,7 @@ final class UhrDaten {
     func uebernimm(gemerkteEvents: [String]) {
         if store.aendern({ $0.gemerkteEventIDs = gemerkteEvents.sorted() }) {
             snapshot = store.lesen()
+            UhrWidgetSync.veranstaltungenGeaendert()
         }
     }
 }

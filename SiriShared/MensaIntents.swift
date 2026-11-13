@@ -1,9 +1,10 @@
 import AppIntents
 import SwiftUI
 
-// Die Mensa-Antworten von Siri: gesprochener Satz plus kleine Karte. Die Intents laufen im Prozess der App, öffnen sie
-// aber nicht (`openAppWhenRun` aus). Daten wie beim Widget: erst selbst laden (Zeitlimit 4 s), sonst der Speicher der
-// App Group. Die Regeln für Sätze und Karten stehen in `Shared/` (`SiriMensa`, `SiriOffen`, `SiriAbendessen`).
+// Die Mensa-Antworten von Siri: gesprochener Satz plus kleine Karte. Die Intents laufen im Prozess der App (iPhone) bzw.
+// der Watch-App, öffnen sie aber nicht (`openAppWhenRun` aus). Daten wie beim Widget: erst selbst laden (Zeitlimit 4 s),
+// sonst der Speicher der App Group (auf der Uhr die Watch-Gruppe). Die Regeln für Sätze und Karten stehen in `Shared/`
+// (`SiriMensa`, `SiriOffen`, `SiriAbendessen`); Einstellungen und Karten-Ansicht je Plattform in `SiriPlattform`.
 //
 // Die gesprochenen Sätze entstehen zur Laufzeit aus Daten (Gerichtsnamen, Zeiten) und sind deutsch. Die Sätze, mit denen
 // man Siri anspricht, stehen in `AppShortcuts.xcstrings` auf Deutsch und Englisch.
@@ -36,7 +37,7 @@ struct MensaHeuteIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         let jetzt = WidgetUhr.jetzt
         let snapshot = await SiriMensaDaten.laden(jetzt: jetzt)
-        let einstellungen = SiriMensaEinstellungen.lesen()
+        let einstellungen = SiriPlattform.mensaEinstellungen()
         var frage = SiriMensaFrage(mensa: mensa, ernaehrung: ernaehrung, filterAnwenden: filterAnwenden)
 
         var ergebnis = SiriMensa.heute(frage, snapshot: snapshot, einstellungen: einstellungen, jetzt: jetzt)
@@ -52,7 +53,7 @@ struct MensaHeuteIntent: AppIntent {
         let antwort = if case .antwort(let antwort) = ergebnis { antwort } else {
             SiriMensaAntwort(sagt: SiriMensa.keineDaten, karte: nil)
         }
-        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriMensaAntwortView(karte: antwort.karte))
+        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriPlattform.mensaAnsicht(antwort, snapshot: snapshot, jetzt: jetzt))
     }
 }
 
@@ -74,10 +75,12 @@ struct MensaOffenIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         let jetzt = WidgetUhr.jetzt
         let snapshot = await SiriMensaDaten.laden(jetzt: jetzt)
-        let antwort = SiriOffen.antwort(
-            mensa: mensa, snapshot: snapshot, einstellungen: SiriMensaEinstellungen.lesen(), jetzt: jetzt
+        let einstellungen = SiriPlattform.mensaEinstellungen()
+        let antwort = SiriOffen.antwort(mensa: mensa, snapshot: snapshot, einstellungen: einstellungen, jetzt: jetzt)
+        return .result(
+            dialog: IntentDialog(stringLiteral: antwort.sagt),
+            view: SiriPlattform.offenAnsicht(antwort, mensa: mensa, snapshot: snapshot, jetzt: jetzt)
         )
-        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriOffenAntwortView(karte: antwort.karte))
     }
 }
 
@@ -92,7 +95,8 @@ struct AbendessenIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         let jetzt = WidgetUhr.jetzt
         let snapshot = await SiriMensaDaten.laden(jetzt: jetzt)
-        let antwort = SiriAbendessen.antwort(snapshot: snapshot, einstellungen: SiriMensaEinstellungen.lesen(), jetzt: jetzt)
-        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriMensaAntwortView(karte: antwort.karte))
+        let einstellungen = SiriPlattform.mensaEinstellungen()
+        let antwort = SiriAbendessen.antwort(snapshot: snapshot, einstellungen: einstellungen, jetzt: jetzt)
+        return .result(dialog: IntentDialog(stringLiteral: antwort.sagt), view: SiriPlattform.mensaAnsicht(antwort, snapshot: snapshot, jetzt: jetzt))
     }
 }

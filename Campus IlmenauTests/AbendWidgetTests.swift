@@ -371,7 +371,7 @@ struct WidgetEventsAktualisierungTests {
         ]
 
         let geaendert = await WidgetEventsAktualisierung(store: speicher)
-            .ladeUndSpeichere(quelle: quelle, jetzt: zeit(17), zeitlimit: .seconds(5))
+            .ladeUndSpeichere(quelle: quelle, jetzt: zeit(17), zeitlimit: .seconds(5), clock: ManualClock())
 
         #expect(geaendert)
         let daten = speicher.lesen()
@@ -389,7 +389,8 @@ struct WidgetEventsAktualisierungTests {
         let quelle = EventsQuelleStub()
         quelle.scheitert = true
 
-        await WidgetEventsAktualisierung(store: speicher).ladeUndSpeichere(quelle: quelle, jetzt: zeit(17), zeitlimit: .seconds(5))
+        await WidgetEventsAktualisierung(store: speicher)
+            .ladeUndSpeichere(quelle: quelle, jetzt: zeit(17), zeitlimit: .seconds(5), clock: ManualClock())
 
         #expect(speicher.lesen().events.map(\.id) == ["alt"])
     }
