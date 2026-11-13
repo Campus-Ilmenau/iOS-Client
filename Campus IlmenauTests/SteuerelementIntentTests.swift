@@ -7,6 +7,9 @@ import Foundation
 @MainActor
 @Suite(.serialized)
 struct SteuerelementIntentTests {
+    /// Der Simulator hat kein NFC; diese Tests prüfen den Weg auf einem iPhone.
+    init() { NFCVerfuegbarkeit.ueberschreibung = true }
+
     /// Hängt einen eigenen Router an den Eingang und stellt danach den der App wieder her.
     private func mitRouter(_ router: AppRouter, _ pruefung: () async throws -> Void) async rethrows {
         DeepLinkEingang.trenne()

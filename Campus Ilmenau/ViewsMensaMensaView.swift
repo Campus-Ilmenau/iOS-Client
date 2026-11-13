@@ -12,10 +12,11 @@ import AppIntents
 struct MensaView: View {
     @StateObject private var mensaService = MensaService()
     @State private var days = MensaFormatting.workdays(from: .now)
-    @State private var selectedDayIndex = 0
+    /// Tag und Mahlzeit liegen im Router (falls es einen gibt), damit sie den Wechsel der Hülle überstehen.
+    @State private var lokalerTagIndex = 0
+    @State private var lokaleMahlzeit: MensaMealtime = .lunch
     /// Die zuletzt gewählte Mensa bleibt erhalten. Eine Einstellung „Mensa auf der Startseite“ gibt es noch nicht, Start ist Mensa Ehrenberg.
     @SceneStorage("mensaSelectedVenue") private var storedVenue = MensaVenue.mensaEhrenberg.rawValue
-    @State private var mealtime: MensaMealtime = .lunch
     @State private var loadState: MensaLoadState = .loading
     @State private var loadTask: Task<Void, Never>?
 
@@ -31,6 +32,16 @@ struct MensaView: View {
     @State private var wartendesGericht: String?
     /// ID des Gerichts, dessen Detail gerade offen ist.
     @State private var geoeffnetesGericht: String?
+
+    private var selectedDayIndex: Int {
+        get { router?.mensaTagIndex ?? lokalerTagIndex }
+        nonmutating set { if let router { router.mensaTagIndex = newValue } else { lokalerTagIndex = newValue } }
+    }
+
+    private var mealtime: MensaMealtime {
+        get { router?.mensaMahlzeit ?? lokaleMahlzeit }
+        nonmutating set { if let router { router.mensaMahlzeit = newValue } else { lokaleMahlzeit = newValue } }
+    }
 
     /// Das × des Tipps verbirgt ihn für immer.
     private var tippSichtbar: Binding<Bool> {
@@ -50,9 +61,9 @@ struct MensaView: View {
     var body: some View {
         MensaScreen(
             days: days,
-            selectedDayIndex: $selectedDayIndex,
+            selectedDayIndex: Binding(get: { selectedDayIndex }, set: { selectedDayIndex = $0 }),
             selectedVenue: selectedVenue,
-            mealtime: $mealtime,
+            mealtime: Binding(get: { mealtime }, set: { mealtime = $0 }),
             loadState: loadState,
             allMeals: mensaService.meals,
             filter: $filter,

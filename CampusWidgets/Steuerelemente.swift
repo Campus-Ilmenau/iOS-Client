@@ -6,14 +6,15 @@ import AppIntents
 // Sperrbildschirm. Das System zeichnet sie selbst; geliefert werden nur Symbol, Titel und Intent. Keine eigene Tönung
 // (Accent nie für Buttons) und kein Betrag: Das Guthaben würde veralten.
 
-/// „Thoska auslesen“. Das Symbol ist das des Tabs.
+/// „Thoska auslesen“. Das Symbol ist das des Tabs. Der Intent öffnet die App selbst (iPhone) oder zeigt nur die
+/// Meldung, dass es nur auf dem iPhone geht (iPad), siehe `ThoskaSteuerelementIntent`.
 @available(iOS 18.0, *)
 struct ThoskaSteuerelement: ControlWidget {
     static let kind = "de.kai-gothe.Campus-Ilmenau.control.thoska"
 
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: Self.kind) {
-            ControlWidgetButton(action: ThoskaAuslesenIntent()) {
+            ControlWidgetButton(action: ThoskaSteuerelementIntent()) {
                 Label("Thoska auslesen", systemImage: "wave.3.right")
             }
         }

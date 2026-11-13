@@ -10,6 +10,11 @@ enum AppTab: CaseIterable, Identifiable {
 
     var id: Self { self }
 
+    /// Die Tabs, die dieses Gerät zeigt: ohne NFC (iPad) kein Thoska.
+    static var sichtbar: [AppTab] {
+        allCases.filter { $0 != .thoska || NFCVerfuegbarkeit.vorhanden }
+    }
+
     var title: LocalizedStringKey {
         switch self {
         case .heute: "Heute"
@@ -38,7 +43,7 @@ struct TabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(AppTab.allCases) { tab in
+            ForEach(AppTab.sichtbar) { tab in
                 let isSelected = tab == selection
                 Button {
                     selection = tab

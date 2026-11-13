@@ -51,6 +51,13 @@ struct Campus_IlmenauApp: App {
             RootView()
         }
         .modelContainer(for: [ThoskaBalanceRecord.self, ThoskaCardName.self])
+        .commands {
+            // ⌘F (Menü „Bearbeiten“ auf dem iPad, Tastaturkürzel-Übersicht beim Halten von ⌘): Katalogsuche mit Cursor im Feld.
+            CommandGroup(after: .textEditing) {
+                Button("Im Katalog suchen") { AppRouter.gemeinsam.zeigeKatalogSuche() }
+                    .keyboardShortcut("f", modifiers: .command)
+            }
+        }
     }
 }
 

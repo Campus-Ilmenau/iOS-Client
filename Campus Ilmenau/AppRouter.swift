@@ -10,7 +10,34 @@ final class AppRouter {
     /// die erste Ansicht steht.
     static let gemeinsam = AppRouter(wartetAufStart: true)
 
-    var tab: AppTab = .heute
+    /// Das gewählte Ziel der Navigation. Auf dem iPhone zählt nur sein Tab; auf dem iPad ist es auch der Eintrag der
+    /// Seitenleiste (Katalog, Merkliste, Heute Abend …). Links setzen es mit, damit die Seitenleiste das Richtige markiert.
+    var ziel: PadZiel = .heute {
+        didSet { if ziel.teiltTabAnsicht { letztes[ziel.tab] = ziel } }
+    }
+    /// Welches Ziel eines Tabs zuletzt gewählt war: Es baut die geteilte Ansicht des Tabs auf (`PadZiel.teiltTabAnsicht`).
+    private(set) var letztes: [AppTab: PadZiel] = [.bibliothek: .ausleihen, .events: .eventsAlle]
+
+    /// Ein Wunsch an die neue Ansicht ist unterwegs: Er kommt erst an, wenn die bisherige Ansicht des Tabs abgebaut ist.
+    /// Die Bibliothek zeigt solange kein Anmelde-Sheet.
+    private(set) var wunschUnterwegs = false
+    /// Die Seitenleiste des iPads ist sichtbar (angedockt oder darübergelegt). Die Ansicht des Tabs meldet es über
+    /// `tabBarPlacement`; `PadRootView` wählt danach die Tint (Kontrast der Auswahl).
+    var seitenleisteSichtbar = false
+    /// Die iPad-Hülle ist zu sehen. Nur dort teilen sich Ziele die Ansicht eines Tabs (`PadZiel.teiltTabAnsicht`).
+    var padHuelleAktiv = false
+
+    /// Der gewählte Tab. Ihn zu setzen wählt dessen zuletzt gewähltes Ziel, sofern er nicht schon gewählt ist.
+    var tab: AppTab {
+        get { ziel.tab }
+        set { if ziel.tab != newValue { ziel = letztes[newValue] ?? .standard(fuer: newValue) } }
+    }
+
+    /// Zustand, der den Wechsel der Hülle (iPad voll ↔ schmaler Split View) überleben soll: Die Ansichten entstehen
+    /// dabei neu, diese Werte nicht.
+    @ObservationIgnored lazy var eventsModel = EventsModel(widgetSync: .shared)
+    var mensaTagIndex = 0
+    var mensaMahlzeit: MensaMealtime = .lunch
 
     /// Solange die Start-Animation läuft, wartet ein Ziel von außen. Sonst käme es unter der Animation an (oder das
     /// NFC-Sheet startete mitten in der Animation) und ginge verloren.
@@ -80,8 +107,21 @@ final class AppRouter {
 
     /// „Alle“ bei „Heute Abend“: Events-Tab mit aktivem Filter.
     func zeigeEventsHeuteAbend() {
-        eventsHeuteAbend = true
-        tab = .events
+        wechsle(zu: .eventsAbend) { self.eventsHeuteAbend = true }
+    }
+
+    /// Wählt ein Ziel und stellt danach den Wunsch an dessen Ansicht. Teilen sich mehrere Ziele die Ansicht ihres Tabs und
+    /// wechselt sie zu einem anderen Ziel, wird die bisherige Ansicht abgebaut. Käme der Wunsch gleichzeitig, schluckte
+    /// sie ihn noch (und öffnete ihn in einer Ansicht, die gleich verschwindet). Darum folgt er einen Schritt später.
+    func wechsle(zu neu: PadZiel, wunsch: @escaping @MainActor () -> Void) {
+        let wechseltAnsicht = padHuelleAktiv && neu.teiltTabAnsicht && letztes[neu.tab] != neu
+        ziel = neu
+        guard wechseltAnsicht else { wunsch(); return }
+        wunschUnterwegs = true
+        Task { @MainActor in
+            wunsch()
+            wunschUnterwegs = false
+        }
     }
 
     // MARK: Deeplinks
@@ -102,6 +142,8 @@ final class AppRouter {
     var thoskaAuslesen = false
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche mit offener Tastatur.
     var katalogSuche = false
+    /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche ohne Fokus im Suchfeld (Seitenleiste).
+    var katalogOeffnen = false
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Katalogsuche und lädt die Treffer zu diesem Begriff (ohne Fokus).
     var katalogBegriff: String?
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen das Detail dieses Katalog-Titels.
@@ -121,30 +163,27 @@ final class AppRouter {
             gerichtWunsch = GerichtWunsch(id: id, tag: tag)
             tab = .mensa
         case .events:
-            eventsAlle = true
-            tab = .events
+            wechsle(zu: .eventsAlle) { self.eventsAlle = true }
         case .eventsHeuteAbend:
             zeigeEventsHeuteAbend()
         case .event(let id):
             eventWunsch = id
             tab = .events
         case .thoskaAuslesen:
+            // Ohne NFC (iPad) gibt es keinen Thoska-Tab, also auch kein Ziel dorthin.
+            guard NFCVerfuegbarkeit.vorhanden else { return }
             thoskaAuslesen = true
             tab = .thoska
         case .katalogSuche:
-            katalogSuche = true
-            tab = .bibliothek
+            wechsle(zu: .katalog) { self.katalogSuche = true }
         case .katalogSuchen(let begriff):
-            katalogBegriff = begriff
-            tab = .bibliothek
+            wechsle(zu: .katalog) { self.katalogBegriff = begriff }
         case .katalogTitel(let id):
-            katalogTitelWunsch = id
-            tab = .bibliothek
+            wechsle(zu: .katalog) { self.katalogTitelWunsch = id }
         case .mensaZeiten:
             zeigeOeffnungszeiten()
         case .merkliste:
-            merklisteOeffnen = true
-            tab = .bibliothek
+            wechsle(zu: .merkliste) { self.merklisteOeffnen = true }
         }
     }
 }

@@ -13,6 +13,8 @@ struct BibliothekView: View {
     @State private var showLoginSheet = false
     @State private var showNotificationsSheet = false
     @State private var showCatalog = false
+    /// Der Katalog öffnet mit Cursor im Suchfeld, außer aus der Seitenleiste des iPads: Dort bleibt die Tastatur zu.
+    @State private var katalogAutofokus = true
     @State private var returningFromCatalog = false
     /// Wünsche aus Links und von Siri (`campusilmenau://katalog/suche`, `…/katalog/titel/<id>`, `…/bibliothek/merkliste`):
     /// Keiner braucht eine Anmeldung.
@@ -78,6 +80,7 @@ struct BibliothekView: View {
             onOpenCatalog: {
                 returningFromCatalog = true
                 katalogSuchbegriff = nil
+                katalogAutofokus = true
                 showCatalog = true
             },
             onLogin: { showLoginSheet = true },
@@ -100,12 +103,15 @@ struct BibliothekView: View {
             }
         }
         .onChange(of: router?.katalogSuche) { _, _ in oeffneZielAufWunsch() }
+        .onChange(of: router?.katalogOeffnen) { _, _ in oeffneZielAufWunsch() }
         .onChange(of: router?.katalogBegriff) { _, _ in oeffneZielAufWunsch() }
         .onChange(of: router?.katalogTitelWunsch) { _, _ in oeffneZielAufWunsch() }
         .onChange(of: router?.merklisteOeffnen) { _, _ in oeffneZielAufWunsch() }
         .onAppear {
             // Ein Link zu Katalog, Titel oder Merkliste geht vor: Nichts davon braucht eine Anmeldung, das Sheet bleibt zu.
             if oeffneZielAufWunsch() { return }
+            // Der Wunsch ist unterwegs (Seitenleiste, Link): Das Sheet bleibt zu, bis er da ist.
+            if router?.wunschUnterwegs == true { return }
             // Nach der Rückkehr aus dem Katalog soll das Sheet nicht erneut aufspringen.
             if returningFromCatalog {
                 returningFromCatalog = false
@@ -130,6 +136,7 @@ struct BibliothekView: View {
                 showLoginSheet = false
                 returningFromCatalog = true
                 katalogSuchbegriff = nil
+                katalogAutofokus = true
                 showCatalog = true
             })
         }
@@ -147,7 +154,7 @@ struct BibliothekView: View {
         }
         .navigationDestination(isPresented: $showCatalog) {
             // `id`: Kommt ein neuer Begriff von Siri, während die Suche offen ist, entsteht sie neu.
-            LibraryCatalogView(autofocus: true, suchbegriff: katalogSuchbegriff)
+            LibraryCatalogView(autofocus: katalogAutofokus, suchbegriff: katalogSuchbegriff)
                 .id(katalogSuchbegriff ?? "")
         }
         .sheet(isPresented: $showNotificationsSheet) {
@@ -165,6 +172,7 @@ struct BibliothekView: View {
             router.katalogBegriff = nil
             beginneVonAussen()
             katalogSuchbegriff = begriff
+            katalogAutofokus = true
             showCatalog = true
             return true
         }
@@ -172,6 +180,15 @@ struct BibliothekView: View {
             router.katalogSuche = false
             beginneVonAussen()
             katalogSuchbegriff = nil
+            katalogAutofokus = true
+            showCatalog = true
+            return true
+        }
+        if router.katalogOeffnen {
+            router.katalogOeffnen = false
+            beginneVonAussen()
+            katalogSuchbegriff = nil
+            katalogAutofokus = false
             showCatalog = true
             return true
         }
