@@ -9,6 +9,8 @@ import SwiftUI
 @MainActor
 private func vorschau(nfc: Bool = false, link: DeepLink? = nil) {
     NFCVerfuegbarkeit.ueberschreibung = nfc
+    // Ohne Start-Animation wartet der Router nicht (sonst liefe der Einlauf der Ziege in der Vorschau nie).
+    AppRouter.gemeinsam.startBeendet()
     AppRouter.gemeinsam.tab = .heute
     if let link { AppRouter.gemeinsam.oeffne(link) }
 }

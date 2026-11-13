@@ -49,8 +49,9 @@ private enum GoatGeometry {
     static let headJoint = anchor(768.9, 420)
 }
 
-/// Die sechs Teile der Ziege. Pfaddaten unverändert aus `Ziege rennt.svg`.
-private enum GoatPart {
+/// Die sechs Teile der Ziege. Pfaddaten unverändert aus `Ziege rennt.svg`. Auch `ZiegeEinlauf` nutzt sie (Körper und Beine,
+/// der Kopf dort kommt aus `generate.py`, weil er ungespiegelt gebraucht wird).
+enum GoatPart {
     case hindFar, foreFar, body, head, hindNear, foreNear
 
     var pathData: String {
@@ -97,7 +98,7 @@ private struct GoatShape: Shape {
 // MARK: - Pfad-Parser (M, L, C, A, Z)
 
 /// Liest die SVG-Befehle, die `Ziege rennt.svg` verwendet. Nur absolute Koordinaten.
-private enum SVGPathParser {
+enum SVGPathParser {
     static func path(from data: String) -> Path {
         var path = Path()
         var tokens = tokenize(data)[...]

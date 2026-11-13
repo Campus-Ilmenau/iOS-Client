@@ -81,19 +81,25 @@ struct PadRootView: View {
 }
 
 /// Kopf der Seitenleiste: Bildmarke (Ziege) 22 × 22 pt links neben „Campus Ilmenau“. Orange auf hellem Grund, Weiß auf
-/// Nachtblau, wie im CI-Handbuch. Nur Deko, für VoiceOver ausgeblendet; der Schriftzug trägt den Namen.
+/// Nachtblau, wie im CI-Handbuch. Jedes Mal, wenn die Seitenleiste sichtbar wird, trabt die Ziege hinein (`ZiegeEinlauf`);
+/// der Schriftzug steht von Anfang an. Nur Deko, für VoiceOver ausgeblendet; der Schriftzug trägt den Namen.
 struct PadSeitenleistenKopf: View {
     @Environment(\.colorScheme) private var farbschema
+    @Environment(AppRouter.self) private var router: AppRouter?
+    /// Wann der Einlauf zuletzt gestartet wurde; `nil`, solange die Seitenleiste nicht sichtbar ist.
+    @State private var einlaufStart: Date?
+
+    /// Dasselbe Signal wie für die Tint: Die Ansicht des Tabs meldet über `tabBarPlacement`, dass die Seitenleiste zu sehen
+    /// ist. Beim App-Start wartet der Einlauf auf das Ende der Start-Animation. Ohne Router (Vorschau) gilt sie als sichtbar.
+    private var seitenleisteSichtbar: Bool {
+        guard let router else { return true }
+        return router.seitenleisteSichtbar && !router.wartetAufStart
+    }
 
     var body: some View {
         HStack(spacing: 8) {
-            Image("SymbolWhite")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 22, height: 22)
+            ZiegeEinlauf(start: einlaufStart)
                 .foregroundStyle(farbschema == .dark ? Color.white : Color(.brandOrange))
-                .accessibilityHidden(true)
             Text("Campus Ilmenau")
                 .display(size: 22, relativeTo: .title2)
                 .foregroundStyle(Color(.textPrimary))
@@ -101,6 +107,10 @@ struct PadSeitenleistenKopf: View {
                 .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // Sichtbar geworden: Einlauf von vorn. Zugeklappt: kein Einlauf, ein laufender bricht ab.
+        .onChange(of: seitenleisteSichtbar, initial: true) { _, sichtbar in
+            einlaufStart = sichtbar ? .now : nil
+        }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
