@@ -6,13 +6,18 @@ struct HeuteJetztKarteView: View {
     let onLink: (HeuteZiel) -> Void
 
     @Environment(\.dynamicTypeSize) private var schriftgroesse
+    /// Auf dem iPad (zwei Spalten) hat die Karte mehr Luft: Innenabstand 22/24, Titel 30, Zeilen 16.
+    @Environment(\.padRaster) private var raster
+
+    /// Breite der Karte in der linken Spalte, `nil` in der iPhone-Anordnung.
+    private var kartenBreite: CGFloat? { raster.istPad ? raster.linkeSpalte : nil }
 
     var body: some View {
         VStack(spacing: 0) {
             kopf
             ForEach(karte.zeilen) { zeile in
                 trenner
-                HeuteZeileView(zeile: zeile)
+                HeuteZeileView(zeile: zeile, breit: raster.istPad)
             }
             trenner
             Button { onLink(karte.ziel) } label: {
@@ -20,10 +25,13 @@ struct HeuteJetztKarteView: View {
                     .font(.body.weight(.semibold))
                     .foregroundStyle(Color(.accent))
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .padding(.horizontal, 18)
+                    .padding(.horizontal, raster.istPad ? 24 : 18)
+                    .padding(.top, raster.istPad ? 2 : 0)
+                    .padding(.bottom, raster.istPad ? 4 : 0)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .hoverEffect()
         }
         .background(Color(.surface))
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -42,24 +50,25 @@ struct HeuteJetztKarteView: View {
                     .tracking(0.6)
                     .opacity(0.85)
                     // Oben beginnt das Band erst bei 78 % der Breite, der Kicker darf deshalb weiter nach rechts
-                    .modifier(KopfTextbreite(anteil: 0.70, begrenzt: !schriftgroesse.isAccessibilitySize))
+                    .modifier(KopfTextbreite(anteil: 0.70, begrenzt: !schriftgroesse.isAccessibilitySize, kartenBreite: kartenBreite))
             }
             Text(karte.titel)
-                .font(.display(size: 22, relativeTo: .title2))
-                .tracking(-0.44)
-                .padding(.top, 2)
-                .modifier(KopfTextbreite(anteil: 0.58, begrenzt: !schriftgroesse.isAccessibilitySize))
+                .font(.display(size: raster.istPad ? 30 : 22, relativeTo: raster.istPad ? .title : .title2))
+                .tracking(raster.istPad ? -0.6 : -0.44)
+                .padding(.top, raster.istPad ? 4 : 2)
+                .modifier(KopfTextbreite(anteil: raster.istPad ? 0.70 : 0.58, begrenzt: !schriftgroesse.isAccessibilitySize, kartenBreite: kartenBreite))
             if !karte.unterzeile.isEmpty {
                 Text(karte.unterzeile)
                     .font(.subheadline)
                     .opacity(0.85)
-                    .modifier(KopfTextbreite(anteil: 0.58, begrenzt: !schriftgroesse.isAccessibilitySize))
+                    .modifier(KopfTextbreite(anteil: 0.58, begrenzt: !schriftgroesse.isAccessibilitySize, kartenBreite: kartenBreite))
             }
         }
         .foregroundStyle(Color(.onBlue))
-        .padding(.leading, 18)
-        .padding(.trailing, 18)
-        .padding(.vertical, 16)
+        .padding(.leading, raster.istPad ? 24 : 18)
+        .padding(.trailing, raster.istPad ? 24 : 18)
+        .padding(.top, raster.istPad ? 22 : 16)
+        .padding(.bottom, raster.istPad ? 24 : 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { kopfFlaeche }
         .accessibilityElement(children: .combine)
@@ -98,6 +107,8 @@ struct HeuteJetztKarteView: View {
 /// Eine Zeile: Gericht (bis 2 Zeilen), Chips, rechts der Preis.
 private struct HeuteZeileView: View {
     let zeile: HeuteZeile
+    /// iPad: Name und Preis 16 Semibold, Innenabstand 24 / 13.
+    var breit = false
 
     @Environment(\.dynamicTypeSize) private var schriftgroesse
 
@@ -105,7 +116,7 @@ private struct HeuteZeileView: View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(zeile.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font((breit ? Font.callout : Font.subheadline).weight(.semibold))
                     .foregroundStyle(Color(.textPrimary))
                     // Zwei Zeilen; bei großer Schrift ohne Grenze, damit nichts abgeschnitten wird
                     .lineLimit(schriftgroesse.isAccessibilitySize ? nil : 2)
@@ -121,14 +132,14 @@ private struct HeuteZeileView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             if let rechts = zeile.rechts {
                 Text(rechts)
-                    .font(.subheadline.weight(.semibold))
+                    .font((breit ? Font.callout : Font.subheadline).weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(Color(.textPrimary))
                     .fixedSize(horizontal: true, vertical: false)
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 11)
+        .padding(.horizontal, breit ? 24 : 18)
+        .padding(.vertical, breit ? 13 : 11)
         .frame(minHeight: 44)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(beschriftung)
@@ -162,9 +173,13 @@ private struct KopfTextbreite: ViewModifier {
     /// Anteil der Kartenbreite, bis zu dem der Text reichen darf.
     let anteil: CGFloat
     let begrenzt: Bool
+    /// Breite der Karte, wenn sie bekannt ist (iPad, linke Spalte). Sonst ist sie die Breite der Seite minus 32 pt.
+    var kartenBreite: CGFloat?
 
     func body(content: Content) -> some View {
-        if begrenzt {
+        if begrenzt, let kartenBreite {
+            content.frame(maxWidth: max(120, kartenBreite * anteil - 24), alignment: .leading)
+        } else if begrenzt {
             // Container ist der ScrollView der Seite; die Karte ist 32 pt (2 × 16) schmaler.
             content.containerRelativeFrame(.horizontal, alignment: .leading) { breite, _ in
                 max(120, (breite - 32) * anteil - 18)

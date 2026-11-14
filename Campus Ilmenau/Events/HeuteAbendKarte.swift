@@ -6,6 +6,12 @@ import SwiftUI
 /// Die Karte bekommt fertige Events (siehe `HeuteModel.heuteAbend` bzw. `HeuteAbendModel`) und entscheidet nur über
 /// die Darstellung.
 struct HeuteAbendKarte: View {
+    /// Wie die Veranstaltungen stehen: waagerecht scrollende Karten (iPhone) oder eine Liste in einer Karte (iPad).
+    enum Darstellung {
+        case karten
+        case liste
+    }
+
     let events: [CampusEvent]
     /// Bezugszeit für „Läuft seit …“.
     let jetzt: Date
@@ -13,6 +19,7 @@ struct HeuteAbendKarte: View {
     let onAlle: () -> Void
     /// Tippen auf eine Karte: das Detail.
     let onOeffne: (CampusEvent) -> Void
+    var darstellung: Darstellung = .karten
 
     @Environment(\.dynamicTypeSize) private var schriftgroesse
 
@@ -20,21 +27,77 @@ struct HeuteAbendKarte: View {
         if !events.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 kopf
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 10) {
-                        ForEach(events) { event in
-                            karte(event)
+                if darstellung == .liste {
+                    liste
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 10) {
+                            ForEach(events) { event in
+                                karte(event)
+                            }
                         }
+                        // Alle Karten so hoch wie die höchste: bei großer Schrift wachsen sie, nichts wird abgeschnitten
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    // Alle Karten so hoch wie die höchste: bei großer Schrift wachsen sie, nichts wird abgeschnitten
-                    .fixedSize(horizontal: false, vertical: true)
+                    // Die Karten laufen bis an den Bildschirmrand, der erste Eintrag beginnt am 16-pt-Rand der Seite
+                    .contentMargins(.horizontal, 16, for: .scrollContent)
+                    .padding(.horizontal, -16)
+                    .scrollClipDisabled()
                 }
-                // Die Karten laufen bis an den Bildschirmrand, der erste Eintrag beginnt am 16-pt-Rand der Seite
-                .contentMargins(.horizontal, 16, for: .scrollContent)
-                .padding(.horizontal, -16)
-                .scrollClipDisabled()
             }
         }
+    }
+
+    /// iPad: eine Karte mit den Veranstaltungen untereinander. Kicker in `accent`, Titel 16 Bold, darunter der Veranstalter.
+    private var liste: some View {
+        VStack(spacing: 0) {
+            ForEach(events) { event in
+                zeile(event)
+                if event.id != events.last?.id {
+                    Rectangle().fill(Color(.separator)).frame(height: 1)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func zeile(_ event: CampusEvent) -> some View {
+        let laeuft = event.beginn <= jetzt
+        let uhrzeit = HeuteUhr.uhrzeit(event.beginn)
+        let zeit = laeuft ? "Läuft seit \(uhrzeit)" : "Heute · \(uhrzeit)"
+        let veranstalter = event.veranstalterAnzeigen ?? event.ort?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
+        return Button {
+            onOeffne(event)
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(zeit)
+                    .font(.system(size: 12, weight: .bold))
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .foregroundStyle(Color(.accent))
+                Text(event.titel)
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(Color(.textPrimary))
+                    .multilineTextAlignment(.leading)
+                if let veranstalter {
+                    Text(veranstalter)
+                        .font(.footnote)
+                        .foregroundStyle(Color(.textSecondary))
+                        .multilineTextAlignment(.leading)
+                }
+            }
+            .padding(.vertical, 11)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .hoverEffect()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            [laeuft ? "läuft seit \(uhrzeit)" : uhrzeit, event.titel, veranstalter].compactMap { $0 }.joined(separator: ", ")
+        )
+        .accessibilityAddTraits(.isButton)
     }
 
     private var kopf: some View {
@@ -90,6 +153,7 @@ struct HeuteAbendKarte: View {
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
+        .hoverEffect()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             [laeuft ? "läuft seit \(uhrzeit)" : uhrzeit, event.titel, veranstalter].compactMap { $0 }.joined(separator: ", ")

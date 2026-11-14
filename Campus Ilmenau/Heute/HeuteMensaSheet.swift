@@ -81,3 +81,74 @@ struct HeuteMensaSheet: View {
         .accessibilityAddTraits(istGewaehlt ? .isSelected : [])
     }
 }
+
+/// Popover „Mensa auf der Startseite“ für das iPad (Breite 360), am Link „Mensa ändern“. Dieselbe Wahl wie im Sheet:
+/// Tippen wählt und schließt, das Häkchen steht in `accent`.
+struct HeuteMensaPopover: View {
+    let optionen: [HeuteModel.MensaOption]
+    let gewaehlt: MensaVenue
+    let onWahl: (MensaVenue) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Mensa auf der Startseite")
+                    .font(.headline)
+                    .foregroundStyle(Color(.textPrimary))
+                    .accessibilityAddTraits(.isHeader)
+                Text("Gilt für die Jetzt-Karte und »Als Nächstes«.")
+                    .font(.footnote)
+                    .foregroundStyle(Color(.textSecondary))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            ForEach(optionen) { option in
+                Rectangle().fill(Color(.separator)).frame(height: 1)
+                zeile(option)
+            }
+        }
+        .frame(width: 360)
+        .background(Color(.surface))
+    }
+
+    private func zeile(_ option: HeuteModel.MensaOption) -> some View {
+        let istGewaehlt = option.venue == gewaehlt
+        return Button {
+            onWahl(option.venue)
+            dismiss()
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(option.venue.displayName)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(Color(.textPrimary))
+                    if let info = option.info {
+                        Text(info)
+                            .font(.footnote)
+                            .foregroundStyle(Color(.textSecondary))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // Die leere Fläche hält den Platz des Häkchens, damit nichts springt
+                Image(systemName: "checkmark")
+                    .font(.body.weight(.bold))
+                    .foregroundStyle(Color(.accent))
+                    .frame(width: 22, height: 22)
+                    .opacity(istGewaehlt ? 1 : 0)
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .hoverEffect()
+        .accessibilityLabel([option.venue.displayName, option.info].compactMap { $0 }.joined(separator: ", "))
+        .accessibilityAddTraits(istGewaehlt ? .isSelected : [])
+    }
+}

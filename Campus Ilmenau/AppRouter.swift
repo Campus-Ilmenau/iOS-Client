@@ -24,6 +24,10 @@ final class AppRouter {
     /// Die Seitenleiste des iPads ist sichtbar (angedockt oder darübergelegt). Die Ansicht des Tabs meldet es über
     /// `tabBarPlacement`; `PadRootView` wählt danach die Tint (Kontrast der Auswahl).
     var seitenleisteSichtbar = false
+    /// ⌘R („Neu laden“): zählt hoch; die Ansicht des gewählten Tabs lädt dann neu.
+    private(set) var neuLadenZaehler = 0
+    func neuLaden() { neuLadenZaehler += 1 }
+
     /// Die iPad-Hülle ist zu sehen. Nur dort teilen sich Ziele die Ansicht eines Tabs (`PadZiel.teiltTabAnsicht`).
     var padHuelleAktiv = false
 

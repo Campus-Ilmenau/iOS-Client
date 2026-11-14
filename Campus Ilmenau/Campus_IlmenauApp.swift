@@ -52,6 +52,11 @@ struct Campus_IlmenauApp: App {
         }
         .modelContainer(for: [ThoskaBalanceRecord.self, ThoskaCardName.self])
         .commands {
+            // ⌘R: Die Ansicht des gewählten Tabs lädt neu.
+            CommandGroup(after: .toolbar) {
+                Button("Neu laden") { AppRouter.gemeinsam.neuLaden() }
+                    .keyboardShortcut("r", modifiers: .command)
+            }
             // ⌘F (Menü „Bearbeiten“ auf dem iPad, Tastaturkürzel-Übersicht beim Halten von ⌘): Katalogsuche mit Cursor im Feld.
             CommandGroup(after: .textEditing) {
                 Button("Im Katalog suchen") { AppRouter.gemeinsam.zeigeKatalogSuche() }

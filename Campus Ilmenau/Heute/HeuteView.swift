@@ -14,34 +14,39 @@ struct HeuteView: View {
     @Environment(AppRouter.self) private var router: AppRouter?
 
     init(model: HeuteModel? = nil) {
-        _model = State(initialValue: model ?? HeuteModel(widgetSync: .shared))
+        _model = State(initialValue: model ?? HeuteModel(now: HeuteUhrUeberschreibung.jetzt, widgetSync: .shared))
     }
 
     var body: some View {
+        // Die Breite der Ansicht entscheidet über die Anordnung (siehe `PadRaster`): untereinander wie auf dem iPhone,
+        // ab 700 pt in zwei Spalten.
+        PadRasterMessung { raster in
+            seite(raster)
+        }
+    }
+
+    private func seite(_ raster: PadRaster) -> some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    kopf
-                    if !model.hinweise.isEmpty { hinweiseAbschnitt }
-                    jetztAbschnitt
-                    // Ab 15:00 (nicht nachts) steht „Heute Abend“ vor „Als Nächstes“. Die Abschnitte behalten ihre
-                    // Identität und gleiten an ihren Platz, ohne dass die Seite springt.
-                    ForEach(unterteil, id: \.self) { abschnitt in
-                        switch abschnitt {
-                        case .alsNaechstes:
-                            HeuteAlsNaechstesView(termine: model.alsNaechstes, onTermin: oeffne)
-                        case .heuteAbend:
-                            HeuteAbendKarte(
-                                events: model.heuteAbend,
-                                jetzt: model.jetzt,
-                                onAlle: { router?.zeigeEventsHeuteAbend() },
-                                onOeffne: { geoeffnetesEvent = $0 }
-                            )
+                    kopf(raster)
+                    if !model.hinweise.isEmpty { hinweiseAbschnitt(raster) }
+                    if raster.istPad {
+                        VerhaeltnisSpalten {
+                            jetztAbschnitt(raster)
+                            VStack(alignment: .leading, spacing: 22) {
+                                ForEach(unterteil, id: \.self) { unterabschnitt($0, raster: raster) }
+                            }
                         }
+                    } else {
+                        jetztAbschnitt(raster)
+                        // Ab 15:00 (nicht nachts) steht „Heute Abend“ vor „Als Nächstes“. Die Abschnitte behalten ihre
+                        // Identität und gleiten an ihren Platz, ohne dass die Seite springt.
+                        ForEach(unterteil, id: \.self) { unterabschnitt($0, raster: raster) }
                     }
                 }
                 .animation(reduziereBewegung ? nil : .snappy, value: model.eventsZuerst)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, raster.rand)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
@@ -53,7 +58,8 @@ struct HeuteView: View {
                 EventDetailView(id: event.id, event: event)
             }
         }
-        .sheet(isPresented: $zeigtMensaSheet) {
+        // iPhone und schmale Fenster: Sheet wie bisher. Zwei Spalten: Popover am Link (siehe `mensaAendernButton`).
+        .sheet(isPresented: Binding(get: { zeigtMensaSheet && !raster.istPad }, set: { zeigtMensaSheet = $0 })) {
             HeuteMensaSheet(
                 optionen: model.mensaOptionen,
                 gewaehlt: model.mensa,
@@ -72,11 +78,32 @@ struct HeuteView: View {
             model.mensaNeuLesen()
             Task { await model.szeneWurdeAktiv() }
         }
+        // ⌘R („Neu laden“ im Menü): lädt neu, wenn „Heute“ gerade offen ist.
+        .onChange(of: router?.neuLadenZaehler) { _, _ in
+            guard router?.tab == .heute else { return }
+            Task { await model.laden() }
+        }
+    }
+
+    @ViewBuilder
+    private func unterabschnitt(_ abschnitt: Unterabschnitt, raster: PadRaster) -> some View {
+        switch abschnitt {
+        case .alsNaechstes:
+            HeuteAlsNaechstesView(termine: model.alsNaechstes, onTermin: oeffne)
+        case .heuteAbend:
+            HeuteAbendKarte(
+                events: model.heuteAbend,
+                jetzt: model.jetzt,
+                onAlle: { router?.zeigeEventsHeuteAbend() },
+                onOeffne: { geoeffnetesEvent = $0 },
+                darstellung: raster.istPad ? .liste : .karten
+            )
+        }
     }
 
     // MARK: Kopf
 
-    private var kopf: some View {
+    private func kopf(_ raster: PadRaster) -> some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(model.datumZeile)
@@ -84,8 +111,8 @@ struct HeuteView: View {
                     .foregroundStyle(Color(.textSecondary))
                     .accessibilityLabel("\(model.datumZeile) Uhr")
                 Text(model.begruessung.text)
-                    .font(.display(size: 32, relativeTo: .largeTitle))
-                    .tracking(-0.6)
+                    .font(.display(size: raster.seitentitel(telefon: 32), relativeTo: .largeTitle))
+                    .tracking(raster.istPad ? -0.76 : -0.6)
                     .foregroundStyle(Color(.textPrimary))
                     .accessibilityAddTraits(.isHeader)
             }
@@ -107,23 +134,42 @@ struct HeuteView: View {
 
     // MARK: Hinweise
 
-    private var hinweiseAbschnitt: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Hinweise")
-                .heuteAbschnittstitel()
-            VStack(spacing: 10) {
-                ForEach(model.hinweise) { hinweis in
-                    HeuteHinweisKarte(hinweis: hinweis) {
-                        withAnimation(.snappy) { model.blendeHinweisAus(hinweis.id) }
-                    }
+    @ViewBuilder
+    private func hinweiseAbschnitt(_ raster: PadRaster) -> some View {
+        if raster.istPad {
+            // iPad: nebeneinander in zwei Spalten, ohne Überschrift
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: PadRaster.kartenAbstand, alignment: .top),
+                    GridItem(.flexible(), alignment: .top),
+                ],
+                alignment: .leading,
+                spacing: PadRaster.kartenAbstand
+            ) {
+                hinweisKarten
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Hinweise")
+                    .heuteAbschnittstitel()
+                VStack(spacing: 10) {
+                    hinweisKarten
                 }
+            }
+        }
+    }
+
+    private var hinweisKarten: some View {
+        ForEach(model.hinweise) { hinweis in
+            HeuteHinweisKarte(hinweis: hinweis) {
+                withAnimation(.snappy) { model.blendeHinweisAus(hinweis.id) }
             }
         }
     }
 
     // MARK: Jetzt
 
-    private var jetztAbschnitt: some View {
+    private func jetztAbschnitt(_ raster: PadRaster) -> some View {
         let karte = model.jetztKarte
         let zeigtWechsel = karte?.mensaAendernSichtbar ?? (model.phase != .nacht)
         return VStack(alignment: .leading, spacing: 10) {
@@ -133,11 +179,11 @@ struct HeuteView: View {
                     Text(model.phase.ueberschrift).heuteAbschnittstitel()
                     Spacer(minLength: 8)
                     // Tippfläche 44 pt, ohne den Abstand zur Karte zu vergrößern
-                    if zeigtWechsel { mensaAendernButton.padding(.vertical, -12) }
+                    if zeigtWechsel { mensaAendernButton(raster).padding(.vertical, -12) }
                 }
                 VStack(alignment: .leading, spacing: 0) {
                     Text(model.phase.ueberschrift).heuteAbschnittstitel()
-                    if zeigtWechsel { mensaAendernButton }
+                    if zeigtWechsel { mensaAendernButton(raster) }
                 }
             }
 
@@ -153,7 +199,7 @@ struct HeuteView: View {
         }
     }
 
-    private var mensaAendernButton: some View {
+    private func mensaAendernButton(_ raster: PadRaster) -> some View {
         Button {
             zeigtMensaSheet = true
         } label: {
@@ -169,6 +215,16 @@ struct HeuteView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .hoverEffect()
+        // iPad (zwei Spalten): Popover am Link, 360 breit. Auf dem iPhone bleibt es beim Sheet oben.
+        .popover(isPresented: Binding(get: { zeigtMensaSheet && raster.istPad }, set: { zeigtMensaSheet = $0 })) {
+            HeuteMensaPopover(
+                optionen: model.mensaOptionen,
+                gewaehlt: model.mensa,
+                onWahl: { model.waehleMensa($0) }
+            )
+            .presentationCompactAdaptation(.popover)
+        }
     }
 
     private enum Unterabschnitt: Hashable {
@@ -253,10 +309,28 @@ private struct HeuteHinweisKarte: View {
         .padding(.leading, 12)
         .padding(.trailing, 4)
         .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .hoverEffect()
         .accessibilityElement(children: .contain)
     }
 
     private var kicker: String {
         [hinweis.kategorie, hinweis.zeitangabe].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+}
+
+
+/// Nur Debug-Builds: Das Startargument `-HeuteUhr 11:45` stellt die Uhr der Seite „Heute“ (Phase, Jetzt-Karte,
+/// „Heute Abend“) auf diese Uhrzeit heute. Damit lassen sich Mittag und Abend im Simulator zeigen. Sonst gilt die Systemuhr.
+enum HeuteUhrUeberschreibung {
+    static func jetzt() -> Date {
+        #if DEBUG
+        if let text = UserDefaults.standard.string(forKey: "HeuteUhr") {
+            let teile = text.split(separator: ":").compactMap { Int($0) }
+            if teile.count == 2, let datum = Calendar.current.date(bySettingHour: teile[0], minute: teile[1], second: 0, of: .now) {
+                return datum
+            }
+        }
+        #endif
+        return .now
     }
 }

@@ -77,6 +77,7 @@ struct HeuteAlsNaechstesView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .hoverEffect()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([termin.zeit, termin.titel, termin.unterzeile].filter { !$0.isEmpty }.joined(separator: ", "))
         .accessibilityAddTraits(.isButton)
