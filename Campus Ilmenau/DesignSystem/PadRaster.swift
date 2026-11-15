@@ -22,6 +22,8 @@ struct PadRaster: Equatable {
     static let zweiSpaltenAb: CGFloat = 700
     /// Ab dieser Breite gilt die volle Anordnung.
     static let vollAb: CGFloat = 900
+    /// Mensa: ab dieser Breite stehen alle vier Mensen nebeneinander.
+    static let mensaVierSpaltenAb: CGFloat = 1150
     /// Fließtext ist höchstens so breit.
     static let textBreite: CGFloat = 680
     /// Abstand der Spalten und Verhältnis links : rechts bei „Heute“.
@@ -44,6 +46,12 @@ struct PadRaster: Equatable {
 
     /// Gilt die iPad-Anordnung (zwei Spalten oder mehr)?
     var istPad: Bool { anordnung != .untereinander }
+
+    /// Spalten der Mensa-Ansicht: 1 = iPhone-Ansicht mit Leiste und Wischen, 2 ab 700 pt, 4 ab 1150 pt.
+    var mensaSpalten: Int {
+        guard istPad else { return 1 }
+        return breite >= Self.mensaVierSpaltenAb ? 4 : 2
+    }
 
     /// Bildschirmrand: 32 pt auf dem iPad, sonst 16 pt.
     var rand: CGFloat { istPad ? 32 : 16 }

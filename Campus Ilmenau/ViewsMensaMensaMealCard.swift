@@ -11,29 +11,40 @@ import SwiftUI
 /// Die Karte ist reine Darstellung; das Öffnen (Push) übernimmt der Aufrufer.
 struct MensaMealCard: View {
     let meal: MensaMeal
+    /// iPad-Spalte: Name 16 Semibold ohne den Preis daneben; Chips links und Preis rechts in einer Zeile darunter.
+    var breit = false
     @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var priceGroup: MensaPriceGroup = .studierende
 
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 0) {
                 Text(meal.category.isEmpty ? "Gericht" : meal.category)
-                    .font(.caption.weight(.bold))
+                    .font(breit ? .system(size: 12, weight: .bold) : .caption.weight(.bold))
                     .textCase(.uppercase)
                     .tracking(0.6)
                     .foregroundStyle(Color(.textTertiary))
                     .padding(.bottom, 4)
 
-                // Der Name darf umbrechen, der Preis bleibt in einer Zeile.
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                if breit {
+                    // Der Name bricht um und wird nicht gekürzt.
                     Text(meal.name)
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Color(.textPrimary))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(meal.price.formatted(for: priceGroup))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color(.textPrimary))
-                        .fixedSize()
+                } else {
+                    // Der Name darf umbrechen, der Preis bleibt in einer Zeile.
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        Text(meal.name)
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(Color(.textPrimary))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(meal.price.formatted(for: priceGroup))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color(.textPrimary))
+                            .fixedSize()
+                    }
                 }
 
                 if let description = meal.description, !description.isEmpty {
@@ -45,7 +56,26 @@ struct MensaMealCard: View {
                         .padding(.top, 3)
                 }
 
-                if !meal.listChips.isEmpty {
+                if breit {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        if !meal.listChips.isEmpty {
+                            ChipFlowLayout(spacing: 6) {
+                                ForEach(meal.listChips, id: \.title) { chip in
+                                    Chip(LocalizedStringKey(chip.title), variant: chip.variant)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            Spacer(minLength: 0)
+                        }
+                        Text(meal.price.formatted(for: priceGroup))
+                            .font(.callout.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(Color(.textPrimary))
+                            .fixedSize()
+                    }
+                    .padding(.top, 8)
+                } else if !meal.listChips.isEmpty {
                     ChipFlowLayout(spacing: 6) {
                         ForEach(meal.listChips, id: \.title) { chip in
                             Chip(LocalizedStringKey(chip.title), variant: chip.variant)

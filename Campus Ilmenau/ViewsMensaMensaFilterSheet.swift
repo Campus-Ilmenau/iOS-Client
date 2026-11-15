@@ -118,6 +118,114 @@ struct MensaFilterSheet: View {
     }
 }
 
+// MARK: - Popover (iPad)
+
+/// Filter als Popover am Filter-Button der Mensa-Ansicht auf dem iPad: 360 breit, höchstens 600 hoch, scrollt. Die
+/// Ernährungsstufe fehlt, sie steht im Kopf als Kapseln. Allergene gibt es nur die des geladenen Tages (siehe
+/// `MensaFilter.allergens(onDay:keeping:)`). Gilt für alle Mensen und Tage und bleibt gespeichert.
+struct MensaFilterPopover: View {
+    @Binding var filter: MensaFilter
+    let allergens: [String]
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            kopf
+            Rectangle().fill(Color(.separator)).frame(height: 1)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    gruppe {
+                        zeile("Nur Bio", isOn: $filter.onlyBio)
+                    }
+                    notiz("Vegetarisch und vegan wählst du oben neben dem Filter.")
+
+                    if !allergens.isEmpty {
+                        abschnitt("Allergene ausschließen")
+                            .padding(.top, 18)
+                        gruppe {
+                            ForEach(Array(allergens.enumerated()), id: \.element) { index, allergen in
+                                if index > 0 { Rectangle().fill(Color(.separator)).frame(height: 1) }
+                                zeile("Ohne \(allergen)", isOn: allergenBinding(allergen))
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .background(Color(.background))
+        .tint(Color(.accent))
+        // Die Höhe richtet sich nach dem Inhalt, bis 600 pt; darüber scrollt es.
+        .frame(width: 360)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxHeight: 600)
+    }
+
+    private var kopf: some View {
+        HStack {
+            Button("Zurücksetzen") { filter = MensaFilter() }
+                .disabled(!filter.isActive)
+                .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+            Spacer(minLength: 8)
+            Text("Filter")
+                .font(.headline)
+                .foregroundStyle(Color(.textPrimary))
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 8)
+            Button("Fertig") { dismiss() }
+                .fontWeight(.semibold)
+                .frame(minWidth: 44, minHeight: 44, alignment: .trailing)
+        }
+        .padding(.horizontal, 16)
+        .background(Color(.surface))
+    }
+
+    private func abschnitt(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.footnote.weight(.semibold))
+            .textCase(.uppercase)
+            .tracking(0.65)
+            .foregroundStyle(Color(.textSecondary))
+            .padding(.horizontal, 6)
+            .padding(.bottom, 8)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private func gruppe<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0, content: content)
+            .padding(.horizontal, 16)
+            .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func notiz(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(Color(.textSecondary))
+            .padding(.horizontal, 6)
+            .padding(.top, 8)
+    }
+
+    private func zeile(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title).foregroundStyle(Color(.textPrimary))
+        }
+        .toggleStyle(NeutralToggleStyle())
+        .frame(minHeight: 48)
+    }
+
+    private func allergenBinding(_ allergen: String) -> Binding<Bool> {
+        Binding(
+            get: { filter.excludedAllergens.contains(allergen) },
+            set: { isOn in
+                if isOn { filter.excludedAllergens.insert(allergen) } else { filter.excludedAllergens.remove(allergen) }
+            }
+        )
+    }
+}
+
 // MARK: - Previews
 
 /// Zeigt das Sheet ohne Präsentations-Animation: bei `.medium` etwa halbe Höhe über dem abgedunkelten Hintergrund, bei `.large` fast ganz.

@@ -59,22 +59,42 @@ struct MensaView: View {
     }
 
     var body: some View {
-        MensaScreen(
-            days: days,
-            selectedDayIndex: Binding(get: { selectedDayIndex }, set: { selectedDayIndex = $0 }),
-            selectedVenue: selectedVenue,
-            mealtime: Binding(get: { mealtime }, set: { mealtime = $0 }),
-            loadState: loadState,
-            allMeals: mensaService.meals,
-            filter: $filter,
-            canteens: mensaService.canteens,
-            onRetry: { load(days[selectedDayIndex]) },
-            onOpenFilter: { showFilterSheet = true },
-            tipp: SiriTipp.zeigtMensa(oeffnungen: tippOeffnungen, verborgen: tippVerborgen)
-                ? AnyView(SiriTipView(intent: MensaHeuteIntent(), isVisible: tippSichtbar))
-                : nil
-        )
-        .sheet(isPresented: $showFilterSheet) {
+        // Die Breite der Ansicht entscheidet (siehe `PadRaster`): unter 700 pt die iPhone-Ansicht mit Leiste und Wischen,
+        // darüber alle Mensen als Spalten.
+        PadRasterMessung { raster in
+            seite(raster)
+        }
+    }
+
+    @ViewBuilder
+    private func bildschirm(_ raster: PadRaster) -> some View {
+        if raster.mensaSpalten > 1 {
+            MensaPadScreen(
+                days: days,
+                selectedDayIndex: Binding(get: { selectedDayIndex }, set: { selectedDayIndex = $0 }),
+                selectedVenue: selectedVenue,
+                mealtime: Binding(get: { mealtime }, set: { mealtime = $0 }),
+                loadState: loadState,
+                allMeals: mensaService.meals,
+                filter: $filter,
+                canteens: mensaService.canteens,
+                spalten: raster.mensaSpalten,
+                onRetry: { load(days[selectedDayIndex]) },
+                zeigtFilter: $showFilterSheet,
+                onOpenMeal: { geoeffnetesGericht = $0.id },
+                tipp: SiriTipp.zeigtMensa(oeffnungen: tippOeffnungen, verborgen: tippVerborgen)
+                    ? AnyView(SiriTipView(intent: MensaHeuteIntent(), isVisible: tippSichtbar))
+                    : nil
+            )
+        } else {
+            telefonBildschirm
+        }
+    }
+
+    private func seite(_ raster: PadRaster) -> some View {
+        let pad = raster.mensaSpalten > 1
+        return bildschirm(raster)
+        .sheet(isPresented: Binding(get: { showFilterSheet && !pad }, set: { showFilterSheet = $0 })) {
             MensaFilterSheet(
                 filter: $filter,
                 availableAllergens: MensaFilter.availableAllergens(in: mensaService.meals, keeping: filter.excludedAllergens)
@@ -82,6 +102,15 @@ struct MensaView: View {
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        // iPad: Das Gericht als Sheet, damit die Spalten stehen bleiben.
+        .sheet(isPresented: Binding(get: { pad && geoeffnetesGericht != nil }, set: { if !$0 { geoeffnetesGericht = nil } })) {
+            if let id = geoeffnetesGericht, let meal = mensaService.meals.first(where: { $0.id == id }) {
+                NavigationStack {
+                    MensaMealDetailView(meal: meal, canteens: mensaService.canteens)
+                }
+                .presentationSizing(.form)
+            }
         }
         .onAppear {
             uebernehmeMensaWunsch()
@@ -106,7 +135,7 @@ struct MensaView: View {
         .navigationDestination(isPresented: $zeigtOeffnungszeiten) {
             MensaOpeningHoursView(canteens: mensaService.canteens)
         }
-        .navigationDestination(item: $geoeffnetesGericht) { id in
+        .navigationDestination(item: Binding(get: { pad ? nil : geoeffnetesGericht }, set: { geoeffnetesGericht = $0 })) { id in
             if let meal = mensaService.meals.first(where: { $0.id == id }) {
                 MensaMealDetailView(meal: meal, canteens: mensaService.canteens)
             }
@@ -126,6 +155,24 @@ struct MensaView: View {
             try? await mensaService.fetchCanteens()
             WidgetSync.shared.speichereOeffnungszeiten(mensaService.canteens)
         }
+    }
+
+    private var telefonBildschirm: some View {
+        MensaScreen(
+            days: days,
+            selectedDayIndex: Binding(get: { selectedDayIndex }, set: { selectedDayIndex = $0 }),
+            selectedVenue: selectedVenue,
+            mealtime: Binding(get: { mealtime }, set: { mealtime = $0 }),
+            loadState: loadState,
+            allMeals: mensaService.meals,
+            filter: $filter,
+            canteens: mensaService.canteens,
+            onRetry: { load(days[selectedDayIndex]) },
+            onOpenFilter: { showFilterSheet = true },
+            tipp: SiriTipp.zeigtMensa(oeffnungen: tippOeffnungen, verborgen: tippVerborgen)
+                ? AnyView(SiriTipView(intent: MensaHeuteIntent(), isVisible: tippSichtbar))
+                : nil
+        )
     }
 
     /// Meldet „Mensa heute“ (mit Ernährung, wenn der Filter sie setzt) und nachmittags/abends den Plan mit Abendessen.

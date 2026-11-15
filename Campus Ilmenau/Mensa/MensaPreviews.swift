@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Beispieldaten für die Previews: Namen und Gruppen wie in der Mensa-API.
-private enum MensaPreviewData {
+enum MensaPreviewData {
     static func meal(
         _ id: String,
         canteen: String,

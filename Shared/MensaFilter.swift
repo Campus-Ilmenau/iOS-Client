@@ -106,6 +106,15 @@ extension MensaFilter {
     }
 }
 
+extension MensaFilter {
+    /// Allergene für das Popover auf dem iPad, alphabetisch: nur die, die ein Gericht des geladenen Tages nennt, dazu die
+    /// ausgeschlossenen (sie bleiben sichtbar, damit man sie wieder abschalten kann).
+    static func allergens(onDay meals: [MensaMeal], keeping excluded: Set<String>) -> [String] {
+        Set(meals.flatMap(\.allergies)).union(excluded)
+            .sorted { $0.localizedCompare($1) == .orderedAscending }
+    }
+}
+
 /// Speichert den Filter in der App Group, damit App und Widget denselben lesen, und übernimmt Einstellungen des
 /// alten Drei-Zustände-Filters. Werte aus den Standard-Einstellungen der App holt `AppGroup` einmalig herüber.
 nonisolated enum MensaFilterStore {
