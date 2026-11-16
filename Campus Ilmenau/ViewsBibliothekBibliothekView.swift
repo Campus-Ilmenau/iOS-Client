@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// Verbindet `BibliothekScreen` mit dem `PAIAService`: Sitzung, Sheets, Laden und Verlängern.
 struct BibliothekView: View {
@@ -40,8 +41,17 @@ struct BibliothekView: View {
     }
 
     var body: some View {
-        screen
-            .fullScreenCover(item: $ausweisDaten) { daten in
+        // Die Breite der Ansicht entscheidet (siehe `PadRaster`): unter 700 pt die iPhone-Ansicht mit Segment und Glocke,
+        // darüber Spalten.
+        PadRasterMessung { raster in
+            seite(raster)
+        }
+    }
+
+    private func seite(_ raster: PadRaster) -> some View {
+        let pad = raster.bibliothekSpalten > 1
+        return screen(raster)
+            .fullScreenCover(item: Binding(get: { pad ? nil : ausweisDaten }, set: { ausweisDaten = $0 })) { daten in
                 BibliotheksausweisView(daten: daten) { grund in
                     ausweisDaten = nil
                     if grund == .zeit {
@@ -49,6 +59,17 @@ struct BibliothekView: View {
                         showToast = true
                     }
                 }
+            }
+            // iPad: der Ausweis als Form Sheet mittig, Inhalt und 2-Minuten-Regel wie auf dem iPhone.
+            .sheet(item: Binding(get: { pad ? ausweisDaten : nil }, set: { ausweisDaten = $0 })) { daten in
+                BibliotheksausweisView(daten: daten) { grund in
+                    ausweisDaten = nil
+                    if grund == .zeit {
+                        toastMessage = "Ausweis geschlossen"
+                        showToast = true
+                    }
+                }
+                .formularBlatt(pad: true)
             }
             .alert(
                 biometrieHinweis?.titel ?? "",
@@ -64,7 +85,7 @@ struct BibliothekView: View {
             }
     }
 
-    private var screen: some View {
+    private var telefonScreen: some View {
         BibliothekScreen(
             session: service.isAuthenticated
                 ? .signedIn(username: service.lastUsername)
@@ -92,6 +113,47 @@ struct BibliothekView: View {
             onOpenMerkliste: { showsMerkliste = true },
             onShowAusweis: { Task { await zeigeAusweis() } }
         )
+    }
+
+    private func padScreen(_ raster: PadRaster) -> some View {
+        BibliothekPadScreen(
+            session: service.isAuthenticated
+                ? .signedIn(username: service.lastUsername)
+                : .signedOut(expired: service.sessionExpired),
+            items: service.items,
+            notifications: service.notifications,
+            isLoading: service.isLoading,
+            errorMessage: Binding(
+                get: { service.errorMessage },
+                set: { service.errorMessage = $0 }
+            ),
+            spalten: raster.bibliothekSpalten,
+            onOpenCatalog: {
+                returningFromCatalog = true
+                katalogSuchbegriff = nil
+                katalogAutofokus = true
+                showCatalog = true
+            },
+            onLogin: { showLoginSheet = true },
+            onLogout: { service.logout() },
+            onRenew: { item in await renewMitMeldung(item) },
+            onRefresh: { await loadData() },
+            merklisteCount: merkliste.anzahl,
+            onOpenMerkliste: { showsMerkliste = true },
+            onShowAusweis: { Task { await zeigeAusweis() } },
+            catalogService: catalogService,
+            coverLoader: coverLoader
+        )
+    }
+
+    private func screen(_ raster: PadRaster) -> some View {
+        Group {
+            if raster.bibliothekSpalten > 1 {
+                padScreen(raster)
+            } else {
+                telefonScreen
+            }
+        }
         // Die Navigationsleiste bleibt vorerst für den Zurück-Pfeil, bis die TabBar die Navigation übernimmt.
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
@@ -107,7 +169,10 @@ struct BibliothekView: View {
         .onChange(of: router?.katalogBegriff) { _, _ in oeffneZielAufWunsch() }
         .onChange(of: router?.katalogTitelWunsch) { _, _ in oeffneZielAufWunsch() }
         .onChange(of: router?.merklisteOeffnen) { _, _ in oeffneZielAufWunsch() }
+        .onChange(of: router?.ausweisWunsch) { _, _ in oeffneZielAufWunsch() }
         .onAppear {
+            // Wartet ein Wunsch auf diese neue Ansicht (iPad, Wechsel in der Seitenleiste), kommt er jetzt an.
+            router?.ansichtErschienen(.bibliothek)
             // Ein Link zu Katalog, Titel oder Merkliste geht vor: Nichts davon braucht eine Anmeldung, das Sheet bleibt zu.
             if oeffneZielAufWunsch() { return }
             // Der Wunsch ist unterwegs (Seitenleiste, Link): Das Sheet bleibt zu, bis er da ist.
@@ -139,6 +204,8 @@ struct BibliothekView: View {
                 katalogAutofokus = true
                 showCatalog = true
             })
+            // iPad: Form Sheet (ca. 540 breit), auf dem iPhone unverändert.
+            .formularBlatt(pad: UIDevice.current.userInterfaceIdiom == .pad)
         }
         .navigationDestination(isPresented: $showsMerkliste) {
             BibMerklisteView(service: catalogService, coverLoader: coverLoader)
@@ -204,6 +271,17 @@ struct BibliothekView: View {
             showsMerkliste = true
             return true
         }
+        if router.ausweisWunsch {
+            // Seitenleiste „Ausweis“: startet direkt die Systemabfrage; ohne Anmeldung kommt stattdessen das Login.
+            router.ausweisWunsch = false
+            if service.isAuthenticated {
+                beginneVonAussen()
+                Task { await zeigeAusweis() }
+            } else {
+                showLoginSheet = true
+            }
+            return true
+        }
         return false
     }
 
@@ -249,20 +327,27 @@ struct BibliothekView: View {
     /// Verlängert nach der Rückfrage der Karte. Bei Erfolg Toast mit dem neuen Datum, bei Ablehnung
     /// setzt der Service `errorMessage` („Verlängerung fehlgeschlagen: …“), die der Fehlerkasten zeigt.
     private func renew(_ item: PAIALoanItem) async {
+        if let meldung = await renewMitMeldung(item) {
+            toastMessage = meldung
+            showToast = true
+        }
+    }
+
+    /// Wie `renew`, liefert aber den Text des Toasts (`nil` bei einem Fehler), damit auch das Details-Blatt des iPads
+    /// seinen eigenen Toast zeigen kann.
+    private func renewMitMeldung(_ item: PAIALoanItem) async -> String? {
         let oldEnd = item.endtime
         do {
             try await service.renew(item)
         } catch {
-            return
+            return nil
         }
         service.errorMessage = nil
         let newEnd = service.items.first { $0.item == item.item }?.endtime
         if let newEnd, newEnd != oldEnd {
-            toastMessage = "Verlängert bis \(BibliothekFormat.shortDate(newEnd))"
-        } else {
-            toastMessage = "Verlängert"
+            return "Verlängert bis \(BibliothekFormat.shortDate(newEnd))"
         }
-        showToast = true
+        return "Verlängert"
     }
 }
 

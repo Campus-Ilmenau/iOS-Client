@@ -115,7 +115,7 @@ struct PAIANotificationsContent: View {
             Card(verticalPadding: 0, horizontalPadding: 0) {
                 VStack(spacing: 0) {
                     ForEach(Array(sorted.enumerated()), id: \.element.id) { index, notification in
-                        row(notification)
+                        PAIANotificationRow(notification: notification)
                         if index < sorted.count - 1 {
                             Rectangle()
                                 .fill(Color(.separator))
@@ -134,7 +134,27 @@ struct PAIANotificationsContent: View {
         .padding(.bottom, 34)
     }
 
-    private func row(_ notification: PAIANotification) -> some View {
+    private var emptyState: some View {
+        VStack(spacing: 6) {
+            Text("Keine Mitteilungen")
+                .font(.headline)
+                .foregroundStyle(Color(.textPrimary))
+            Text("Mahnungen und abholbereite Vormerkungen erscheinen hier.")
+                .foregroundStyle(Color(.textSecondary))
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 36)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Eine Mitteilung: Symbol je Art, Titel, Text und Datum. Für das Sheet und die Spalte auf dem iPad.
+struct PAIANotificationRow: View {
+    let notification: PAIANotification
+
+    var body: some View {
         let kind = notification.kind
         return HStack(alignment: .top, spacing: 12) {
             Image(systemName: "book")
@@ -178,20 +198,44 @@ struct PAIANotificationsContent: View {
         case .holdExpired, .other: Color(.textSecondary)
         }
     }
+}
 
-    private var emptyState: some View {
-        VStack(spacing: 6) {
-            Text("Keine Mitteilungen")
-                .font(.headline)
-                .foregroundStyle(Color(.textPrimary))
-            Text("Mahnungen und abholbereite Vormerkungen erscheinen hier.")
-                .foregroundStyle(Color(.textSecondary))
+/// Die Mitteilungen als Spalte auf dem iPad: eine Karte mit den Zeilen, oder der leere Zustand. Ohne Scrollen und
+/// Navigation; die Seite scrollt.
+struct PAIANotificationsSpalte: View {
+    let notifications: [PAIANotification]
+    let isLoading: Bool
+
+    private var sorted: [PAIANotification] { notifications.sorted { $0.date > $1.date } }
+
+    var body: some View {
+        if sorted.isEmpty {
+            if !isLoading {
+                Card(verticalPadding: 36, horizontalPadding: 20) {
+                    VStack(spacing: 6) {
+                        Text("Keine Mitteilungen")
+                            .font(.headline)
+                            .foregroundStyle(Color(.textPrimary))
+                        Text("Mahnungen und abholbereite Vormerkungen erscheinen hier.")
+                            .foregroundStyle(Color(.textSecondary))
+                    }
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        } else {
+            Card(verticalPadding: 0, horizontalPadding: 0) {
+                VStack(spacing: 0) {
+                    ForEach(Array(sorted.enumerated()), id: \.element.id) { index, notification in
+                        PAIANotificationRow(notification: notification)
+                        if index < sorted.count - 1 {
+                            Rectangle().fill(Color(.separator)).frame(height: 1)
+                        }
+                    }
+                }
+            }
         }
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 36)
-        .accessibilityElement(children: .combine)
     }
 }
 

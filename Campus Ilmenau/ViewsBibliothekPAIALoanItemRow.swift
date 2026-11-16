@@ -21,6 +21,9 @@ struct PAIALoanItemRow: View {
     var onRenew: () -> Void
     /// Tippen auf die Karte öffnet die Details des Mediums. `nil`, wenn der Titel im Katalog nicht auffindbar ist.
     var onOpen: (() -> Void)?
+    /// iPad: Tippen öffnet nur die obere Zeile (mit Chevron), „Verlängern“ bleibt ein eigener Button; dazu Zeiger-Effekt
+    /// und Kontextmenü „Verlängern“. Das Wischen bleibt.
+    var breit = false
 
     private enum SwipeMetrics {
         static let actionWidth: CGFloat = 100
@@ -57,11 +60,17 @@ struct PAIALoanItemRow: View {
             front
                 .offset(x: currentOffset)
                 .simultaneousGesture(dragGesture)
-                .modifier(OpenDetailsModifier(onOpen: onOpen, isRevealed: committedOffset < 0) {
+                .modifier(OpenDetailsModifier(onOpen: breit ? nil : onOpen, isRevealed: committedOffset < 0) {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { committedOffset = 0 }
                 })
         }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .modifier(PadZeigerModifier(aktiv: breit))
+        .contextMenu {
+            if breit, canRenew {
+                Button("Verlängern", systemImage: "arrow.clockwise") { showRenewConfirmation = true }
+            }
+        }
         .alert("Leihfrist verlängern?", isPresented: $showRenewConfirmation) {
             Button("Abbrechen", role: .cancel) {}
             Button("Verlängern") { onRenew() }
@@ -147,14 +156,37 @@ struct PAIALoanItemRow: View {
         .accessibilityHidden(true)
     }
 
+    @ViewBuilder
+    private var titelzeile: some View {
+        let zeile = PAIAItemTitleRow(
+            title: item.displayTitle,
+            signature: item.signature,
+            chipText: info.dueText,
+            chipVariant: chipVariant
+        )
+        if breit, let onOpen {
+            // Die ganze obere Zeile ist die Tippfläche, der Chevron zeigt es.
+            Button(action: onOpen) {
+                HStack(alignment: .top, spacing: 8) {
+                    zeile
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(.textTertiary))
+                        .padding(.top, 5)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Öffnet die Details des Mediums")
+        } else {
+            zeile
+        }
+    }
+
     private var front: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PAIAItemTitleRow(
-                title: item.displayTitle,
-                signature: item.signature,
-                chipText: info.dueText,
-                chipVariant: chipVariant
-            )
+            titelzeile
 
             if info.days != nil {
                 PAIALoanTimelineView(info: info)
@@ -199,6 +231,19 @@ private struct OpenDetailsModifier: ViewModifier {
                     if isRevealed { close() } else { onOpen() }
                 }
                 .accessibilityAction(named: "Details öffnen", onOpen)
+        } else {
+            content
+        }
+    }
+}
+
+/// Zeiger-Effekt für Karten auf dem iPad; sonst keine Änderung.
+struct PadZeigerModifier: ViewModifier {
+    let aktiv: Bool
+
+    func body(content: Content) -> some View {
+        if aktiv {
+            content.hoverEffect()
         } else {
             content
         }

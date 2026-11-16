@@ -114,18 +114,35 @@ final class AppRouter {
         wechsle(zu: .eventsAbend) { self.eventsHeuteAbend = true }
     }
 
+    /// Der Wunsch, der auf das Erscheinen der neuen Ansicht eines Tabs wartet (siehe `wechsle`).
+    @ObservationIgnored private var ausstehenderWunsch: (tab: AppTab, aktion: @MainActor () -> Void)?
+
     /// Wählt ein Ziel und stellt danach den Wunsch an dessen Ansicht. Teilen sich mehrere Ziele die Ansicht ihres Tabs und
-    /// wechselt sie zu einem anderen Ziel, wird die bisherige Ansicht abgebaut. Käme der Wunsch gleichzeitig, schluckte
-    /// sie ihn noch (und öffnete ihn in einer Ansicht, die gleich verschwindet). Darum folgt er einen Schritt später.
+    /// wechselt sie zu einem anderen Ziel, wird die bisherige Ansicht abgebaut und eine neue aufgebaut. Käme der Wunsch
+    /// gleich, schluckte ihn noch die alte (und öffnete ihn in einer Ansicht, die gleich verschwindet). Darum wartet er, bis
+    /// die neue Ansicht erscheint und sich meldet (`ansichtErschienen`); nach 0,6 s kommt er auch ohne sie an.
     func wechsle(zu neu: PadZiel, wunsch: @escaping @MainActor () -> Void) {
         let wechseltAnsicht = padHuelleAktiv && neu.teiltTabAnsicht && letztes[neu.tab] != neu
         ziel = neu
         guard wechseltAnsicht else { wunsch(); return }
         wunschUnterwegs = true
+        ausstehenderWunsch = (neu.tab, wunsch)
         Task { @MainActor in
-            wunsch()
-            wunschUnterwegs = false
+            try? await Task.sleep(for: .milliseconds(600))
+            liefereAusstehendenWunsch()
         }
+    }
+
+    /// Die Ansicht eines Tabs ist erschienen: Ein auf sie wartender Wunsch kommt jetzt an.
+    func ansichtErschienen(_ tab: AppTab) {
+        if ausstehenderWunsch?.tab == tab { liefereAusstehendenWunsch() }
+    }
+
+    private func liefereAusstehendenWunsch() {
+        guard let wartend = ausstehenderWunsch else { return }
+        ausstehenderWunsch = nil
+        wartend.aktion()
+        wunschUnterwegs = false
     }
 
     // MARK: Deeplinks
@@ -152,6 +169,8 @@ final class AppRouter {
     var katalogBegriff: String?
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen das Detail dieses Katalog-Titels.
     var katalogTitelWunsch: String?
+    /// Der Bibliothek-Tab startet beim nächsten Erscheinen die Abfrage für den Bibliotheksausweis (Seitenleiste „Ausweis“).
+    var ausweisWunsch = false
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Merkliste.
     var merklisteOeffnen = false
 

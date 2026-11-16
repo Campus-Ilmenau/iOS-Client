@@ -53,6 +53,12 @@ struct PadRaster: Equatable {
         return breite >= Self.mensaVierSpaltenAb ? 4 : 2
     }
 
+    /// Spalten der Bibliothek: 1 = iPhone-Ansicht mit Segment und Glocke, 2 ab 700 pt (Mitteilungen hinter der Glocke), 3 ab 1150 pt.
+    var bibliothekSpalten: Int {
+        guard istPad else { return 1 }
+        return breite >= Self.mensaVierSpaltenAb ? 3 : 2
+    }
+
     /// Bildschirmrand: 32 pt auf dem iPad, sonst 16 pt.
     var rand: CGFloat { istPad ? 32 : 16 }
 
@@ -112,5 +118,63 @@ struct VerhaeltnisSpalten: Layout {
                           proposal: ProposedViewSize(width: links, height: nil))
         subviews[1].place(at: CGPoint(x: bounds.minX + links + abstand, y: bounds.minY), anchor: .topLeading,
                           proposal: ProposedViewSize(width: rechts, height: nil))
+    }
+}
+
+/// Spalten mit festen Gewichten (z. B. 1,3 : 1 : 0,95), oben ausgerichtet, so hoch wie die höchste.
+struct GewichteteSpalten: Layout {
+    var gewichte: [CGFloat]
+    var abstand: CGFloat = PadRaster.spaltenAbstand
+
+    private func breiten(_ gesamt: CGFloat, anzahl: Int) -> [CGFloat] {
+        let g = Array(gewichte.prefix(anzahl))
+        let nutz = max(0, gesamt - abstand * CGFloat(max(0, anzahl - 1)))
+        let summe = g.reduce(0, +)
+        return g.map { nutz * $0 / max(summe, 0.001) }
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let gesamt = proposal.width ?? 800
+        let b = breiten(gesamt, anzahl: subviews.count)
+        var hoehe: CGFloat = 0
+        for (i, sub) in subviews.enumerated() where i < b.count {
+            hoehe = max(hoehe, sub.sizeThatFits(ProposedViewSize(width: b[i], height: nil)).height)
+        }
+        return CGSize(width: gesamt, height: hoehe)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let b = breiten(bounds.width, anzahl: subviews.count)
+        var x = bounds.minX
+        for (i, sub) in subviews.enumerated() where i < b.count {
+            sub.place(at: CGPoint(x: x, y: bounds.minY), anchor: .topLeading, proposal: ProposedViewSize(width: b[i], height: nil))
+            x += b[i] + abstand
+        }
+    }
+}
+
+/// Blatt mit fester Breite (z. B. 640 pt) für Medien-Details; die Höhe richtet sich nach dem Inhalt, bis `hoehe`.
+struct FormularBreite: PresentationSizing {
+    var breite: CGFloat
+    var hoehe: CGFloat = 760
+
+    func proposedSize(for root: PresentationSizingRoot, context: PresentationSizingContext) -> ProposedViewSize {
+        ProposedViewSize(width: breite, height: hoehe)
+    }
+}
+
+extension View {
+    /// Auf dem iPad ein Form Sheet (ca. 540 pt, oder `breite`), sonst keine Änderung am Sheet.
+    @ViewBuilder
+    func formularBlatt(pad: Bool, breite: CGFloat? = nil) -> some View {
+        if pad {
+            if let breite {
+                presentationSizing(FormularBreite(breite: breite))
+            } else {
+                presentationSizing(.form)
+            }
+        } else {
+            self
+        }
     }
 }

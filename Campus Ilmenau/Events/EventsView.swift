@@ -90,6 +90,7 @@ struct EventsView: View {
         }
         .environment(\.eventsMerkStore, model.merkStore)
         .onAppear {
+            router?.ansichtErschienen(.events)
             uebernehmeAlleWunsch()
             uebernehmeHeuteAbendWunsch()
             uebernehmeEventWunsch()

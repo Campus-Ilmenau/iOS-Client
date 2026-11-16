@@ -62,7 +62,8 @@ extension AppRouter {
         case .merkliste: merklisteOeffnen = true
         case .eventsAlle: eventsAlle = true
         case .eventsAbend: eventsHeuteAbend = true
-        case .heute, .mensa, .thoska, .ausleihen, .ausweis, .mehr: break
+        case .ausweis: ausweisWunsch = true
+        case .heute, .mensa, .thoska, .ausleihen, .mehr: break
         }
     }
 

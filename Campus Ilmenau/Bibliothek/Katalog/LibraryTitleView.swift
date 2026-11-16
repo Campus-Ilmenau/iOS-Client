@@ -58,18 +58,10 @@ struct LibraryTitleScreen: View {
     var origin: LibraryTitleOrigin = .catalog
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                switch model.phase {
-                case .notFound:
-                    notFoundBlock
-                default:
-                    content
-                }
-            }
+            TitelDetail(model: model, origin: origin)
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 28)
@@ -153,8 +145,28 @@ struct LibraryTitleScreen: View {
         }
         .accessibilityLabel("Titel teilen")
     }
+}
 
-    // MARK: - Inhalt
+/// Der Titel wie im Katalog: Kopf mit Cover, Gesamtstatus, Aktionen, Exemplare, Inhaltsverzeichnis und „Weitere Angaben“.
+/// Gemeinsamer Baustein der Titel-Ansicht (`LibraryTitleScreen`), der Medien-Details der Bibliothek auf dem iPad und
+/// später von Katalog und Merkliste auf dem iPad. Ohne eigenes Scrollen und ohne Navigationsleiste.
+struct TitelDetail: View {
+    @Bindable var model: LibraryTitleModel
+    var origin: LibraryTitleOrigin = .catalog
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            switch model.phase {
+            case .notFound:
+                notFoundBlock
+            default:
+                content
+            }
+        }
+    }
 
     @ViewBuilder
     private var content: some View {

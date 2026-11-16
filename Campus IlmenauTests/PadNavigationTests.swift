@@ -108,7 +108,7 @@ struct PadNavigationTests {
         let router = AppRouter()
         router.padHuelleAktiv = true
         router.waehle(.katalog)
-        await Task.yield()
+        router.ansichtErschienen(.bibliothek)  // die neue Ansicht erscheint, der Wunsch kommt an
         #expect(router.katalogOeffnen)
         #expect(!router.katalogSuche)
     }
@@ -117,7 +117,7 @@ struct PadNavigationTests {
         let router = AppRouter()
         router.padHuelleAktiv = true
         router.zeigeKatalogSuche()
-        await Task.yield()
+        router.ansichtErschienen(.bibliothek)  // die neue Ansicht erscheint, der Wunsch kommt an
         #expect(router.katalogSuche)
         #expect(!router.katalogOeffnen)
         #expect(router.ziel == .katalog)
@@ -146,22 +146,22 @@ struct PadNavigationTests {
         router.padHuelleAktiv = true
         router.waehle(.merkliste)
         #expect(router.tab == .bibliothek)
-        // Der Wunsch folgt einen Schritt nach dem Ziel (siehe `AppRouter.wechsle`).
+        // Der Wunsch wartet, bis die neue Ansicht erscheint (siehe `AppRouter.wechsle`).
         #expect(!router.merklisteOeffnen && router.wunschUnterwegs)
-        await Task.yield()
+        router.ansichtErschienen(.bibliothek)  // die neue Ansicht erscheint, der Wunsch kommt an
         #expect(router.merklisteOeffnen && !router.wunschUnterwegs)
 
         let katalog = AppRouter()
         katalog.padHuelleAktiv = true
         katalog.waehle(.katalog)
-        await Task.yield()
+        katalog.ansichtErschienen(.bibliothek)  // die neue Ansicht erscheint, der Wunsch kommt an
         #expect(katalog.tab == .bibliothek)
         #expect(katalog.katalogOeffnen)
 
         let abend = AppRouter()
         abend.padHuelleAktiv = true
         abend.waehle(.eventsAbend)
-        await Task.yield()
+        abend.ansichtErschienen(.events)  // die neue Ansicht erscheint, der Wunsch kommt an
         #expect(abend.tab == .events)
         #expect(abend.eventsHeuteAbend)
 
@@ -178,10 +178,19 @@ struct PadNavigationTests {
         router.padHuelleAktiv = true
         router.waehle(.ausleihen)
         router.eingang(DeepLink(url: URL(string: "campusilmenau://bibliothek/merkliste")!)!)
-        // Das Ziel steht sofort; der Wunsch folgt, wenn die Ansicht von „Ausleihen“ abgebaut ist.
+        // Das Ziel steht sofort; der Wunsch kommt an, wenn die neue Ansicht erscheint.
         #expect(router.ziel == .merkliste)
         #expect(!router.merklisteOeffnen && router.wunschUnterwegs)
-        await Task.yield()
+        router.ansichtErschienen(.bibliothek)  // die neue Ansicht erscheint, der Wunsch kommt an
+        #expect(router.merklisteOeffnen && !router.wunschUnterwegs)
+    }
+
+    @Test func einWunschKommtAuchOhneErscheinenNachKurzerZeitAn() async throws {
+        let router = AppRouter()
+        router.padHuelleAktiv = true
+        router.waehle(.merkliste)
+        #expect(!router.merklisteOeffnen)
+        try await Task.sleep(for: .milliseconds(800))
         #expect(router.merklisteOeffnen && !router.wunschUnterwegs)
     }
 

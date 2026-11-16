@@ -55,17 +55,28 @@ struct PAIAHoldCard: View {
     let item: PAIALoanItem
     /// Tippen öffnet die Details des Mediums. `nil`, wenn der Titel im Katalog nicht auffindbar ist.
     var onOpen: (() -> Void)?
+    /// iPad: Chevron neben dem Status und Zeiger-Effekt.
+    var breit = false
 
     var body: some View {
         let info = BibliothekHoldInfo(item: item)
         Card {
             VStack(alignment: .leading, spacing: 8) {
-                PAIAItemTitleRow(
-                    title: item.displayTitle,
-                    signature: item.signature,
-                    chipText: info.statusText,
-                    chipVariant: info.variant
-                )
+                HStack(alignment: .top, spacing: 8) {
+                    PAIAItemTitleRow(
+                        title: item.displayTitle,
+                        signature: item.signature,
+                        chipText: info.statusText,
+                        chipVariant: info.variant
+                    )
+                    if breit, onOpen != nil {
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(Color(.textTertiary))
+                            .padding(.top, 5)
+                            .accessibilityHidden(true)
+                    }
+                }
                 if let detail = info.detail {
                     Text(detail)
                         .font(.caption)
@@ -74,6 +85,7 @@ struct PAIAHoldCard: View {
             }
         }
         .contentShape(Rectangle())
+        .modifier(PadZeigerModifier(aktiv: breit))
         .onTapGesture { onOpen?() }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(onOpen == nil ? [] : .isButton)

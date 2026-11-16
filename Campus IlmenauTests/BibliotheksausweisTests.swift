@@ -4,6 +4,7 @@ import LocalAuthentication
 import Testing
 @testable import Campus_Ilmenau
 
+@MainActor
 struct BibliotheksausweisTests {
     @Test func patronUebernimmtNurDieAusweisFelder() throws {
         let json = """
@@ -49,6 +50,16 @@ struct BibliotheksausweisTests {
 
         #expect(BibliotheksausweisZugang.ergebnis(for: LAError(.userCancel), istTouchID: false) == .abgebrochen)
         #expect(BibliotheksausweisZugang.ergebnis(for: LAError(.authenticationFailed), istTouchID: false) == .abgebrochen)
+    }
+
+    @Test func hinweisNenntDasGeraet() {
+        let gesperrt = BibliotheksausweisZugang.ergebnis(for: LAError(.biometryLockout), istTouchID: true, geraet: "iPad")
+        guard case .hinweis(let h) = gesperrt else { Issue.record("Hinweis erwartet"); return }
+        #expect(h.titel == "Touch ID ist gesperrt")
+        #expect(h.text == "Entsperre dein iPad einmal mit dem Code und versuche es dann erneut.")
+        let faceID = BibliotheksausweisZugang.ergebnis(for: LAError(.biometryNotEnrolled), istTouchID: false, geraet: "iPad")
+        guard case .hinweis(let h2) = faceID else { Issue.record("Hinweis erwartet"); return }
+        #expect(h2.titel == "Face ID nicht eingerichtet")
     }
 
     // MARK: - Ausweisdaten

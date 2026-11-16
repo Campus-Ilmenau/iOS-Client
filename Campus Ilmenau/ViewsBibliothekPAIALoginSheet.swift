@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import VisionKit
 
 /// Anmelde-Sheet für die PAIA-Bibliothekssitzung. Wird gezeigt, sobald keine
@@ -264,21 +265,37 @@ struct PAIALoginContent: View {
         .onAppear {
             if scannedNumber == nil { scannedNumber = initiallyScanned }
         }
-        .fullScreenCover(isPresented: $showsScanner, onDismiss: applyFocusAfterScanner) {
-            BenutzernummerScannerView(
-                onScanned: { number in
-                    scannedNumber = number
-                    username = number
-                    focusAfterScanner = .password
-                    showsScanner = false
-                },
-                onCancel: { showsScanner = false },
-                onEnterManually: {
-                    focusAfterScanner = .username
-                    showsScanner = false
-                }
-            )
+        // iPhone: Vollbild wie bisher. iPad: Form Sheet, die Kamera ist die des iPads.
+        .fullScreenCover(
+            isPresented: Binding(get: { showsScanner && !istPad }, set: { showsScanner = $0 }),
+            onDismiss: applyFocusAfterScanner
+        ) {
+            scanner
         }
+        .sheet(
+            isPresented: Binding(get: { showsScanner && istPad }, set: { showsScanner = $0 }),
+            onDismiss: applyFocusAfterScanner
+        ) {
+            scanner.formularBlatt(pad: true)
+        }
+    }
+
+    private var istPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+
+    private var scanner: some View {
+        BenutzernummerScannerView(
+            onScanned: { number in
+                scannedNumber = number
+                username = number
+                focusAfterScanner = .password
+                showsScanner = false
+            },
+            onCancel: { showsScanner = false },
+            onEnterManually: {
+                focusAfterScanner = .username
+                showsScanner = false
+            }
+        )
     }
 
     /// Kleiner Button im Feld: Symbol und „Scannen“, 36 pt hoch, die Tippfläche bleibt 44 pt.

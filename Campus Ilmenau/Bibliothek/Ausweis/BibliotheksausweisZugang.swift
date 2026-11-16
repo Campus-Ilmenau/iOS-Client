@@ -1,4 +1,5 @@
 import LocalAuthentication
+import UIKit
 
 /// Prüfung vor dem Bibliotheksausweis: Face ID oder Touch ID, nie der Gerätecode als Ersatz.
 enum BibliotheksausweisZugang {
@@ -20,22 +21,27 @@ enum BibliotheksausweisZugang {
     static func pruefen() async -> Ergebnis {
         let context = LAContext()
         let policy = LAPolicy.deviceOwnerAuthenticationWithBiometrics
-        let grund = "Bibliotheksausweis zeigen"
+        // Auf dem iPad heißt der Grund kurz „Ausweis zeigen“ (Touch ID oder Face ID entscheidet `biometryType`).
+        let grund = geraetName == "iPad" ? "Ausweis zeigen" : "Bibliotheksausweis zeigen"
 
         var error: NSError?
         // `biometryType` ist erst nach `canEvaluatePolicy` gesetzt.
         guard context.canEvaluatePolicy(policy, error: &error) else {
-            return ergebnis(for: error, istTouchID: context.biometryType == .touchID)
+            return ergebnis(for: error, istTouchID: context.biometryType == .touchID, geraet: geraetName)
         }
         do {
             let ok = try await context.evaluatePolicy(policy, localizedReason: grund)
             return ok ? .erlaubt : .abgebrochen
         } catch {
-            return ergebnis(for: error, istTouchID: context.biometryType == .touchID)
+            return ergebnis(for: error, istTouchID: context.biometryType == .touchID, geraet: geraetName)
         }
     }
 
-    static func ergebnis(for error: Error?, istTouchID: Bool) -> Ergebnis {
+    /// „iPad“ oder „iPhone“ für die Hinweise („Entsperre dein iPad einmal mit dem Code …“).
+    @MainActor
+    static var geraetName: String { UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone" }
+
+    nonisolated static func ergebnis(for error: Error?, istTouchID: Bool, geraet: String = "iPhone") -> Ergebnis {
         let name = istTouchID ? "Touch ID" : "Face ID"
         guard let code = (error as? LAError)?.code else { return .abgebrochen }
         switch code {
@@ -52,7 +58,7 @@ enum BibliotheksausweisZugang {
         case .biometryLockout:
             return .hinweis(Hinweis(
                 titel: "\(name) ist gesperrt",
-                text: "Entsperre dein iPhone einmal mit dem Code und versuche es dann erneut."
+                text: "Entsperre dein \(geraet) einmal mit dem Code und versuche es dann erneut."
             ))
         default:
             return .abgebrochen
