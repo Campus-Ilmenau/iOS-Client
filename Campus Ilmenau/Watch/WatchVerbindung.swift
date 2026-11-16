@@ -87,6 +87,8 @@ final class WatchVerbindung: NSObject, WCSessionDelegate {
     /// Schickt den aktuellen Stand (Einstellungen und Merkliste), wenn eine Uhr bereit ist und er sich seit dem letzten Mal
     /// geändert hat.
     func sendeEinstellungen() {
+        // Auf dem iPad gibt es keine Uhr-Kopplung: `WCSession.default` bleibt unberührt.
+        guard WCSession.isSupported() else { return }
         let session = WCSession.default
         guard session.activationState == .activated, session.isPaired, session.isWatchAppInstalled else { return }
         let aktuell = UhrKontext.aktuell()

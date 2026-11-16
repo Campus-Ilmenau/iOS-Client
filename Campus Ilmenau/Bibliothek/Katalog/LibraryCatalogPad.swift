@@ -202,13 +202,26 @@ struct KatalogTitelPadDetail: View {
     let onMerkliste: () -> Void
     private let ladet: Bool
     private let gesamtkatalog: Bool
+    private let origin: LibraryTitleOrigin
+    /// Merkliste: Das gefüllte Lesezeichen und „Von der Merkliste entfernen“ laufen über die Liste (nächster Titel,
+    /// „Widerrufen“).
+    private let onEntfernen: (() -> Void)?
 
     /// Mit fertigem Modell (Vorschauen): kein Laden.
-    init(model: LibraryTitleModel, onMerkliste: @escaping () -> Void, ladet: Bool = true, gesamtkatalog: Bool = false) {
+    init(
+        model: LibraryTitleModel,
+        onMerkliste: @escaping () -> Void,
+        ladet: Bool = true,
+        gesamtkatalog: Bool = false,
+        origin: LibraryTitleOrigin = .catalog,
+        onEntfernen: (() -> Void)? = nil
+    ) {
         _model = State(initialValue: model)
         self.onMerkliste = onMerkliste
         self.ladet = ladet
         self.gesamtkatalog = gesamtkatalog
+        self.origin = origin
+        self.onEntfernen = onEntfernen
     }
 
     init(
@@ -217,7 +230,9 @@ struct KatalogTitelPadDetail: View {
         service: LibraryCatalogService,
         coverLoader: LibraryCoverLoader,
         onMerkliste: @escaping () -> Void,
-        gesamtkatalog: Bool = false
+        gesamtkatalog: Bool = false,
+        origin: LibraryTitleOrigin = .catalog,
+        onEntfernen: (() -> Void)? = nil
     ) {
         _model = State(initialValue: LibraryTitleModel(
             media: media,
@@ -228,6 +243,8 @@ struct KatalogTitelPadDetail: View {
         self.onMerkliste = onMerkliste
         ladet = true
         self.gesamtkatalog = gesamtkatalog
+        self.origin = origin
+        self.onEntfernen = onEntfernen
     }
 
     var body: some View {
@@ -239,7 +256,7 @@ struct KatalogTitelPadDetail: View {
                     merkenKnopf
                 }
                 .padding(.bottom, 4)
-                TitelDetail(model: model, origin: .catalog, breit: true, gesamtkatalog: gesamtkatalog)
+                TitelDetail(model: model, origin: origin, breit: true, gesamtkatalog: gesamtkatalog, onEntfernen: onEntfernen)
             }
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
@@ -284,7 +301,8 @@ struct KatalogTitelPadDetail: View {
 
     private var merkenKnopf: some View {
         Button {
-            model.toggleMerken()
+            // Merkliste: Das gefüllte Lesezeichen entfernt den Titel über die Liste.
+            if let onEntfernen, model.istGemerkt { onEntfernen() } else { model.toggleMerken() }
         } label: {
             runderSymbol(model.istGemerkt ? "bookmark.fill" : "bookmark", farbe: model.istGemerkt ? Color(.accent) : Color(.textPrimary))
         }

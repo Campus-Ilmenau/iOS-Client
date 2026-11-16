@@ -160,6 +160,9 @@ struct TitelDetail: View {
     /// Der Titel stammt aus dem Gesamtkatalog (nur in der breiten Form): ohne Status „Nicht im Bestand der UB Ilmenau“
     /// und ohne Exemplare.
     var gesamtkatalog = false
+    /// Merkliste auf dem iPad: „Von der Merkliste entfernen“ (404) läuft über die Liste, damit sie den nächsten Titel wählt
+    /// und „Widerrufen“ anbietet. Ohne diesen Wert entfernt das Modell den Titel selbst.
+    var onEntfernen: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -762,7 +765,7 @@ struct TitelDetail: View {
                 .foregroundStyle(Color(.textSecondary))
                 .padding(.bottom, 12)
             if model.istGemerkt {
-                SecondaryButton("Von der Merkliste entfernen") { model.vonMerklisteEntfernen() }
+                SecondaryButton("Von der Merkliste entfernen") { (onEntfernen ?? model.vonMerklisteEntfernen)() }
                     .padding(.bottom, 4)
             }
             // Rechts neben den Treffern gibt es kein Zurück.

@@ -23,6 +23,8 @@ struct BibMerklisteZeile: View {
     var exemplar: BibMerklisteExemplar?
     /// „Lageplan“: öffnet den Plan des Standorts.
     var onLageplan: (URL) -> Void = { _ in }
+    /// iPad: Cover 48 × 68, ohne Signatur und Standort (die stehen im Titel rechts).
+    var pad = false
 
     private var gefunden: Bool { eintrag.istGefunden }
 
@@ -56,7 +58,7 @@ struct BibMerklisteZeile: View {
                 }
                 .padding(.top, 6)
 
-                if let exemplar {
+                if let exemplar, !pad {
                     exemplarZeilen(exemplar)
                         .padding(.top, 6)
                 }
@@ -141,8 +143,8 @@ struct BibMerklisteZeile: View {
             gefunden ? "gefunden" : (status?.chipText ?? "Verfügbarkeit wird geladen"),
             eintrag.mediaType.displayName
         ]
-        if let signatur = exemplar?.signatur { parts.append("Signatur \(signatur)") }
-        if let standort = exemplar?.standort {
+        if !pad, let signatur = exemplar?.signatur { parts.append("Signatur \(signatur)") }
+        if !pad, let standort = exemplar?.standort {
             let weitere = exemplar?.weitere ?? 0
             parts.append(weitere > 0 ? "Standort \(standort), und \(weitere) weitere Exemplare" : "Standort \(standort)")
         }
@@ -166,8 +168,8 @@ struct BibMerklisteZeile: View {
                 }
             }
         }
-        .frame(width: 44, height: 62)
-        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .frame(width: pad ? 48 : 44, height: pad ? 68 : 62)
+        .clipShape(RoundedRectangle(cornerRadius: pad ? 5 : 4, style: .continuous))
         .opacity(gefunden ? 0.45 : 1)
         .accessibilityHidden(true)
     }

@@ -11,6 +11,8 @@ struct BibMerklisteView: View {
     var mitZurueck = true
     /// Previews legen fest, ob eine Watch bereit ist; sonst entscheidet `WatchVerbindung`.
     var watchBereit: Bool?
+    /// Vorschauen (iPad): fertige Titel-Modelle rechts, ohne Netz.
+    var vorschauTitel: (@MainActor (GemerkterTitel) -> LibraryTitleModel)?
 
     @Environment(\.merkliste) private var merkliste
     @Environment(\.dismiss) private var dismiss
@@ -27,6 +29,8 @@ struct BibMerklisteView: View {
     @State private var showsCatalog = false
     /// Lageplan im Browser-Fenster (Sheet).
     @State private var lageplan: LibraryExternalLink?
+    /// iPad: der Titel rechts. Gilt nur, solange er in der Liste steht (siehe `gewaehlteID`).
+    @State private var auswahlID: String?
 
     /// Was „Widerrufen“ rückgängig macht.
     private enum Widerruf: Equatable {
@@ -48,13 +52,15 @@ struct BibMerklisteView: View {
         mitZurueck: Bool = true,
         status: BibMerklisteStatus? = nil,
         loadsStatus: Bool = true,
-        watchBereit: Bool? = nil
+        watchBereit: Bool? = nil,
+        vorschauTitel: (@MainActor (GemerkterTitel) -> LibraryTitleModel)? = nil
     ) {
         self.service = service
         self.coverLoader = coverLoader
         self.backTitle = backTitle
         self.mitZurueck = mitZurueck
         self.watchBereit = watchBereit
+        self.vorschauTitel = vorschauTitel
         _status = State(initialValue: status ?? BibMerklisteStatus())
         _loadsStatus = State(initialValue: loadsStatus)
     }
@@ -62,13 +68,12 @@ struct BibMerklisteView: View {
     private var eintraege: [GemerkterTitel] { merkliste.eintraege }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
-            if eintraege.isEmpty {
-                emptyState
+        // Ab 700 pt Breite der Ansicht (iPad) stehen Liste und Titel nebeneinander, darunter gilt die iPhone-Ansicht.
+        PadRasterMessung { raster in
+            if raster.istPad {
+                padInhalt(raster)
             } else {
-                list
+                telefonInhalt
             }
         }
         .background(Color(.background))
@@ -113,9 +118,7 @@ struct BibMerklisteView: View {
         } message: {
             Text(clearMessage)
         }
-        .navigationDestination(isPresented: $showsCatalog) {
-            LibraryCatalogView(autofocus: true)
-        }
+        .modifier(KatalogImStapel(aktiv: router?.padHuelleAktiv != true, istOffen: $showsCatalog))
         .sheet(item: $lageplan) { link in
             LibrarySafariView(url: link.url)
                 .ignoresSafeArea()
@@ -123,6 +126,61 @@ struct BibMerklisteView: View {
         .task {
             await ergaenzen()
             await ladeStatus()
+        }
+    }
+
+    private var telefonInhalt: some View {
+        VStack(spacing: 0) {
+            header
+
+            if eintraege.isEmpty {
+                emptyState
+            } else {
+                list
+            }
+        }
+    }
+
+    // MARK: - iPad
+
+    /// Der Titel rechts: die Wahl, solange sie in der Liste steht, sonst der erste offene.
+    private var gewaehlteID: String? {
+        MerklisteAuswahlRegel.korrigiere(
+            aktuell: auswahlID, offen: merkliste.offen.map(\.id), gefunden: merkliste.gefunden.map(\.id)
+        )
+    }
+
+    private func padInhalt(_ raster: PadRaster) -> some View {
+        BibMerklistePad(
+            offen: merkliste.offen,
+            gefunden: merkliste.gefunden,
+            status: status,
+            zusammenfassung: summary,
+            raster: raster,
+            gewaehlteID: gewaehlteID,
+            service: service,
+            coverLoader: coverLoader,
+            onWahl: { auswahlID = $0.id },
+            onGefunden: { gefunden, eintrag in setzeGefunden(gefunden, eintrag) },
+            onEntfernen: { entfernen($0) },
+            onLeeren: { showsClearAlert = true },
+            onKatalogSuche: { oeffneKatalogSuche() },
+            onAktualisieren: {
+                await ergaenzen()
+                await ladeStatus()
+            },
+            leerKarte: emptyKarte(rand: EventsRand.pad),
+            vorschauTitel: vorschauTitel
+        )
+    }
+
+    /// „Im Katalog suchen“: auf dem iPad der Katalog mit Treffern und Titel nebeneinander, als Ziel der Seitenleiste bzw.
+    /// im Stapel des Tabs; sonst der Katalog im Stapel. Der Cursor steht im Suchfeld.
+    private func oeffneKatalogSuche() {
+        if let router, router.padHuelleAktiv {
+            router.zeigeKatalogSuche()
+        } else {
+            showsCatalog = true
         }
     }
 
@@ -271,51 +329,59 @@ struct BibMerklisteView: View {
     // MARK: - Leer
 
     private var emptyState: some View {
-        ScrollView {
-            Card(verticalPadding: 32, horizontalPadding: 20) {
-                VStack(spacing: 0) {
-                    Image(systemName: "bookmark")
-                        .font(.system(size: 40, weight: .light))
-                        .foregroundStyle(Color(.textTertiary))
-                        .accessibilityHidden(true)
-                    Text("Noch nichts gemerkt")
-                        .font(.headline)
-                        .foregroundStyle(Color(.textPrimary))
-                        .padding(.top, 10)
-                    Text("Tippe bei einem Titel auf das Lesezeichen, um ihn hier zu sammeln.")
-                        .foregroundStyle(Color(.textSecondary))
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 6)
-                        .padding(.bottom, 18)
-                    PrimaryButton("Im Katalog suchen") {
-                        // iPad: der Katalog mit Treffern und Titel nebeneinander, als Ziel der Seitenleiste.
-                        if let router, router.padHuelleAktiv {
-                            router.zeigeKatalogSuche()
-                        } else {
-                            showsCatalog = true
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
+        ScrollView { emptyKarte(rand: .telefon) }
+    }
+
+    private func emptyKarte(rand: EventsRand) -> some View {
+        Card(verticalPadding: 32, horizontalPadding: 20) {
+            VStack(spacing: 0) {
+                Image(systemName: "bookmark")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundStyle(Color(.textTertiary))
+                    .accessibilityHidden(true)
+                Text("Noch nichts gemerkt")
+                    .font(.headline)
+                    .foregroundStyle(Color(.textPrimary))
+                    .padding(.top, 10)
+                Text("Tippe bei einem Titel auf das Lesezeichen, um ihn hier zu sammeln.")
+                    .foregroundStyle(Color(.textSecondary))
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 6)
+                    .padding(.bottom, 18)
+                PrimaryButton("Im Katalog suchen") { oeffneKatalogSuche() }
             }
-            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
         }
+        .padding(.leading, rand.links)
+        .padding(.trailing, rand.rechts)
     }
 
     // MARK: - Aktionen
 
     private func entfernen(_ eintrag: GemerkterTitel) {
+        let offen = merkliste.offen.map(\.id), gefunden = merkliste.gefunden.map(\.id)
+        let warGewaehlt = gewaehlteID == eintrag.id
         var removed: EntfernterTitel?
         withAnimation { removed = merkliste.entfernen(eintrag.id) }
         guard let removed else { return }
+        // iPad: War er gewählt, ist danach der nächste gewählt.
+        if warGewaehlt {
+            auswahlID = MerklisteAuswahlRegel.nachEntfernen(eintrag.id, offen: offen, gefunden: gefunden)
+        }
         show(MerklisteToast(message: "„\(eintrag.anzeigeTitel)“ entfernt", undo: .entfernt(removed)))
     }
 
     /// Hakt ab oder nimmt zurück; die Zeile wandert mit Animation in den anderen Abschnitt.
     private func setzeGefunden(_ gefunden: Bool, _ eintrag: GemerkterTitel) {
+        let offen = merkliste.offen.map(\.id), alteGefundene = merkliste.gefunden.map(\.id)
+        let warGewaehlt = gewaehlteID == eintrag.id
         var vorher: GemerkterTitel?
         withAnimation { vorher = merkliste.setzeGefunden(gefunden, fuer: eintrag.id) }
         guard let vorher else { return }
+        // iPad: War er gewählt, ist danach der nächste im selben Abschnitt gewählt.
+        if warGewaehlt {
+            auswahlID = MerklisteAuswahlRegel.nachAbhaken(eintrag.id, offen: offen, gefunden: alteGefundene)
+        }
         let text = gefunden ? "„\(eintrag.anzeigeTitel)“ gefunden" : "„\(eintrag.anzeigeTitel)“ wieder offen"
         show(MerklisteToast(message: text, undo: .gefunden(vorher)))
     }
@@ -325,15 +391,19 @@ struct BibMerklisteView: View {
         case .entfernt(let entfernt):
             // Setzt den Eintrag an die alte Stelle zurück.
             withAnimation { merkliste.wiederherstellen(entfernt) }
+            // iPad: Der Eintrag ist wieder da und wieder gewählt.
+            auswahlID = entfernt.eintrag.id
             Task { await ladeStatus() }
         case .gefunden(let vorher):
             withAnimation { merkliste.widerrufeGefunden(vorher) }
+            auswahlID = vorher.id
         }
         toast = nil
     }
 
     private func leeren() {
         withAnimation { merkliste.alleEntfernen() }
+        auswahlID = nil
         show(MerklisteToast(message: "Merkliste geleert", undo: nil))
     }
 
@@ -364,6 +434,23 @@ struct BibMerklisteView: View {
             let media = result.value.media
             let coverURL = media.cover.status == .found ? service.coverURL(for: media.cover) : nil
             merkliste.aktualisieren(GemerkterTitel(media: media, coverURL: coverURL, gemerktAm: eintrag.gemerktAm))
+        }
+    }
+}
+
+/// Der Katalog im Stapel der Merkliste (iPhone). In der iPad-Hülle öffnet „Im Katalog suchen“ den Katalog über den Router;
+/// dort bliebe die Anweisung ohne Navigationsstapel „fehlplatziert“ und SwiftUI meldet das im Log.
+private struct KatalogImStapel: ViewModifier {
+    let aktiv: Bool
+    @Binding var istOffen: Bool
+
+    func body(content: Content) -> some View {
+        if aktiv {
+            content.navigationDestination(isPresented: $istOffen) {
+                LibraryCatalogView(autofocus: true)
+            }
+        } else {
+            content
         }
     }
 }
