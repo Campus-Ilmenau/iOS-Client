@@ -3,6 +3,8 @@ import SwiftUI
 /// Chips nebeneinander, bei Platzmangel in der nächsten Zeile.
 struct ChipFlowLayout: Layout {
     var spacing: CGFloat
+    /// Abstand der Zeilen; ohne Angabe wie `spacing`.
+    var lineSpacing: CGFloat?
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         arrange(proposal: proposal, subviews: subviews).size
@@ -23,7 +25,7 @@ struct ChipFlowLayout: Layout {
             let size = subview.sizeThatFits(.unspecified)
             if x > 0, x + size.width > maxWidth {
                 x = 0
-                y += rowHeight + spacing
+                y += rowHeight + (lineSpacing ?? spacing)
                 rowHeight = 0
             }
             origins.append(CGPoint(x: x, y: y))

@@ -4,12 +4,15 @@ import SwiftUI
 struct SegmentedControl<Value: Hashable>: View {
     @Binding var selection: Value
     let options: [(value: Value, title: LocalizedStringKey)]
+    /// Die Titel bleiben einzeilig und werden bei Platzmangel etwas kleiner, statt umzubrechen (schmale Popover).
+    let einzeilig: Bool
 
     @Namespace private var selectionNamespace
 
-    init(selection: Binding<Value>, options: [(value: Value, title: LocalizedStringKey)]) {
+    init(selection: Binding<Value>, options: [(value: Value, title: LocalizedStringKey)], einzeilig: Bool = false) {
         self._selection = selection
         self.options = options
+        self.einzeilig = einzeilig
     }
 
     var body: some View {
@@ -22,6 +25,8 @@ struct SegmentedControl<Value: Hashable>: View {
                 } label: {
                     Text(option.title)
                         .font(.footnote.weight(.semibold))
+                        .lineLimit(einzeilig ? 1 : nil)
+                        .minimumScaleFactor(einzeilig ? 0.8 : 1)
                         .foregroundStyle(isSelected ? Color(.textPrimary) : Color(.textSecondary))
                         .frame(maxWidth: .infinity, minHeight: 40)
                         .padding(.horizontal, 4)

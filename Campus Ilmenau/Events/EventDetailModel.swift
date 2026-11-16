@@ -9,6 +9,8 @@ struct EventDetailAnzeige: Equatable {
 
     /// Ab etwa 40 Zeichen wird der Titel kleiner.
     var titelGroesse: CGFloat { event.titel.count > 40 ? 26 : 32 }
+    /// iPad: Jakarta 38, ab 27 Zeichen 30 (Grenze aus `PadEvents.dc.html`; 38 pt brechen ab etwa 27 Zeichen auf eine zweite Zeile um).
+    var padTitelGroesse: CGFloat { event.titel.count > 26 ? 30 : 38 }
 
     var abgesagt: Bool { event.status == .abgesagt }
     var unbestaetigt: Bool { event.status == .unbestaetigt }

@@ -8,6 +8,9 @@ struct EventDetailView: View {
     let anzahlKommende: Int?
     /// „Alle kommenden von …“: zurück zur Liste mit aktivem Veranstalter-Chip. Ohne Closure entfällt der Link.
     var onAlleVonVeranstalter: ((String) -> Void)?
+    /// iPad: das Detail rechts neben der Liste. Max. 640 breit und zentriert, Kopf 300 hoch mit Ecken 22, die Buttons in
+    /// zwei Spalten, die Beschreibung vollständig, kein Zurück. Der Kopf bleibt unter der schwebenden Tab-Leiste.
+    var padStil = false
 
     @Environment(\.eventsMerkStore) private var merkStore
     @Environment(\.dismiss) private var dismiss
@@ -23,18 +26,26 @@ struct EventDetailView: View {
         id: String,
         event: CampusEvent? = nil,
         anzahlKommende: Int? = nil,
-        onAlleVonVeranstalter: ((String) -> Void)? = nil
+        onAlleVonVeranstalter: ((String) -> Void)? = nil,
+        padStil: Bool = false
     ) {
         _model = State(initialValue: EventDetailModel(id: id, event: event))
         self.anzahlKommende = anzahlKommende
         self.onAlleVonVeranstalter = onAlleVonVeranstalter
+        self.padStil = padStil
     }
 
     /// Mit fertigem Modell (Previews, Tests).
-    init(model: EventDetailModel, anzahlKommende: Int? = nil, onAlleVonVeranstalter: ((String) -> Void)? = nil) {
+    init(
+        model: EventDetailModel,
+        anzahlKommende: Int? = nil,
+        onAlleVonVeranstalter: ((String) -> Void)? = nil,
+        padStil: Bool = false
+    ) {
         _model = State(initialValue: model)
         self.anzahlKommende = anzahlKommende
         self.onAlleVonVeranstalter = onAlleVonVeranstalter
+        self.padStil = padStil
     }
 
     var body: some View {
@@ -45,7 +56,8 @@ struct EventDetailView: View {
                     fehler(
                         titel: "Veranstaltung nicht gefunden",
                         text: "Sie wurde vielleicht entfernt.",
-                        aktion: "Zurück",
+                        // Rechts neben der Liste gibt es kein „Zurück“.
+                        aktion: padStil ? nil : "Zurück",
                         hauptaktion: true,
                         proxy: proxy
                     ) { dismiss() }
@@ -59,7 +71,9 @@ struct EventDetailView: View {
                     ) { Task { await model.nochmal() } }
                 case .laedt, .geladen:
                     if let event = model.event {
-                        inhalt(event, proxy: proxy)
+                        if padStil { padInhalt(event) } else { inhalt(event, proxy: proxy) }
+                    } else if padStil {
+                        padPlatzhalter
                     } else {
                         platzhalter(proxy: proxy)
                     }
@@ -402,20 +416,22 @@ struct EventDetailView: View {
     private func fehler(
         titel: LocalizedStringKey,
         text: LocalizedStringKey,
-        aktion: LocalizedStringKey,
+        aktion: LocalizedStringKey?,
         hauptaktion: Bool,
         proxy: GeometryProxy,
         onAktion: @escaping () -> Void
     ) -> some View {
         VStack(spacing: 0) {
-            HStack {
-                rundeTaste("chevron.left") { dismiss() }
-                    .accessibilityLabel("Zurück zu den Veranstaltungen")
-                Spacer()
+            if !padStil {
+                HStack {
+                    rundeTaste("chevron.left") { dismiss() }
+                        .accessibilityLabel("Zurück zu den Veranstaltungen")
+                    Spacer()
+                }
+                .environment(\.colorScheme, .light)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
             }
-            .environment(\.colorScheme, .light)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
 
             Spacer()
             EventsMeldung(titel: titel, text: text, aktion: aktion, hauptaktion: hauptaktion, onAktion: onAktion)
@@ -509,5 +525,196 @@ struct EventBeschreibung: View {
         .padding(.horizontal, 2)
         .hidden()
         .accessibilityHidden(true)
+    }
+}
+
+// MARK: - iPad (`padStil`)
+
+/// Das Detail rechts neben der Liste nach `PadEvents.dc.html`. Hinweis, Infokarte und Plakat sind dieselben Bausteine wie auf
+/// dem iPhone; neu sind Kopf (300 hoch, Ecken 22, Tasten aus Glas), Titelgrößen, die zweispaltigen Buttons und die
+/// vollständige Beschreibung.
+extension EventDetailView {
+    /// Inhalt max. 640 breit, zentriert, in einem eigenen Scrollbereich. Der Kopf beginnt unter der schwebenden Tab-Leiste
+    /// (kein `ignoresSafeArea`).
+    func padInhalt(_ event: CampusEvent) -> some View {
+        let anzeige = EventDetailAnzeige(event: event)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                padKopf(anzeige)
+                VStack(alignment: .leading, spacing: 16) {
+                    hinweis(anzeige)
+                    infokarte(anzeige)
+                    if let text = anzeige.beschreibung {
+                        // Auf dem iPad vollständig, ohne „Mehr anzeigen“.
+                        Text(verbatim: text)
+                            .font(.body)
+                            .lineSpacing(3)
+                            .foregroundStyle(Color(.textPrimary))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 2)
+                            .padding(.top, 2)
+                    }
+                    padAktionen(anzeige)
+                    Text("Angaben vom Veranstalter. Kurzfristige Änderungen sind möglich.")
+                        .font(.caption)
+                        .foregroundStyle(Color(.textSecondary))
+                        .padding(.horizontal, 2)
+                }
+                .padding(.top, 16)
+            }
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 32)
+            .padding(.top, 6)
+            .padding(.bottom, 32)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+    }
+
+    /// Kopf: 300 hoch, Ecken 22, das Plakat (sonst Blau mit Grün-Band), unten Chips, Kicker und Titel, oben rechts Teilen und Stern.
+    private func padKopf(_ anzeige: EventDetailAnzeige) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            plakat(anzeige.event.bildURL, hoehe: 300)
+            LinearGradient(
+                colors: [Color(.brandNight).opacity(0), Color(.brandNight).opacity(0.55)],
+                startPoint: UnitPoint(x: 0.5, y: 0.4),
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+            padKopfText(anzeige)
+                .padding(24)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 300)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(alignment: .topTrailing) {
+            padTasten(anzeige)
+                .padding(16)
+        }
+    }
+
+    private func padKopfText(_ anzeige: EventDetailAnzeige) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if anzeige.abgesagt {
+                Chip("Fällt aus", variant: .dangerSoft)
+                    .padding(.bottom, 4)
+            } else if anzeige.unbestaetigt {
+                Text("Noch nicht bestätigt")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color(.brandNight))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 3)
+                    .background(Color.white.opacity(0.9), in: Capsule())
+                    .padding(.bottom, 4)
+            }
+            if let veranstalter = anzeige.veranstalter {
+                Text(veranstalter)
+                    .font(.caption.weight(.bold))
+                    .textCase(.uppercase)
+                    .tracking(1)
+                    .foregroundStyle(Color.white.opacity(0.9))
+            }
+            Text(anzeige.event.titel)
+                .display(size: anzeige.padTitelGroesse, relativeTo: .largeTitle)
+                .foregroundStyle(Color.white)
+                .opacity(anzeige.abgesagt ? 0.85 : 1)
+                .strikethrough(anzeige.abgesagt)
+                .lineSpacing(0)
+                .accessibilityAddTraits(.isHeader)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // Der Titel nutzt höchstens etwa 80 % der Breite, rechts bleibt das Band frei.
+        .padding(.trailing, 96)
+    }
+
+    /// Teilen und Stern als Glas: Nachtblau mit 45 % Deckkraft über Weichzeichner, Symbol weiß; der Stern gemerkt in Gelb.
+    private func padTasten(_ anzeige: EventDetailAnzeige) -> some View {
+        let gemerkt = merkStore.istGemerkt(anzeige.event.id)
+        let inhalt = EventShare(event: anzeige.event)
+        return HStack(spacing: 8) {
+            ShareMenuButton(content: inhalt, caption: inhalt.menuCaption) {
+                glasSymbol("square.and.arrow.up")
+            }
+            .hoverEffect()
+            .accessibilityLabel("Veranstaltung teilen")
+            Button {
+                let jetztGemerkt = merkStore.umschalten(anzeige.event.id)
+                zeigeToast(jetztGemerkt ? "Gemerkt" : "Nicht mehr gemerkt")
+            } label: {
+                glasSymbol(gemerkt ? "star.fill" : "star", farbe: gemerkt ? Color(.warningFill) : .white)
+            }
+            .buttonStyle(.plain)
+            .hoverEffect()
+            .sensoryFeedback(.impact(weight: .light), trigger: gemerkt)
+            .accessibilityLabel(gemerkt ? "Nicht mehr merken" : "Merken")
+            .accessibilityAddTraits(.isToggle)
+        }
+    }
+
+    private func glasSymbol(_ symbol: String, farbe: Color = .white) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(farbe)
+            .frame(width: 44, height: 44)
+            .background {
+                Circle().fill(.ultraThinMaterial)
+                Circle().fill(Color(.brandNight).opacity(0.45))
+            }
+            .contentShape(Circle())
+    }
+
+    /// Tickets, Kalender und Infoseite in zwei Spalten; der Hinweis zu externen Seiten darunter.
+    @ViewBuilder
+    private func padAktionen(_ anzeige: EventDetailAnzeige) -> some View {
+        let event = anzeige.event
+        VStack(alignment: .leading, spacing: 10) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                if anzeige.zeigtTickets, let ticket = event.ticketURL {
+                    PrimaryButton("Tickets", trailingSystemImage: "arrow.up.right") { openURL(ticket) }
+                }
+                if anzeige.zeigtKalender {
+                    if anzeige.kalenderIstHauptbutton {
+                        PrimaryButton("Zum Kalender hinzufügen", isLoading: model.traegtKalender) { eintragen() }
+                    } else {
+                        SecondaryButton("Zum Kalender hinzufügen", isLoading: model.traegtKalender) { eintragen() }
+                    }
+                }
+                if let info = event.infoURL {
+                    SecondaryButton("Infoseite des Veranstalters", trailingSystemImage: "arrow.up.right") { openURL(info) }
+                }
+            }
+            if anzeige.zeigtExternHinweis {
+                Text("↗ öffnet eine Seite außerhalb der App.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color(.textSecondary))
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    /// Bis die Daten da sind und keine aus der Liste kommen: Kopf als Platzhalter und graue Blöcke.
+    var padPlatzhalter: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                DiagonalBands(.event, height: 300) { EmptyView() }
+                    .frame(height: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Freitag, 30. Oktober").fontWeight(.semibold)
+                    Text("21:00 – 03:00 Uhr").font(.footnote)
+                    Text("Studi-Club").fontWeight(.semibold).padding(.top, 12)
+                    Text("Max-Planck-Ring 6").font(.footnote)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .redacted(reason: .placeholder)
+            }
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 32)
+            .padding(.top, 6)
+        }
+        .accessibilityLabel("Veranstaltung wird geladen")
     }
 }

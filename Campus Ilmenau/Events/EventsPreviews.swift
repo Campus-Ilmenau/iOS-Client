@@ -136,7 +136,7 @@ final class EventsVorschauQuelle: EventsDatenquelle {
 
 /// Eine Ansicht mit festem „jetzt“, Beispieldaten und einem Merk-Speicher nur im Speicher (Stern bei „4“).
 @MainActor
-private func vorschauModell(
+func vorschauModell(
     verhalten: EventsVorschauQuelle.Verhalten = .daten,
     auswahl: EventsAuswahl = EventsAuswahl(),
     gemerkt: Set<String> = ["4"]

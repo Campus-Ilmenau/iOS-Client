@@ -8,6 +8,10 @@ struct EventKarte: View {
     /// Tag, unter dem die Karte steht; mehrtägige, die vorher begonnen haben, „laufen seit“.
     let bezugstag: Date
     let jetzt: Date
+    /// iPad: Die Karte wählt die Veranstaltung rechts aus (kein Push), der Titel darf umbrechen, und die gewählte
+    /// bekommt einen 2-pt-Rand in `accent`. Ohne `onWahl` gilt das Verhalten des iPhones.
+    var onWahl: (() -> Void)?
+    var gewaehlt = false
 
     @Environment(\.eventsMerkStore) private var merkStore
 
@@ -16,24 +20,43 @@ struct EventKarte: View {
     private var abgesagt: Bool { event.status == .abgesagt }
 
     var body: some View {
-        NavigationLink(value: EventsRoute.detail(event)) {
-            Card(verticalPadding: 12, horizontalPadding: 0) {
-                inhalt
-                    .padding(.leading, 16)
-                    // Platz für den Stern (44 pt) und den Rand rechts.
-                    .padding(.trailing, 52)
+        verweis
+            .buttonStyle(.plain)
+            .overlay(alignment: .topTrailing) {
+                sternTaste
+                    .padding(.top, 4)
+                    .padding(.trailing, 4)
             }
+            .overlay {
+                if gewaehlt {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color(.accent), lineWidth: 2)
+                        .allowsHitTesting(false)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(sprachtext)
+            .accessibilityAddTraits(gewaehlt ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction(named: gemerkt ? "Nicht mehr merken" : "Merken") { umschalten() }
+    }
+
+    /// iPhone: Verweis auf das Detail im Stapel. iPad: Taste, die die Auswahl setzt.
+    @ViewBuilder
+    private var verweis: some View {
+        if let onWahl {
+            Button(action: onWahl) { flaeche }
+        } else {
+            NavigationLink(value: EventsRoute.detail(event)) { flaeche }
         }
-        .buttonStyle(.plain)
-        .overlay(alignment: .topTrailing) {
-            sternTaste
-                .padding(.top, 4)
-                .padding(.trailing, 4)
+    }
+
+    private var flaeche: some View {
+        Card(verticalPadding: 12, horizontalPadding: 0) {
+            inhalt
+                .padding(.leading, 16)
+                // Platz für den Stern (44 pt) und den Rand rechts.
+                .padding(.trailing, 52)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(sprachtext)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction(named: gemerkt ? "Nicht mehr merken" : "Merken") { umschalten() }
     }
 
     private var inhalt: some View {
@@ -45,13 +68,13 @@ struct EventKarte: View {
                 .font(.callout.weight(.semibold))
                 .foregroundStyle(abgesagt ? Color(.textTertiary) : Color(.textPrimary))
                 .strikethrough(abgesagt)
-                .lineLimit(2)
+                .lineLimit(onWahl == nil ? 2 : nil)
                 .multilineTextAlignment(.leading)
             if let ortZeile {
                 Text(ortZeile)
                     .font(.footnote)
                     .foregroundStyle(Color(.textSecondary))
-                    .lineLimit(1)
+                    .lineLimit(onWahl == nil ? 1 : nil)
             }
             if !chips.isEmpty {
                 HStack(spacing: 6) {

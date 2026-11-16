@@ -8,6 +8,10 @@ struct EventsKopf: View {
     let filterAnzahl: Int
     var zurueckTitel: LocalizedStringKey?
     var onZurueck: (() -> Void)?
+    /// Seitenränder; auf dem iPad stehen sie links 32 und rechts 20 (Mockup `pe-listhead`).
+    var rand = EventsRand.telefon
+    /// Auf dem iPad öffnet der Filter-Button ein Popover statt des Sheets: Binding und Inhalt des Popovers.
+    var filterPopover: (istOffen: Binding<Bool>, inhalt: AnyView)?
     let onFilter: () -> Void
 
     var body: some View {
@@ -39,7 +43,8 @@ struct EventsKopf: View {
 
             filterTaste
         }
-        .padding(.horizontal, 16)
+        .padding(.leading, rand.links)
+        .padding(.trailing, rand.rechts)
         .padding(.top, 8)
         .padding(.bottom, 12)
     }
@@ -61,8 +66,20 @@ struct EventsKopf: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .popover(isPresented: filterPopover?.istOffen ?? .constant(false), arrowEdge: .top) {
+            filterPopover?.inhalt
+        }
         .accessibilityLabel(filterAnzahl > 0 ? "Filter, \(filterAnzahl) aktiv" : "Filter")
     }
+}
+
+/// Seitenränder der Kopf-, Tages- und Chipleiste: auf dem iPhone beidseitig 16, in der Liste des iPads links 32, rechts 20.
+struct EventsRand: Equatable {
+    var links: CGFloat
+    var rechts: CGFloat
+
+    static let telefon = EventsRand(links: 16, rechts: 16)
+    static let pad = EventsRand(links: 32, rechts: 20)
 }
 
 /// Tagesleiste, 56 pt hoch: „Ab heute“, „Heute“, „Morgen“, „Sa 31“ … für 14 Tage.
@@ -72,6 +89,7 @@ struct EventsTagesleiste: View {
     let gewaehlterTag: Date?
     let tageMitEvents: Set<Date>
     let jetzt: Date
+    var rand = EventsRand.telefon
     let onWahl: (Date?) -> Void
 
     var body: some View {
@@ -82,7 +100,8 @@ struct EventsTagesleiste: View {
                     taste(tag: tag)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.leading, rand.links)
+            .padding(.trailing, rand.rechts)
         }
         .scrollIndicators(.hidden)
         .accessibilityElement(children: .contain)
@@ -139,36 +158,51 @@ struct EventsTagesleiste: View {
 struct EventsChipleiste: View {
     let auswahl: EventsAuswahl
     let veranstalter: [Veranstalter]
+    /// Auf dem iPad brechen die Chips um, statt zu scrollen, und der Trennstrich entfällt.
+    var umbrechend = false
+    var rand = EventsRand.telefon
     let onHeuteAbend: () -> Void
     let onGemerkt: () -> Void
     let onVeranstalter: (Veranstalter) -> Void
 
     var body: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                pille("Heute Abend", systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
-                pille("Gemerkt", systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
-                if !veranstalter.isEmpty {
-                    Rectangle()
-                        .fill(Color(.separator))
-                        .frame(width: 1, height: 26)
-                        .padding(.horizontal, 2)
-                        .accessibilityHidden(true)
+        if umbrechend {
+            // Die Chips sind 34 pt hoch mit 44 pt Tippfläche; die Zeilen rücken um 2 pt zusammen, damit der Abstand 8 pt bleibt.
+            ChipFlowLayout(spacing: 8, lineSpacing: -2) { pillen }
+                .padding(.leading, rand.links)
+                .padding(.trailing, rand.rechts)
+        } else {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    pillen
                 }
-                ForEach(veranstalter) { eintrag in
-                    pille(
-                        eintrag.name,
-                        zahl: eintrag.anzahlKommende,
-                        aktiv: auswahl.veranstalterID == eintrag.id
-                    ) {
-                        onVeranstalter(eintrag)
-                    }
-                    .accessibilityLabel("\(eintrag.name), \(eintrag.anzahlKommende) kommende")
-                }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
+            .scrollIndicators(.hidden)
         }
-        .scrollIndicators(.hidden)
+    }
+
+    @ViewBuilder
+    private var pillen: some View {
+        pille("Heute Abend", systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
+        pille("Gemerkt", systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
+        if !veranstalter.isEmpty, !umbrechend {
+            Rectangle()
+                .fill(Color(.separator))
+                .frame(width: 1, height: 26)
+                .padding(.horizontal, 2)
+                .accessibilityHidden(true)
+        }
+        ForEach(veranstalter) { eintrag in
+            pille(
+                eintrag.name,
+                zahl: eintrag.anzahlKommende,
+                aktiv: auswahl.veranstalterID == eintrag.id
+            ) {
+                onVeranstalter(eintrag)
+            }
+            .accessibilityLabel("\(eintrag.name), \(eintrag.anzahlKommende) kommende")
+        }
     }
 
     private func pille(
