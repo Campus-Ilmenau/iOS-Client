@@ -68,6 +68,20 @@ struct EventsPadZustand {
         fremdeID = nil
     }
 
+    /// Beim Öffnen und wenn die gewählte durch einen Filter verschwindet: die erste der Liste. Bleibt die Liste leer, ist
+    /// nichts gewählt. Ein Link-Ziel, das noch gesucht wird oder außerhalb der Liste liegt, bleibt stehen.
+    mutating func korrigiere(liste: [CampusEvent]) {
+        if let wahl {
+            if let gefunden = liste.first(where: { $0.id == wahl.id }) {
+                if wahl.event == nil { self.wahl?.event = gefunden }
+                fremdeID = nil
+                return
+            }
+            if suchtID == wahl.id || fremdeID == wahl.id { return }
+        }
+        wahl = liste.first.map { .init(id: $0.id, event: $0) }
+    }
+
     /// Link `events/<id>`: wählen, in der Liste suchen (auch in späteren Seiten) und dorthin scrollen.
     mutating func waehleVonAussen(id: String, aus model: EventsModel) {
         zeigtVergangene = false
@@ -77,6 +91,48 @@ struct EventsPadZustand {
         wahl = Wahl(id: id, event: event)
         scrollZiel = EventsScrollZiel(id: id)
         suchtID = event == nil ? id : nil
+    }
+}
+
+/// Was mit einem Link auf eine Veranstaltung geschieht, sobald die Liste geladen ist (reine Entscheidung, damit sie testbar ist).
+enum EventsLinkPlan: Equatable {
+    /// Die Veranstaltung steht in der Liste: auswählen und hinscrollen.
+    case inListe
+    /// Sie steht nicht darin, und „Heute Abend“ ist als Ziel markiert: Das Ziel wechselt zu „Alle Veranstaltungen“, die
+    /// Ansicht wird neu aufgebaut, und der Link kommt dort wieder an.
+    case zuAlleVeranstaltungen
+    /// Sie steht nicht darin, die Auswahl hat Filter: zurück auf „Ab heute“ ohne Filter und noch einmal suchen.
+    case auswahlZuruecksetzen
+    /// Sie steht auch in der ungefilterten Liste nicht: rechts nur das Detail, links nichts markiert.
+    case nurDetail
+
+    static func entscheide(steht: Bool, auswahlIstStandard: Bool, ziel: PadZiel?, padHuelleAktiv: Bool) -> EventsLinkPlan {
+        if steht { return .inListe }
+        if auswahlIstStandard { return .nurDetail }
+        if ziel == .eventsAbend, padHuelleAktiv { return .zuAlleVeranstaltungen }
+        return .auswahlZuruecksetzen
+    }
+}
+
+/// Ein Link auf eine Veranstaltung wartet, bis die Ansicht ihre Breite kennt: Eine neu aufgebaute Ansicht (Wechsel des Ziels
+/// in der Seitenleiste) hat beim ersten `onAppear` noch 0 pt, und der Link liefe sonst als iPhone-Push ins Leere.
+struct EventsLinkPuffer: Equatable {
+    private var offen: String?
+
+    /// Der Link ist angekommen: mit bekannter Breite sofort nutzbar, sonst vorgemerkt.
+    mutating func empfange(_ id: String, breite: CGFloat) -> String? {
+        guard breite > 0 else {
+            offen = id
+            return nil
+        }
+        return id
+    }
+
+    /// Die Breite hat sich geändert: Ein vorgemerkter Link ist jetzt nutzbar (einmal).
+    mutating func breiteGeaendert(_ breite: CGFloat) -> String? {
+        guard breite > 0, let id = offen else { return nil }
+        offen = nil
+        return id
     }
 }
 
@@ -254,21 +310,10 @@ struct EventsPadAnsicht: View {
 
     // MARK: Auswahl
 
-    /// Beim Öffnen und wenn die gewählte durch einen Filter verschwindet: die erste der Liste. Bleibt die Liste leer,
-    /// ist nichts gewählt.
+    /// Siehe `EventsPadZustand.korrigiere(liste:)`.
     private func korrigiereAuswahl() {
         guard aktiv.zustand == .geladen else { return }
-        let liste = events
-        if let wahl = zustand.wahl {
-            if let gefunden = liste.first(where: { $0.id == wahl.id }) {
-                if wahl.event == nil { zustand.wahl?.event = gefunden }
-                zustand.fremdeID = nil
-                return
-            }
-            // Ein Link-Ziel, das noch gesucht wird oder außerhalb der Liste liegt, bleibt stehen.
-            if zustand.suchtID == wahl.id || zustand.fremdeID == wahl.id { return }
-        }
-        zustand.wahl = liste.first.map { .init(id: $0.id, event: $0) }
+        zustand.korrigiere(liste: events)
     }
 
     private func pfeil(_ schritt: Int) {
@@ -308,21 +353,30 @@ struct EventsPadAnsicht: View {
         // Eine Auswahl, die der Link gerade zurückgesetzt hat, löst erst im nächsten Durchlauf das Laden aus.
         try? await Task.sleep(for: .milliseconds(300))
         await nachladen()
-        if !steht(), !Task.isCancelled, model.auswahl != EventsAuswahl() {
-            // Markiert die Seitenleiste „Heute Abend“, wechselt sie mit der Auswahl zu „Alle Veranstaltungen“ (das baut die
-            // Ansicht neu auf, der Link kommt dort wieder an), damit Markierung und Liste zusammenpassen.
-            if let router, router.ziel == .eventsAbend, router.padHuelleAktiv {
-                zustand.suchtID = nil
-                router.wechsle(zu: .eventsAlle) {
-                    router.eventsAlle = true
-                    router.eventWunsch = id
+        if !Task.isCancelled {
+            switch EventsLinkPlan.entscheide(
+                steht: steht(), auswahlIstStandard: model.auswahl == EventsAuswahl(),
+                ziel: router?.ziel, padHuelleAktiv: router?.padHuelleAktiv ?? false
+            ) {
+            case .zuAlleVeranstaltungen:
+                // Markiert die Seitenleiste „Heute Abend“, wechselt sie mit der Auswahl zu „Alle Veranstaltungen“ (das baut die
+                // Ansicht neu auf, der Link kommt dort wieder an), damit Markierung und Liste zusammenpassen.
+                if let router {
+                    zustand.suchtID = nil
+                    router.wechsle(zu: .eventsAlle) {
+                        router.eventsAlle = true
+                        router.eventWunsch = id
+                    }
                 }
                 return
+            case .auswahlZuruecksetzen:
+                model.auswahl = EventsAuswahl()
+                // Die Liste lädt für die neue Auswahl neu; kurz warten, bis die Aufgabe der Ansicht angelaufen ist.
+                try? await Task.sleep(for: .milliseconds(300))
+                await nachladen()
+            case .inListe, .nurDetail:
+                break
             }
-            model.auswahl = EventsAuswahl()
-            // Die Liste lädt für die neue Auswahl neu; kurz warten, bis die Aufgabe der Ansicht angelaufen ist.
-            try? await Task.sleep(for: .milliseconds(300))
-            await nachladen()
         }
         guard !Task.isCancelled else { return }
         if steht() {

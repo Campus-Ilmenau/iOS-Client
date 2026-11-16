@@ -32,7 +32,7 @@ struct EventsInhalt: View {
     /// iPad: Auswahl rechts, „Vergangene“ in der linken Spalte, Ziel zum Scrollen.
     @State private var pad = EventsPadZustand()
     /// Ein Link auf eine Veranstaltung, der auf die erste Messung der Breite wartet.
-    @State private var offenerEventWunsch: String?
+    @State private var linkPuffer = EventsLinkPuffer()
     /// Wunsch von der Heute-Seite („Alle“ bei „Heute Abend“).
     @Environment(AppRouter.self) private var router: AppRouter?
 
@@ -66,9 +66,7 @@ struct EventsInhalt: View {
         .onChange(of: router?.eventsHeuteAbend) { _, _ in uebernehmeHeuteAbendWunsch() }
         .onChange(of: router?.eventWunsch) { _, _ in uebernehmeEventWunsch() }
         .onChange(of: raster.breite) { _, breite in
-            guard breite > 0, let id = offenerEventWunsch else { return }
-            offenerEventWunsch = nil
-            oeffneEvent(id)
+            if let id = linkPuffer.breiteGeaendert(breite) { oeffneEvent(id) }
         }
         // Am Stapel statt an der Liste: Die Aufgaben laufen weiter, wenn ein Detail geöffnet ist.
         .task(id: model.ladeSchluessel) { await model.ladenWennNoetig() }
@@ -190,13 +188,8 @@ struct EventsInhalt: View {
     private func uebernehmeEventWunsch() {
         guard let id = router?.eventWunsch else { return }
         router?.eventWunsch = nil
-        // Eine neu aufgebaute Ansicht (Wechsel des Ziels in der Seitenleiste) kennt ihre Breite erst nach dem ersten Layout:
-        // Der Link wartet darauf, sonst würde er als iPhone-Push ins Leere laufen.
-        guard raster.breite > 0 else {
-            offenerEventWunsch = id
-            return
-        }
-        oeffneEvent(id)
+        // Eine neu aufgebaute Ansicht kennt ihre Breite erst nach dem ersten Layout (siehe `EventsLinkPuffer`).
+        if let id = linkPuffer.empfange(id, breite: raster.breite) { oeffneEvent(id) }
     }
 
     private func oeffneEvent(_ id: String) {
