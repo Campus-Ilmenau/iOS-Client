@@ -440,97 +440,142 @@ private struct ScanLine: View {
 
 // MARK: - Kamera
 
-/// `DataScannerViewController` aus VisionKit. Erkennt nur Barcodes, die Thoska-Nummern sein können, und nur im Rahmen.
+/// Kamerabild mit Barcode-Erkennung über `AVCaptureMetadataOutput`. Erkennt nur Barcodes, die Thoska-Nummern sein können,
+/// und nur im Rahmen (`regionOfInterest`, in Koordinaten dieser Ansicht).
+/// Der `DataScannerViewController` hat die dichten Strichcodes der Thoska nicht zuverlässig gelesen.
 struct ScannerCameraView: UIViewControllerRepresentable {
     let regionOfInterest: CGRect
     let isActive: Bool
     let onBarcode: (String) -> Void
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onBarcode: onBarcode)
-    }
-
-    func makeUIViewController(context: Context) -> DataScannerViewController {
-        let controller = DataScannerViewController(
-            recognizedDataTypes: [.barcode(symbologies: [.code39, .code128, .codabar, .ean13, .itf14])],
-            qualityLevel: .balanced,
-            recognizesMultipleItems: false,
-            isHighlightingEnabled: false   // den Rahmen zeichnen wir selbst
-        )
-        controller.delegate = context.coordinator
+    func makeUIViewController(context: Context) -> ScannerCaptureController {
+        let controller = ScannerCaptureController()
+        controller.onBarcode = onBarcode
         return controller
     }
 
-    func updateUIViewController(_ controller: DataScannerViewController, context: Context) {
-        context.coordinator.onBarcode = onBarcode
-        if regionOfInterest != .zero, controller.regionOfInterest != regionOfInterest {
-            controller.regionOfInterest = regionOfInterest
-        }
-        if isActive {
-            // Erst starten, wenn die Kamera verfügbar ist.
-            if !controller.isScanning, DataScannerViewController.isAvailable {
-                try? controller.startScanning()
-            }
-        } else if controller.isScanning {
-            controller.stopScanning()
+    func updateUIViewController(_ controller: ScannerCaptureController, context: Context) {
+        controller.onBarcode = onBarcode
+        controller.regionOfInterest = regionOfInterest
+        controller.setRunning(isActive)
+    }
+
+    static func dismantleUIViewController(_ controller: ScannerCaptureController, coordinator: ()) {
+        controller.setRunning(false)
+    }
+}
+
+final class ScannerCaptureController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+    var onBarcode: ((String) -> Void)?
+    var regionOfInterest: CGRect = .zero {
+        didSet { if oldValue != regionOfInterest { applyRegion() } }
+    }
+
+    private let session = AVCaptureSession()
+    private let output = AVCaptureMetadataOutput()
+    private let previewLayer = AVCaptureVideoPreviewLayer()
+    /// `startRunning()` blockiert und gehört nicht auf den Hauptthread.
+    private let sessionQueue = DispatchQueue(label: "de.kai-gothe.Campus-Ilmenau.scanner")
+    private var wantsRunning = false
+
+    /// Barcodes, die eine Benutzernummer enthalten können. Codabar kennt AVFoundation nicht.
+    private static let symbologies: [AVMetadataObject.ObjectType] = [
+        .code39, .code39Mod43, .code93, .code128, .interleaved2of5, .itf14, .ean13, .ean8
+    ]
+
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        configureSession()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) wird nicht benutzt") }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .clear
+        previewLayer.videoGravity = .resizeAspectFill
+        view.layer.addSublayer(previewLayer)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        previewLayer.frame = view.bounds
+        applyRegion()
+    }
+
+    private func configureSession() {
+        guard let device = AVCaptureDevice.default(for: .video),
+              let input = try? AVCaptureDeviceInput(device: device) else { return }
+        session.beginConfiguration()
+        defer { session.commitConfiguration() }
+        guard session.canAddInput(input), session.canAddOutput(output) else { return }
+        session.sessionPreset = .high
+        session.addInput(input)
+        session.addOutput(output)
+        output.setMetadataObjectsDelegate(self, queue: .main)
+        output.metadataObjectTypes = Self.symbologies.filter { output.availableMetadataObjectTypes.contains($0) }
+        previewLayer.session = session
+
+        // Dichte Strichcodes aus kurzer Entfernung: dauerhaft nachfokussieren, Nahbereich bevorzugen.
+        if (try? device.lockForConfiguration()) != nil {
+            if device.isAutoFocusRangeRestrictionSupported { device.autoFocusRangeRestriction = .near }
+            if device.isFocusModeSupported(.continuousAutoFocus) { device.focusMode = .continuousAutoFocus }
+            device.unlockForConfiguration()
         }
     }
 
-    static func dismantleUIViewController(_ controller: DataScannerViewController, coordinator: Coordinator) {
-        controller.stopScanning()
+    /// Übersetzt den gezeichneten Rahmen in den Erkennungsbereich der Kamera.
+    private func applyRegion() {
+        guard regionOfInterest != .zero, previewLayer.bounds.size != .zero else { return }
+        output.rectOfInterest = previewLayer.metadataOutputRectConverted(fromLayerRect: regionOfInterest)
     }
 
-    @MainActor
-    final class Coordinator: NSObject, DataScannerViewControllerDelegate {
-        var onBarcode: (String) -> Void
-
-        init(onBarcode: @escaping (String) -> Void) {
-            self.onBarcode = onBarcode
-        }
-
-        func dataScanner(_ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            handle(addedItems)
-        }
-
-        func dataScanner(_ dataScanner: DataScannerViewController, didUpdate updatedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            handle(updatedItems)
-        }
-
-        #if DEBUG
-        /// Letzte Konsolenzeile, damit `didUpdate` (mehrmals pro Sekunde) nicht dieselbe Zeile wiederholt.
-        private var lastLog: String?
-        #endif
-
-        /// Nimmt den ersten Barcode, der eine Benutzernummer sein kann. Anderes wird still ignoriert.
-        private func handle(_ items: [RecognizedItem]) {
-            for item in items {
-                #if DEBUG
-                logBarcode(item)
-                #endif
-                guard case .barcode(let barcode) = item,
-                      let payload = barcode.payloadStringValue,
-                      let number = BenutzernummerFormat.normalize(
-                          payload,
-                          isCodabar: barcode.observation.symbology == .codabar
-                      ) else { continue }
-                onBarcode(number)
-                return
+    func setRunning(_ run: Bool) {
+        guard run != wantsRunning else { return }
+        wantsRunning = run
+        sessionQueue.async { [session] in
+            if run {
+                if !session.isRunning { session.startRunning() }
+            } else if session.isRunning {
+                session.stopRunning()
             }
         }
-
-        #if DEBUG
-        /// Zum Klären des Strichcode-Formats mit der UB: Schreibt Format, Rohwert und Ergebnis der Normalisierung in die Konsole.
-        private func logBarcode(_ item: RecognizedItem) {
-            guard case .barcode(let barcode) = item else { return }
-            let symbology = barcode.observation.symbology
-            let payload = barcode.payloadStringValue
-            let normalized = payload.flatMap { BenutzernummerFormat.normalize($0, isCodabar: symbology == .codabar) }
-            let line = "[Scanner] Format: \(symbology.rawValue) | Rohwert: \(payload.map { "\"\($0)\"" } ?? "nil") | Benutzernummer: \(normalized ?? "nicht erkannt")"
-            guard line != lastLog else { return }
-            lastLog = line
-            print(line)
+        // Erst bei laufender Kamera stimmt die Umrechnung des Rahmens sicher.
+        if run {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in self?.applyRegion() }
         }
-        #endif
+    }
+
+    #if DEBUG
+    /// Letzte Konsolenzeile, damit dieselbe Zeile nicht mehrmals pro Sekunde erscheint.
+    private var lastLog: String?
+    #endif
+
+    nonisolated func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject],
+                                    from connection: AVCaptureConnection) {
+        MainActor.assumeIsolated {
+            handle(metadataObjects)
+        }
+    }
+
+    /// Nimmt den ersten Barcode, der eine Benutzernummer sein kann. Anderes wird still ignoriert.
+    private func handle(_ objects: [AVMetadataObject]) {
+        for object in objects {
+            guard let code = object as? AVMetadataMachineReadableCodeObject, let payload = code.stringValue else { continue }
+            let number = BenutzernummerFormat.normalize(payload)
+            #if DEBUG
+            // Zum Klären des Strichcode-Formats mit der UB: Format, Rohwert und Ergebnis der Normalisierung.
+            let line = "[Scanner] Format: \(code.type.rawValue) | Rohwert: \"\(payload)\" | Benutzernummer: \(number ?? "nicht erkannt")"
+            if line != lastLog {
+                lastLog = line
+                print(line)
+            }
+            #endif
+            guard let number else { continue }
+            onBarcode?(number)
+            return
+        }
     }
 }
 
