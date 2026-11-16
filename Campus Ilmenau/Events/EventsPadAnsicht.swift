@@ -158,7 +158,7 @@ struct EventsPadAnsicht: View {
     var body: some View {
         HStack(spacing: 0) {
             linkeSpalte
-                .frame(width: raster.eventsListenbreite)
+                .frame(width: raster.listenbreite)
             Rectangle()
                 .fill(Color(.separator))
                 .frame(width: 1)

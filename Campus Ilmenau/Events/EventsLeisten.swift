@@ -169,6 +169,7 @@ struct EventsChipleiste: View {
         if umbrechend {
             // Die Chips sind 34 pt hoch mit 44 pt Tippfläche; die Zeilen rücken um 2 pt zusammen, damit der Abstand 8 pt bleibt.
             ChipFlowLayout(spacing: 8, lineSpacing: -2) { pillen }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, rand.links)
                 .padding(.trailing, rand.rechts)
         } else {

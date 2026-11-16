@@ -153,6 +153,13 @@ struct LibraryTitleScreen: View {
 struct TitelDetail: View {
     @Bindable var model: LibraryTitleModel
     var origin: LibraryTitleOrigin = .catalog
+    /// iPad (Katalog rechts neben den Treffern): Cover 120 × 170 neben Kicker, Titel 30 und Personen, die Aktionen in zwei
+    /// Spalten, „Kopieren“ und „Lageplan“ in einer Zeile, das Inhaltsverzeichnis aufgeklappt. Ohne dieses Flag (iPhone,
+    /// Medien-Blatt der Bibliothek) bleibt alles wie bisher.
+    var breit = false
+    /// Der Titel stammt aus dem Gesamtkatalog (nur in der breiten Form): ohne Status „Nicht im Bestand der UB Ilmenau“
+    /// und ohne Exemplare.
+    var gesamtkatalog = false
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -178,13 +185,13 @@ struct TitelDetail: View {
         }
 
         statusArea
-            .padding(.top, 16)
+            .padding(.top, breit ? 20 : 16)
 
         // Auch nach einem Fehler bleibt der UB-Katalog über den Link aus der Trefferliste erreichbar.
         actions
             .padding(.top, 12)
 
-        if let detail = model.detail, !detail.items.isEmpty {
+        if let detail = model.detail, !detail.items.isEmpty, !(breit && gesamtkatalog) {
             itemsSection(detail)
         } else if model.phase == .loading {
             skeletonItems
@@ -198,14 +205,59 @@ struct TitelDetail: View {
 
         Text("Angaben aus dem Katalog der Universitätsbibliothek Ilmenau. Die Verfügbarkeit kann bis zu 5 Minuten alt sein.")
             .font(.caption)
-            .foregroundStyle(Color(.textTertiary))
+            // Auf dem iPad steht der Satz direkt auf `background`: `textSecondary` (4,5 : 1), nicht `textTertiary`.
+            .foregroundStyle(breit ? Color(.textSecondary) : Color(.textTertiary))
             .padding(.top, 18)
             .padding(.horizontal, 4)
     }
 
     // MARK: Kopf
 
+    @ViewBuilder
     private var header: some View {
+        if breit { breiterKopf } else { schmalerKopf }
+    }
+
+    /// Kopf der breiten Form: Cover 120 × 170 unten bündig neben allem, was zum Titel gehört.
+    private var breiterKopf: some View {
+        let media = model.media
+        return HStack(alignment: .bottom, spacing: 24) {
+            LibraryTitleCover(model: model, groesse: CGSize(width: 120, height: 170))
+            VStack(alignment: .leading, spacing: 0) {
+                Text(media.kindLabel)
+                    .font(.caption.weight(.bold))
+                    .tracking(0.7)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Color(.textSecondary))
+                Text(media.title)
+                    .display(size: 30, relativeTo: .title)
+                    .foregroundStyle(Color(.textPrimary))
+                    .padding(.top, 4)
+                    .accessibilityAddTraits(.isHeader)
+                if let subtitle = media.trimmedSubtitle {
+                    Text(subtitle)
+                        .font(.callout)
+                        .foregroundStyle(Color(.textSecondary))
+                        .padding(.top, 8)
+                }
+                if !media.personsLine.isEmpty {
+                    Text(media.personsLine)
+                        .foregroundStyle(Color(.textPrimary))
+                        .padding(.top, 6)
+                }
+                if !media.editionLine.isEmpty {
+                    Text(media.editionLine)
+                        .font(.footnote)
+                        .foregroundStyle(Color(.textSecondary))
+                        .padding(.top, 2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 2)
+        }
+    }
+
+    private var schmalerKopf: some View {
         let media = model.media
         let titleBlock = VStack(alignment: .leading, spacing: 4) {
             Text(media.kindLabel)
@@ -289,7 +341,15 @@ struct TitelDetail: View {
 
         default:
             if let detail = model.detail {
-                statusBlock(detail.statusBlock)
+                if breit, gesamtkatalog, detail.availabilityStatus == .unknown {
+                    statusBlock(LibraryStatusBlock(
+                        title: "Nicht im Bestand der UB Ilmenau",
+                        subtitle: "Aus dem Gesamtkatalog. Im UB-Katalog siehst du, wie du ihn bekommst.",
+                        tone: .neutral
+                    ))
+                } else {
+                    statusBlock(detail.statusBlock)
+                }
             }
         }
     }
@@ -324,25 +384,49 @@ struct TitelDetail: View {
         let primary = model.detail?.primaryAction
         let catalogURL = model.media.catalogUrl
         if primary != nil || catalogURL != nil {
-            VStack(spacing: 10) {
-                if let primary {
-                    PrimaryButton(LocalizedStringKey(primary.title), trailingSystemImage: "arrow.up.right") {
-                        model.open(primary.url)
+            if breit {
+                // iPad: Vormerken bzw. Online lesen und „Im UB-Katalog öffnen“ nebeneinander, der Hinweis linksbündig darunter.
+                VStack(alignment: .leading, spacing: 8) {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                        if let primary {
+                            PrimaryButton(LocalizedStringKey(primary.title), trailingSystemImage: "arrow.up.right") {
+                                model.open(primary.url)
+                            }
+                            .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
+                        }
+                        if let catalogURL {
+                            SecondaryButton("Im UB-Katalog öffnen", trailingSystemImage: "arrow.up.right") {
+                                model.open(catalogURL)
+                            }
+                            .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
+                        }
                     }
-                    .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
+                    Text("↗ öffnet eine Seite der Bibliothek im Browser.")
+                        .font(.caption)
+                        .foregroundStyle(Color(.textSecondary))
+                        .accessibilityHidden(true)
                 }
-                if let catalogURL {
-                    SecondaryButton("Im UB-Katalog öffnen", trailingSystemImage: "arrow.up.right") {
-                        model.open(catalogURL)
+            } else {
+                VStack(spacing: 10) {
+                    if let primary {
+                        PrimaryButton(LocalizedStringKey(primary.title), trailingSystemImage: "arrow.up.right") {
+                            model.open(primary.url)
+                        }
+                        .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
                     }
-                    .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
+                    if let catalogURL {
+                        SecondaryButton("Im UB-Katalog öffnen", trailingSystemImage: "arrow.up.right") {
+                            model.open(catalogURL)
+                        }
+                        .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
+                    }
+                    Text("↗ öffnet eine Seite der Bibliothek im Browser.")
+                        .font(.caption)
+                        .foregroundStyle(Color(.textTertiary))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityHidden(true)
                 }
-                Text("↗ öffnet eine Seite der Bibliothek im Browser.")
-                    .font(.caption)
-                    .foregroundStyle(Color(.textTertiary))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityHidden(true)
             }
         }
     }
@@ -405,6 +489,10 @@ struct TitelDetail: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Signatur kopieren")
+                if breit, let plan = row.floorPlanURL {
+                    Spacer(minLength: 8)
+                    lageplanLink(plan)
+                }
             }
 
             if let extra = row.extra {
@@ -413,7 +501,7 @@ struct TitelDetail: View {
                     .foregroundStyle(Color(.textSecondary))
             }
 
-            if let plan = row.floorPlanURL {
+            if !breit, let plan = row.floorPlanURL {
                 Button {
                     model.open(plan)
                 } label: {
@@ -432,6 +520,24 @@ struct TitelDetail: View {
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// „Lageplan ↗“ rechts in der Zeile der Signatur (breite Form).
+    private func lageplanLink(_ plan: URL) -> some View {
+        Button {
+            model.open(plan)
+        } label: {
+            HStack(spacing: 4) {
+                Text("Lageplan")
+                Image(systemName: "arrow.up.right").font(.caption.weight(.bold))
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color(.accent))
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Öffnet eine Seite der Bibliothek im Browser")
     }
 
     private var skeletonItems: some View {
@@ -455,8 +561,21 @@ struct TitelDetail: View {
             Card(verticalPadding: 0) {
                 VStack(spacing: 0) {
                     if contents.hasTableOfContents, let toc = contents.tableOfContents {
-                        fold("Inhaltsverzeichnis", isOpen: $model.tocOpen) {
-                            tableOfContents(toc)
+                        if breit {
+                            // iPad: Das Inhaltsverzeichnis steht aufgeklappt da, ohne Knopf.
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("Inhaltsverzeichnis")
+                                    .font(.callout.weight(.semibold))
+                                    .foregroundStyle(Color(.textPrimary))
+                                    .padding(.vertical, 12)
+                                    .accessibilityAddTraits(.isHeader)
+                                tableOfContents(toc)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            fold("Inhaltsverzeichnis", isOpen: $model.tocOpen) {
+                                tableOfContents(toc)
+                            }
                         }
                     }
                     if contents.hasTableOfContents, contents.hasBlurb {
@@ -646,7 +765,10 @@ struct TitelDetail: View {
                 SecondaryButton("Von der Merkliste entfernen") { model.vonMerklisteEntfernen() }
                     .padding(.bottom, 4)
             }
-            SecondaryButton(LocalizedStringKey(origin.backToTitle)) { dismiss() }
+            // Rechts neben den Treffern gibt es kein Zurück.
+            if !breit {
+                SecondaryButton(LocalizedStringKey(origin.backToTitle)) { dismiss() }
+            }
         }
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
@@ -657,9 +779,10 @@ struct TitelDetail: View {
 
 // MARK: - Cover
 
-/// Cover 96 × 136 oder Platzhalter mit Symbol. Bei „wird noch geholt“ lädt der Lader später erneut.
+/// Cover 96 × 136 (iPad, breite Form: 120 × 170) oder Platzhalter mit Symbol. Bei „wird noch geholt“ lädt der Lader später erneut.
 struct LibraryTitleCover: View {
     let model: LibraryTitleModel
+    var groesse = CGSize(width: 96, height: 136)
 
     @State private var image: UIImage?
 
@@ -678,8 +801,8 @@ struct LibraryTitleCover: View {
                     .foregroundStyle(Color(.textTertiary))
             }
         }
-        .frame(width: 96, height: 136)
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .frame(width: groesse.width, height: groesse.height)
+        .clipShape(RoundedRectangle(cornerRadius: groesse.width > 100 ? 8 : 6, style: .continuous))
         .shadow(color: shown == nil ? .clear : Color(.brandNight).opacity(0.18), radius: 10, x: 0, y: 8)
         .accessibilityHidden(true)
         .task(id: model.media.id) {

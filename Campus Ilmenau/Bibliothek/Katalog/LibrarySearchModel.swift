@@ -132,8 +132,28 @@ final class LibrarySearchModel {
         contentsEnabled = (try? await service.features().value.contents) ?? false
     }
 
+    /// iPad, Link `katalog/suche?q=<begriff>`: Der Begriff steht im Feld, die Treffer laden sofort. Die Änderung des Textes
+    /// löst danach in der Ansicht nicht noch einmal eine Suche aus.
+    func sucheVonAussen(_ begriff: String) {
+        let begriff = begriff.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !begriff.isEmpty else { return }
+        if text != begriff { uebersprungenerText = begriff }
+        text = begriff
+        // Eine offene erweiterte Suche (vielleicht mit Fehler in den Feldern) ersetzt die Suche nach dem Begriff.
+        advancedOpen = false
+        formError = nil
+        submit()
+    }
+
+    /// Der Text, dessen nächste Änderung `textChanged()` übergeht, weil `sucheVonAussen` schon gesucht hat.
+    @ObservationIgnored private var uebersprungenerText: String?
+
     /// Nach jeder Änderung im Suchfeld: kurz warten, dann suchen. Bei geöffneter erweiterter Suche gilt nur „Suchen“.
     func textChanged() {
+        if let uebersprungen = uebersprungenerText {
+            uebersprungenerText = nil
+            if text == uebersprungen { return }
+        }
         debounceTask?.cancel()
         guard !advancedOpen else { return }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

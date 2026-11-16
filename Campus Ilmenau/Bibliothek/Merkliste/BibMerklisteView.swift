@@ -7,6 +7,8 @@ struct BibMerklisteView: View {
     let coverLoader: LibraryCoverLoader
     /// Beschriftung des Zurück-Knopfs: „Bibliothek“ oder, wenn man aus einem Titel kam, „Titel“.
     var backTitle = "Bibliothek"
+    /// Ohne Zurück-Knopf, wenn die Merkliste ein eigenes Ziel der Seitenleiste ist (iPad).
+    var mitZurueck = true
     /// Previews legen fest, ob eine Watch bereit ist; sonst entscheidet `WatchVerbindung`.
     var watchBereit: Bool?
 
@@ -43,6 +45,7 @@ struct BibMerklisteView: View {
         service: LibraryCatalogService,
         coverLoader: LibraryCoverLoader,
         backTitle: String = "Bibliothek",
+        mitZurueck: Bool = true,
         status: BibMerklisteStatus? = nil,
         loadsStatus: Bool = true,
         watchBereit: Bool? = nil
@@ -50,6 +53,7 @@ struct BibMerklisteView: View {
         self.service = service
         self.coverLoader = coverLoader
         self.backTitle = backTitle
+        self.mitZurueck = mitZurueck
         self.watchBereit = watchBereit
         _status = State(initialValue: status ?? BibMerklisteStatus())
         _loadsStatus = State(initialValue: loadsStatus)
@@ -78,19 +82,21 @@ struct BibMerklisteView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 2) {
-                        Image(systemName: "chevron.left").font(.body.weight(.semibold))
-                        Text(backTitle)
+            if mitZurueck {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 2) {
+                            Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                            Text(backTitle)
+                        }
+                        .foregroundStyle(Color(.accent))
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                     }
-                    .foregroundStyle(Color(.accent))
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
+                    .accessibilityLabel("Zurück zu \(backTitle)")
                 }
-                .accessibilityLabel("Zurück zu \(backTitle)")
             }
         }
         .toast(
@@ -281,7 +287,14 @@ struct BibMerklisteView: View {
                         .multilineTextAlignment(.center)
                         .padding(.top, 6)
                         .padding(.bottom, 18)
-                    PrimaryButton("Im Katalog suchen") { showsCatalog = true }
+                    PrimaryButton("Im Katalog suchen") {
+                        // iPad: der Katalog mit Treffern und Titel nebeneinander, als Ziel der Seitenleiste.
+                        if let router, router.padHuelleAktiv {
+                            router.zeigeKatalogSuche()
+                        } else {
+                            showsCatalog = true
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }

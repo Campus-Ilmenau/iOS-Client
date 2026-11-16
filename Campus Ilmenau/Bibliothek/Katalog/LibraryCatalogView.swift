@@ -29,18 +29,35 @@ struct LibraryCatalogView: View {
 struct LibraryCatalogScreen: View {
     @Bindable var model: LibrarySearchModel
     var autofocus = false
+    /// iPad: die linke Spalte des Katalogs (Kopf mit Merkliste-Taste, umbrechende Chips, Auswahl statt Push).
+    var pad: KatalogPadAuswahl?
 
     @FocusState private var searchFocused: Bool
+    /// iPad: Die Liste hat den Tastaturfokus (Pfeiltasten).
+    @FocusState private var listeFokus: Bool
+    @Environment(\.merkliste) private var merkliste
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .subheadline) private var rowLabelWidth: CGFloat = 96
+
+    /// Seitenränder: 16 pt, auf dem iPad links 32 und rechts 20.
+    private var rand: EventsRand { pad?.rand ?? .telefon }
 
     var body: some View {
         VStack(spacing: 0) {
             titleBar
             searchRow
-            pills
-            if model.advancedOpen {
-                advancedPanel
+            if pad != nil {
+                // iPad: Die erweiterte Suche klappt direkt unter dem Suchfeld auf, die Chips rutschen nach unten.
+                if model.advancedOpen {
+                    advancedPanel
+                }
+                pills
+            } else {
+                pills
+                if model.advancedOpen {
+                    advancedPanel
+                }
             }
             results
         }
@@ -59,20 +76,64 @@ struct LibraryCatalogScreen: View {
             try? await Task.sleep(for: .milliseconds(350))
             searchFocused = true
         }
+        // iPad: ⌘F, „Im Katalog suchen“ und der Link `katalog/suche` setzen den Cursor ins Feld (nicht der Seitenleisten-Eintrag).
+        .task(id: pad?.fokusAnfrage.wrappedValue) {
+            guard let pad, pad.fokusAnfrage.wrappedValue else { return }
+            try? await Task.sleep(for: .milliseconds(350))
+            searchFocused = true
+            pad.fokusAnfrage.wrappedValue = false
+        }
+        .navigationBarBackButtonHidden(pad != nil)
+        .toolbar {
+            // iPad, Seitenleiste zu: Der Katalog liegt im Stapel des Tabs und hat „‹ Bibliothek“ oben links.
+            if let titel = pad?.zurueckTitel {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 2) {
+                            Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                            Text(titel)
+                        }
+                        .foregroundStyle(Color(.accent))
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Zurück zu \(titel)")
+                }
+            }
+        }
     }
 
     // MARK: - Kopf
 
     private var titleBar: some View {
-        Text("Katalog")
-            .display(size: 30, relativeTo: .largeTitle)
-            .foregroundStyle(Color(.textPrimary))
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
-            .accessibilityAddTraits(.isHeader)
+        HStack(spacing: 12) {
+            Text("Katalog")
+                .display(size: pad == nil ? 30 : 34, relativeTo: .largeTitle)
+                .foregroundStyle(Color(.textPrimary))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+            if let pad {
+                Button(action: pad.onMerkliste) {
+                    Image(systemName: "bookmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color(.textPrimary))
+                        .frame(width: 44, height: 44)
+                        .background(Color(.surfaceSecondary), in: Circle())
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .hoverEffect()
+                .accessibilityLabel("Merkliste")
+                .accessibilityValue(merkliste.anzahl == 0 ? "leer" : "\(merkliste.anzahl) Titel")
+            }
+        }
+        .padding(.leading, rand.links)
+        .padding(.trailing, rand.rechts)
+        .padding(.top, 4)
     }
 
     private var searchRow: some View {
@@ -123,24 +184,43 @@ struct LibraryCatalogScreen: View {
             }
             .accessibilityLabel("Erweiterte Suche")
             .accessibilityValue(model.advancedOpen ? "geöffnet" : "geschlossen")
+            .hoverEffect()
         }
-        .padding(.horizontal, 16)
+        .padding(.leading, rand.links)
+        .padding(.trailing, rand.rechts)
         .padding(.top, 8)
         .padding(.bottom, 10)
     }
 
+    @ViewBuilder
     private var pills: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+        if pad != nil {
+            // iPad: Die Chips brechen um, statt zu scrollen. Sie sind 34 pt hoch mit 44 pt Tippfläche (5 pt oben und unten);
+            // die Zeilen rücken um 2 pt zusammen.
+            ChipFlowLayout(spacing: 8, lineSpacing: -2) {
                 ForEach(LibraryMediaFilter.allCases, id: \.self) { kind in
                     pill(kind)
                 }
             }
-            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, rand.links)
+            .padding(.trailing, rand.rechts)
             .padding(.bottom, 10)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Medienart")
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(LibraryMediaFilter.allCases, id: \.self) { kind in
+                        pill(kind)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Medienart")
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Medienart")
     }
 
     private func pill(_ kind: LibraryMediaFilter) -> some View {
@@ -197,7 +277,8 @@ struct LibraryCatalogScreen: View {
         .padding(.bottom, 14)
         .padding(.horizontal, 16)
         .background(Color(.surface), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.horizontal, 16)
+        .padding(.leading, rand.links)
+        .padding(.trailing, rand.rechts)
         .padding(.bottom, 10)
         .onChange(of: model.formError) { _, newValue in
             if let newValue { AccessibilityNotification.Announcement(newValue).post() }
@@ -273,21 +354,30 @@ struct LibraryCatalogScreen: View {
     // MARK: - Ergebnisse
 
     private var results: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                switch model.phase {
-                case .start: startBlock
-                case .loading: loadingBlock
-                case .failed: failedBlock
-                case .empty: emptyBlock
-                case .results: resultsBlock
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 10) {
+                    switch model.phase {
+                    case .start: startBlock
+                    case .loading: loadingBlock
+                    case .failed: failedBlock
+                    case .empty: emptyBlock
+                    case .results: resultsBlock
+                    }
                 }
+                .padding(.leading, rand.links)
+                .padding(.trailing, rand.rechts)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+            .scrollDismissesKeyboard(.interactively)
+            .refreshable { await model.refresh() }
+            .modifier(PadListenTasten(aktiv: pad != nil, fokus: $listeFokus, onPfeil: { pad?.onPfeil($0) }))
+            .onChange(of: pad?.scrollZiel) { _, ziel in
+                guard let ziel else { return }
+                withAnimation(.snappy(duration: 0.2)) { proxy.scrollTo(ziel) }
+                pad?.onGescrollt()
+            }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .refreshable { await model.refresh() }
     }
 
     @ViewBuilder
@@ -326,24 +416,7 @@ struct LibraryCatalogScreen: View {
                     .accessibilityAddTraits(.isHeader)
             }
             ForEach(section.items) { media in
-                NavigationLink {
-                    LibraryTitleView(
-                        media: media,
-                        searchId: model.searchID(for: media),
-                        service: model.service,
-                        coverLoader: model.coverLoader
-                    )
-                } label: {
-                    LibraryResultCard(
-                        media: media,
-                        availability: model.availability[media.id],
-                        fromCatalog: section.fromCatalog,
-                        searchText: model.text,
-                        model: model
-                    )
-                }
-                .buttonStyle(.plain)
-                .onAppear { model.requestAvailability(for: media.id) }
+                trefferKarte(media, fromCatalog: section.fromCatalog)
             }
         }
 
@@ -372,6 +445,82 @@ struct LibraryCatalogScreen: View {
         }
         if let count = model.loadMoreCountInCatalog {
             loadMoreRow(count: count) { await model.loadMoreInCatalog() }
+        }
+    }
+
+    /// iPhone: Verweis auf den Titel im Stapel. iPad: Karte, die den Titel rechts auswählt (2-pt-Rand in `accent`), mit Hover
+    /// und Kontextmenü (Merken, Teilen).
+    @ViewBuilder
+    private func trefferKarte(_ media: LibraryMedia, fromCatalog: Bool) -> some View {
+        if let pad {
+            let gewaehlt = pad.gewaehlteID == media.id
+            Button {
+                pad.onWahl(media)
+                listeFokus = true
+            } label: {
+                LibraryResultCard(
+                    media: media,
+                    availability: model.availability[media.id],
+                    fromCatalog: fromCatalog,
+                    searchText: model.text,
+                    model: model,
+                    breit: true
+                )
+            }
+            .buttonStyle(.plain)
+            .overlay {
+                if gewaehlt {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color(.accent), lineWidth: 2)
+                        .allowsHitTesting(false)
+                }
+            }
+            .accessibilityAddTraits(gewaehlt ? [.isButton, .isSelected] : .isButton)
+            .hoverEffect()
+            .contextMenu { kontextmenue(media) }
+            .id(media.id)
+            .onAppear { model.requestAvailability(for: media.id) }
+        } else {
+            NavigationLink {
+                LibraryTitleView(
+                    media: media,
+                    searchId: model.searchID(for: media),
+                    service: model.service,
+                    coverLoader: model.coverLoader
+                )
+            } label: {
+                LibraryResultCard(
+                    media: media,
+                    availability: model.availability[media.id],
+                    fromCatalog: fromCatalog,
+                    searchText: model.text,
+                    model: model
+                )
+            }
+            .buttonStyle(.plain)
+            .onAppear { model.requestAvailability(for: media.id) }
+        }
+    }
+
+    @ViewBuilder
+    private func kontextmenue(_ media: LibraryMedia) -> some View {
+        let gemerkt = merkliste.istGemerkt(media.id)
+        Button {
+            if gemerkt {
+                merkliste.entfernen(media.id)
+            } else {
+                let cover = media.cover.status == .found ? model.service.coverURL(for: media.cover) : nil
+                merkliste.merken(GemerkterTitel(media: media, coverURL: cover))
+            }
+        } label: {
+            Label(
+                gemerkt ? "Von der Merkliste entfernen" : "Auf die Merkliste setzen",
+                systemImage: gemerkt ? "bookmark.slash" : "bookmark"
+            )
+        }
+        let teilen = LibraryMediaShare(media: media)
+        ShareLink(item: teilen.text, subject: Text(teilen.title)) {
+            Label("Teilen", systemImage: "square.and.arrow.up")
         }
     }
 

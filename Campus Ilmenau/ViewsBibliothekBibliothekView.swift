@@ -33,6 +33,12 @@ struct BibliothekView: View {
     @State private var biometrieHinweis: BibliotheksausweisZugang.Hinweis?
     @State private var toastMessage = ""
     @State private var showToast = false
+    /// iPad: Suche und Auswahl des Katalogs liegen im Router (sie überleben den Wechsel der Seitenleiste); ohne Router
+    /// (Vorschau) hier.
+    @State private var lokalesKatalogModell = LibrarySearchModel()
+    @State private var lokalerPadZustand = KatalogPadZustand()
+    /// iPad: Der Cursor soll ins Suchfeld des Katalogs (⌘F, „Im Katalog suchen“, Link); der Katalog setzt es zurück.
+    @State private var padKatalogFokus = false
 
     init() {
         let service = LibraryCatalogService()
@@ -129,10 +135,15 @@ struct BibliothekView: View {
             ),
             spalten: raster.bibliothekSpalten,
             onOpenCatalog: {
-                returningFromCatalog = true
-                katalogSuchbegriff = nil
-                katalogAutofokus = true
-                showCatalog = true
+                // Auf dem iPad ist der Katalog ein Ziel der Seitenleiste: mit Cursor im Suchfeld (wie ⌘F).
+                if let router, router.padHuelleAktiv {
+                    router.zeigeKatalogSuche()
+                } else {
+                    returningFromCatalog = true
+                    katalogSuchbegriff = nil
+                    katalogAutofokus = true
+                    showCatalog = true
+                }
             },
             onLogin: { showLoginSheet = true },
             onLogout: { service.logout() },
@@ -146,12 +157,72 @@ struct BibliothekView: View {
         )
     }
 
-    private func screen(_ raster: PadRaster) -> some View {
-        Group {
-            if raster.bibliothekSpalten > 1 {
-                padScreen(raster)
+    /// Was auf dem iPad die ganze Seite füllt, statt im Stapel zu liegen: Katalog und Merkliste, wenn sie ein Ziel der
+    /// offenen Seitenleiste sind (dann ohne Zurück). Bei geschlossener Seitenleiste liegen sie im Stapel des Tabs.
+    private enum PadWurzel { case katalog, merkliste }
+
+    /// Ohne die Breite der Ansicht zu fragen: Ist der Katalog gerade als Stapel darübergelegt, misst diese Ansicht darunter
+    /// nichts mehr. Die iPad-Hülle (nur bei regulärer Breite) genügt.
+    private func padWurzel() -> PadWurzel? {
+        guard let router, router.padHuelleAktiv, router.seitenleisteSichtbar else { return nil }
+        switch router.ziel {
+        case .katalog: return .katalog
+        case .merkliste: return .merkliste
+        default: return nil
+        }
+    }
+
+    private var padKatalogModell: LibrarySearchModel { router?.katalogModell ?? lokalesKatalogModell }
+
+    private var padZustand: Binding<KatalogPadZustand> {
+        Binding(
+            get: { router?.katalogPadZustand ?? lokalerPadZustand },
+            set: { neu in
+                if let router { router.katalogPadZustand = neu } else { lokalerPadZustand = neu }
+            }
+        )
+    }
+
+    /// Der Katalog, im Stapel (`zurueckTitel`) oder als Ziel der Seitenleiste. Die Breite misst die Oberfläche selbst (siehe
+    /// `padWurzel`): Auf dem iPad stehen Treffer und Titel nebeneinander, darunter gilt die iPhone-Ansicht.
+    private func katalogOberflaeche(zurueckTitel: String?) -> some View {
+        PadRasterMessung { raster in
+            if raster.istPad {
+                padKatalog(raster, zurueckTitel: zurueckTitel)
             } else {
-                telefonScreen
+                // `id`: Kommt ein neuer Begriff von Siri, während die Suche offen ist, entsteht sie neu.
+                LibraryCatalogView(autofocus: katalogAutofokus, suchbegriff: katalogSuchbegriff)
+                    .id(katalogSuchbegriff ?? "")
+            }
+        }
+    }
+
+    /// Der Katalog der iPad-Anordnung; im Stapel (`zurueckTitel`) mit „‹ Bibliothek“, als Ziel der Seitenleiste ohne.
+    private func padKatalog(_ raster: PadRaster, zurueckTitel: String?) -> some View {
+        KatalogPadAnsicht(
+            model: padKatalogModell,
+            zustand: padZustand,
+            raster: raster,
+            zurueckTitel: zurueckTitel,
+            fokusAnfrage: $padKatalogFokus,
+            onMerkliste: { router?.waehle(.merkliste) }
+        )
+    }
+
+    private func screen(_ raster: PadRaster) -> some View {
+        let wurzel = padWurzel()
+        return Group {
+            switch wurzel {
+            case .katalog:
+                katalogOberflaeche(zurueckTitel: nil)
+            case .merkliste:
+                BibMerklisteView(service: catalogService, coverLoader: coverLoader, mitZurueck: false)
+            case nil:
+                if raster.bibliothekSpalten > 1 {
+                    padScreen(raster)
+                } else {
+                    telefonScreen
+                }
             }
         }
         // Die Navigationsleiste bleibt vorerst für den Zurück-Pfeil, bis die TabBar die Navigation übernimmt.
@@ -182,6 +253,8 @@ struct BibliothekView: View {
                 returningFromCatalog = false
                 return
             }
+            // Katalog und Merkliste als Ziel der Seitenleiste brauchen keine Anmeldung.
+            if router?.padHuelleAktiv == true, router?.ziel == .katalog || router?.ziel == .merkliste { return }
             if !service.isAuthenticated {
                 showLoginSheet = true
             }
@@ -207,7 +280,10 @@ struct BibliothekView: View {
             // iPad: Form Sheet (ca. 540 breit), auf dem iPhone unverändert.
             .formularBlatt(pad: UIDevice.current.userInterfaceIdiom == .pad)
         }
-        .navigationDestination(isPresented: $showsMerkliste) {
+        .navigationDestination(isPresented: Binding(
+            get: { showsMerkliste && wurzel != .merkliste },
+            set: { showsMerkliste = $0 }
+        )) {
             BibMerklisteView(service: catalogService, coverLoader: coverLoader)
         }
         .navigationDestination(item: $openedTitle) { route in
@@ -219,10 +295,11 @@ struct BibliothekView: View {
                 origin: .library
             )
         }
-        .navigationDestination(isPresented: $showCatalog) {
-            // `id`: Kommt ein neuer Begriff von Siri, während die Suche offen ist, entsteht sie neu.
-            LibraryCatalogView(autofocus: katalogAutofokus, suchbegriff: katalogSuchbegriff)
-                .id(katalogSuchbegriff ?? "")
+        .navigationDestination(isPresented: Binding(
+            get: { showCatalog && wurzel != .katalog },
+            set: { showCatalog = $0 }
+        )) {
+            katalogOberflaeche(zurueckTitel: "Bibliothek")
         }
         .sheet(isPresented: $showNotificationsSheet) {
             PAIANotificationsView(service: service)
@@ -241,6 +318,8 @@ struct BibliothekView: View {
             katalogSuchbegriff = begriff
             katalogAutofokus = true
             showCatalog = true
+            // iPad: Der Begriff steht im Feld, die Treffer laden ohne Cursor.
+            if router.padHuelleAktiv { router.katalogModell.sucheVonAussen(begriff) }
             return true
         }
         if router.katalogSuche {
@@ -249,6 +328,7 @@ struct BibliothekView: View {
             katalogSuchbegriff = nil
             katalogAutofokus = true
             showCatalog = true
+            padKatalogFokus = true
             return true
         }
         if router.katalogOeffnen {
@@ -262,7 +342,14 @@ struct BibliothekView: View {
         if let id = router.katalogTitelWunsch {
             router.katalogTitelWunsch = nil
             beginneVonAussen()
-            openedTitle = LibraryTitleRoute(id: id)
+            if router.padHuelleAktiv {
+                // iPad: Der Titel steht rechts neben den Treffern; die Liste markiert ihn, falls er darin vorkommt.
+                let treffer = router.katalogModell.sections.flatMap(\.items)
+                router.katalogPadZustand.waehleVonAussen(LibraryTitleRoute(id: id).media, treffer: treffer)
+                showCatalog = true
+            } else {
+                openedTitle = LibraryTitleRoute(id: id)
+            }
             return true
         }
         if router.merklisteOeffnen {

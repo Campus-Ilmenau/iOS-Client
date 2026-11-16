@@ -40,6 +40,10 @@ final class AppRouter {
     /// Zustand, der den Wechsel der Hülle (iPad voll ↔ schmaler Split View) überleben soll: Die Ansichten entstehen
     /// dabei neu, diese Werte nicht.
     @ObservationIgnored lazy var eventsModel = EventsModel(widgetSync: .shared)
+    /// Die Katalogsuche des iPads (Begriff, Treffer, Filter) und die gewählte Veranstaltung rechts daneben: Sie überleben den
+    /// Wechsel zwischen Ausleihen, Katalog und Merkliste in der Seitenleiste, bei dem die Ansicht neu entsteht.
+    @ObservationIgnored lazy var katalogModell = LibrarySearchModel()
+    var katalogPadZustand = KatalogPadZustand()
     var mensaTagIndex = 0
     var mensaMahlzeit: MensaMealtime = .lunch
 

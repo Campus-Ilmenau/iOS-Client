@@ -61,8 +61,8 @@ struct PadRaster: Equatable {
         return breite >= Self.mensaVierSpaltenAb ? 3 : 2
     }
 
-    /// Breite der Liste links bei Veranstaltungen (und später Katalog): 440 pt ab 1150 pt Breite der Ansicht, darunter 360 pt.
-    var eventsListenbreite: CGFloat { breite >= Self.breiteAb ? 440 : 360 }
+    /// Breite der Liste links bei Veranstaltungen und Katalog: 440 pt ab 1150 pt Breite der Ansicht, darunter 360 pt.
+    var listenbreite: CGFloat { breite >= Self.breiteAb ? 440 : 360 }
 
     /// Bildschirmrand: 32 pt auf dem iPad, sonst 16 pt.
     var rand: CGFloat { istPad ? 32 : 16 }

@@ -33,6 +33,8 @@ struct LibraryResultCard: View {
     /// Wird für die Hervorhebung im Ausschnitt gebraucht.
     let searchText: String
     let model: LibrarySearchModel
+    /// iPad: Der Titel darf auf beliebig viele Zeilen umbrechen.
+    var breit = false
 
     private var statusText: String? {
         availability.map { $0.status.displayText(dueDate: $0.earliestDueDate) }
@@ -46,7 +48,7 @@ struct LibraryResultCard: View {
                 Text(media.title)
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(Color(.textPrimary))
-                    .lineLimit(2)
+                    .lineLimit(breit ? nil : 2)
                     .multilineTextAlignment(.leading)
 
                 if let subtitle = media.trimmedSubtitle {
