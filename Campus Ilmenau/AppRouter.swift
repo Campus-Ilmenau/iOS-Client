@@ -124,17 +124,15 @@ final class AppRouter {
     /// Wählt ein Ziel und stellt danach den Wunsch an dessen Ansicht. Teilen sich mehrere Ziele die Ansicht ihres Tabs und
     /// wechselt sie zu einem anderen Ziel, wird die bisherige Ansicht abgebaut und eine neue aufgebaut. Käme der Wunsch
     /// gleich, schluckte ihn noch die alte (und öffnete ihn in einer Ansicht, die gleich verschwindet). Darum wartet er, bis
-    /// die neue Ansicht erscheint und sich meldet (`ansichtErschienen`); nach 0,6 s kommt er auch ohne sie an.
+    /// die neue Ansicht erscheint und sich meldet (`ansichtErschienen`). Bibliothek und Veranstaltungen, die einzigen Tabs
+    /// mit geteilter Ansicht, melden sich in `onAppear`; in 20 Läufen kam jeder Wunsch so an, ein Zeitablauf als Rückfall
+    /// hat nie gegriffen und ist darum entfernt.
     func wechsle(zu neu: PadZiel, wunsch: @escaping @MainActor () -> Void) {
         let wechseltAnsicht = padHuelleAktiv && neu.teiltTabAnsicht && letztes[neu.tab] != neu
         ziel = neu
         guard wechseltAnsicht else { wunsch(); return }
         wunschUnterwegs = true
         ausstehenderWunsch = (neu.tab, wunsch)
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(600))
-            liefereAusstehendenWunsch()
-        }
     }
 
     /// Die Ansicht eines Tabs ist erschienen: Ein auf sie wartender Wunsch kommt jetzt an.

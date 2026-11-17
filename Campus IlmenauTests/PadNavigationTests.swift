@@ -185,12 +185,14 @@ struct PadNavigationTests {
         #expect(router.merklisteOeffnen && !router.wunschUnterwegs)
     }
 
-    @Test func einWunschKommtAuchOhneErscheinenNachKurzerZeitAn() async throws {
+    @Test func einWunschWartetBisDieNeueAnsichtErscheint() async throws {
         let router = AppRouter()
         router.padHuelleAktiv = true
         router.waehle(.merkliste)
-        #expect(!router.merklisteOeffnen)
+        // Kein Zeitablauf als Rückfall: Der Wunsch kommt erst mit `ansichtErschienen` an.
         try await Task.sleep(for: .milliseconds(800))
+        #expect(!router.merklisteOeffnen && router.wunschUnterwegs)
+        router.ansichtErschienen(.bibliothek)
         #expect(router.merklisteOeffnen && !router.wunschUnterwegs)
     }
 
