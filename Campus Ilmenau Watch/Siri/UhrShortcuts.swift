@@ -5,7 +5,7 @@ import AppIntents
 struct ThoskaHinweisIntent: AppIntent {
     static var title: LocalizedStringResource { LocalizedStringResource("Thoska auslesen", table: "Siri") }
     static var description: IntentDescription {
-        IntentDescription(LocalizedStringResource("Sagt dir, dass die Thoska nur auf dem iPhone ausgelesen wird.", table: "Siri"))
+        IntentDescription(LocalizedStringResource("Sagt dir, dass die Thoska nur am Handy ausgelesen wird.", table: "Siri"))
     }
     static var openAppWhenRun: Bool { false }
 

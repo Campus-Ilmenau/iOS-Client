@@ -496,12 +496,12 @@
         }
       }
     },
-    "Sagt dir, dass die Thoska nur auf dem iPhone ausgelesen wird." : {
+    "Sagt dir, dass die Thoska nur am Handy ausgelesen wird." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Tells you that Thoska can only be read on iPhone."
+            "value" : "Tells you that Thoska can only be read on your phone."
           }
         }
       }
