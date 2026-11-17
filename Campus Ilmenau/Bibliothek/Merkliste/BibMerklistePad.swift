@@ -63,6 +63,8 @@ struct BibMerklistePad<LeerKarte: View>: View {
     var vorschauTitel: (@MainActor (GemerkterTitel) -> LibraryTitleModel)?
 
     private let rand = EventsRand.pad
+    /// Die Liste hat den Tastaturfokus: ↑/↓ wechseln die Auswahl (wie bei Veranstaltungen und im Katalog).
+    @FocusState private var listeFokus: Bool
 
     private var alle: [GemerkterTitel] { offen + gefunden }
 
@@ -137,6 +139,24 @@ struct BibMerklistePad<LeerKarte: View>: View {
     }
 
     private var liste: some View {
+        ScrollViewReader { proxy in
+            listeInhalt
+                .modifier(PadListenTasten(aktiv: true, fokus: $listeFokus) { schritt in
+                    waehleNachbar(schritt, proxy: proxy)
+                })
+        }
+    }
+
+    /// ↑/↓: der vorige bzw. nächste Titel in der Reihenfolge der Liste (erst Offen, dann Gefunden), an den Enden bleibt es stehen.
+    private func waehleNachbar(_ schritt: Int, proxy: ScrollViewProxy) {
+        guard !alle.isEmpty else { return }
+        let aktuell = alle.firstIndex { $0.id == gewaehlteID } ?? (schritt > 0 ? -1 : alle.count)
+        let neu = min(max(aktuell + schritt, 0), alle.count - 1)
+        onWahl(alle[neu])
+        withAnimation { proxy.scrollTo(alle[neu].id) }
+    }
+
+    private var listeInhalt: some View {
         List {
             ForEach(offen) { zeile($0) }
 
@@ -177,6 +197,8 @@ struct BibMerklistePad<LeerKarte: View>: View {
             abhakKreis(eintrag)
             Button {
                 onWahl(eintrag)
+                // Danach gehen die Pfeiltasten.
+                listeFokus = true
             } label: {
                 BibMerklisteZeile(
                     eintrag: eintrag,
@@ -216,6 +238,7 @@ struct BibMerklistePad<LeerKarte: View>: View {
             }
         }
         .listZeile(links: rand.links, rechts: rand.rechts)
+        .id(eintrag.id)
         // Wischen bleibt wie auf dem iPhone: nach rechts „Entfernen“, nach links „Gefunden“.
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button(role: .destructive) {
