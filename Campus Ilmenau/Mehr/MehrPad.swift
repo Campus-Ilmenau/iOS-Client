@@ -47,7 +47,7 @@ struct MehrPad: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var listeFokus: Bool
-    @State private var aktuellesIcon = AlternativeAppIcons.aktuell
+    @State private var iconWahl = AlternativeAppIcons.aktuell
     @State private var filter = MensaFilterStore.load()
     @State private var browser: LibraryExternalLink?
     @State private var zeigtSiri = false
@@ -104,7 +104,7 @@ struct MehrPad: View {
     private func werteNeuLesen() {
         // Der Filter wird im Mensa-Tab geändert und liegt nicht in einem beobachtbaren Speicher.
         filter = filterVorgabe ?? MensaFilterStore.load()
-        aktuellesIcon = AlternativeAppIcons.aktuell
+        iconWahl = AlternativeAppIcons.aktuell
     }
 
     // MARK: - Links
@@ -325,9 +325,8 @@ struct MehrPad: View {
                 ueberschrift("App-Icon")
                 MehrBox(innen: 16, vertikal: 16) {
                     HStack(alignment: .top, spacing: 28) {
-                        iconAuswahl(nil, titel: Text("Standard"))
-                        ForEach(AlternativeAppIcons.namen, id: \.self) { name in
-                            iconAuswahl(name, titel: Text(verbatim: name))
+                        ForEach(AppIconWahl.allCases) { wahl in
+                            iconAuswahl(wahl)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -371,34 +370,31 @@ struct MehrPad: View {
         .accessibilityAddTraits(gewaehlt ? .isSelected : [])
     }
 
-    /// App-Icon 64 pt (`setAlternateIconName`). Ohne Alternativen im Projekt gibt es den Block nicht, wie die Zeile auf dem iPhone.
-    private func iconAuswahl(_ name: String?, titel: Text) -> some View {
-        let gewaehlt = aktuellesIcon == name
+    /// App-Icon 64 pt (`setAlternateIconName`), Rand 3 pt `accent` bei Auswahl. Schlägt das Setzen fehl, springt die Auswahl
+    /// auf das zurück, was iOS meldet.
+    private func iconAuswahl(_ wahl: AppIconWahl) -> some View {
+        let gewaehlt = iconWahl == wahl
         let form = RoundedRectangle(cornerRadius: 15, style: .continuous)
         return Button {
-            aktuellesIcon = name
-            Task { await AlternativeAppIcons.waehle(name) }
+            iconWahl = wahl
+            Task {
+                await AlternativeAppIcons.waehle(wahl)
+                iconWahl = AlternativeAppIcons.aktuell
+            }
         } label: {
             VStack(spacing: 8) {
-                Group {
-                    if let bild = AlternativeAppIcons.vorschau(name) {
-                        Image(uiImage: bild).resizable().scaledToFill()
-                    } else {
-                        Image(systemName: "app.dashed").font(.system(size: 26)).foregroundStyle(Color(.textTertiary))
-                    }
-                }
-                .frame(width: 64, height: 64)
-                .background(Color(.surfaceSecondary))
-                .clipShape(form)
-                .overlay { form.strokeBorder(Color(gewaehlt ? .accent : .separator), lineWidth: gewaehlt ? 3 : 1) }
-                .contentShape(.hoverEffect, form)
-                titel
+                AppIconBild(wahl: wahl, groesse: 64, radius: 15)
+                    .overlay { form.strokeBorder(Color(gewaehlt ? .accent : .separator), lineWidth: gewaehlt ? 3 : 1) }
+                    .contentShape(.hoverEffect, form)
+                Text(wahl.titel)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color(.textPrimary))
             }
+            .frame(minWidth: 64)
         }
         .buttonStyle(.plain)
         .hoverEffect()
+        .accessibilityLabel(wahl.titel)
         .accessibilityAddTraits(gewaehlt ? .isSelected : [])
     }
 

@@ -172,7 +172,7 @@ struct MehrScreen: View {
     @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var preisgruppe = MensaPriceGroup.studierende
 
     @Environment(\.openURL) private var openURL
-    @State private var aktuellesIcon = AlternativeAppIcons.aktuell
+    @State private var iconWahl = AlternativeAppIcons.aktuell
 
     var body: some View {
         List {
@@ -308,15 +308,36 @@ struct MehrScreen: View {
             }
             .accessibilityHint("Öffnet die Einstellungen")
 
+            // App-Icon: Tippen öffnet ein Menü mit Automatisch, Hell und Dunkel; rechts steht das aktuelle Icon.
             if AlternativeAppIcons.istVerfuegbar {
                 Menu {
-                    Button("Standard") { waehleIcon(nil) }
-                    ForEach(AlternativeAppIcons.namen, id: \.self) { name in
-                        Button(name) { waehleIcon(name) }
+                    ForEach(AppIconWahl.allCases) { wahl in
+                        Button {
+                            waehleIcon(wahl)
+                        } label: {
+                            if wahl == iconWahl {
+                                Label(wahl.titel, systemImage: "checkmark")
+                            } else {
+                                Text(wahl.titel)
+                            }
+                        }
                     }
                 } label: {
-                    zeile("App-Icon", wert: aktuellesIcon ?? "Standard", symbol: "chevron.up.chevron.down")
+                    HStack(spacing: 6) {
+                        Text("App-Icon")
+                            .foregroundStyle(Color(.textPrimary))
+                        Spacer(minLength: 12)
+                        AppIconBild(wahl: iconWahl, groesse: 30, radius: 7)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(Color(.textTertiary))
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
+                .accessibilityLabel("App-Icon")
+                .accessibilityValue(Text(iconWahl.titel))
             }
 
             NavigationLink {
@@ -380,9 +401,13 @@ struct MehrScreen: View {
         .contentShape(Rectangle())
     }
 
-    private func waehleIcon(_ name: String?) {
-        aktuellesIcon = name
-        Task { await AlternativeAppIcons.waehle(name) }
+    /// Setzt das Icon. Schlägt es fehl, springt die Auswahl zurück auf das, was iOS meldet.
+    private func waehleIcon(_ wahl: AppIconWahl) {
+        iconWahl = wahl
+        Task {
+            await AlternativeAppIcons.waehle(wahl)
+            iconWahl = AlternativeAppIcons.aktuell
+        }
     }
 
     // MARK: - Werte
