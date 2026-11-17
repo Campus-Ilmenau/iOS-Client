@@ -128,12 +128,14 @@ struct EventKarte: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.impact(weight: .light), trigger: gemerkt)
         // Für VoiceOver liegt „Merken“ als Aktion an der Karte.
         .accessibilityHidden(true)
     }
 
     private func umschalten() {
+        // Haptik direkt in der Aktion statt über `sensoryFeedback`: Im Filter „Gemerkt“ verschwindet
+        // die Karte beim Entfernen, und ein Feedback auf der entfernten View stürzt ab.
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         merkStore.umschalten(event.id)
     }
 }
