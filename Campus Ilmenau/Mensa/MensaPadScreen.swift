@@ -233,6 +233,10 @@ struct MensaPadScreen: View {
         Calendar.current.component(.weekday, from: days[index]) == 2 && index > 0
     }
 
+    /// Maße der Tageskachel wachsen mit der Schrift (56 × 64 bei normaler Größe), sonst wird „Heute“ abgeschnitten.
+    @ScaledMetric(relativeTo: .title3) private var kachelBreite: CGFloat = 56
+    @ScaledMetric(relativeTo: .title3) private var kachelHoehe: CGFloat = 64
+
     private func tageskachel(_ index: Int) -> some View {
         let day = days[index]
         let isSelected = index == selectedDayIndex
@@ -249,7 +253,7 @@ struct MensaPadScreen: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(isSelected ? Color(.onButtonPrimary) : Color(.textPrimary))
             }
-            .frame(width: 56, height: 64)
+            .frame(width: kachelBreite, height: kachelHoehe)
             .background(
                 isSelected ? Color(.buttonPrimary) : Color(.surface),
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)

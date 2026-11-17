@@ -17,9 +17,8 @@ private struct MensaPadVorschau: View {
     @State var zeigtFilter = false
 
     var body: some View {
-        let raster = PadRaster(breite: breite)
         NavigationStack {
-            PadRasterMessung { _ in
+            PadRasterMessung { raster in
                 MensaPadScreen(
                     days: MensaFormatting.workdays(from: MensaPreviewData.now),
                     selectedDayIndex: $dayIndex,

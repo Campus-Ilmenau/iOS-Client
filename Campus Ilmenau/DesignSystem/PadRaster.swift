@@ -38,6 +38,8 @@ struct PadRaster: Equatable {
     var breite: CGFloat = 0
     /// Nur ein iPad bekommt die iPad-Anordnung. Ein iPhone im Querformat bleibt bei der iPhone-Anordnung.
     var geraetIstPad = true
+    /// Dynamic Type steht auf einer Barrierefreiheitsgröße (AX1 und größer). Dann schalten Spalten früher um.
+    var grosseSchrift = false
 
     var anordnung: Anordnung {
         guard geraetIstPad else { return .untereinander }
@@ -52,6 +54,8 @@ struct PadRaster: Equatable {
     /// Spalten der Mensa-Ansicht: 1 = iPhone-Ansicht mit Leiste und Wischen, 2 ab 700 pt, 4 ab 1150 pt.
     var mensaSpalten: Int {
         guard istPad else { return 1 }
+        // Bei großer Schrift passen vier Spalten nicht (Status-Chips und Namen würden abgeschnitten): höchstens zwei.
+        if grosseSchrift { return 2 }
         return breite >= Self.mensaVierSpaltenAb ? 4 : 2
     }
 
@@ -87,10 +91,15 @@ extension EnvironmentValues {
 /// Anordnung in die andere.
 struct PadRasterMessung<Inhalt: View>: View {
     @ViewBuilder let inhalt: (PadRaster) -> Inhalt
+    @Environment(\.dynamicTypeSize) private var schriftgroesse
 
     var body: some View {
         GeometryReader { proxy in
-            let raster = PadRaster(breite: proxy.size.width, geraetIstPad: UIDevice.current.userInterfaceIdiom == .pad)
+            let raster = PadRaster(
+                breite: proxy.size.width,
+                geraetIstPad: UIDevice.current.userInterfaceIdiom == .pad,
+                grosseSchrift: schriftgroesse.isAccessibilitySize
+            )
             inhalt(raster).environment(\.padRaster, raster)
         }
     }
