@@ -545,6 +545,8 @@ struct MehrPad: View {
             ueberschrift(Text("Siri & Kurzbefehle", tableName: "Siri"))
             MehrBox {
                 ShortcutsLink()
+                    // Der Link bringt seine eigene Fläche mit: oben und unten Luft, damit sie nicht an der Zelle klebt.
+                    .padding(.vertical, 8)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .accessibilityHint(Text("Öffnet die Kurzbefehle von Campus Ilmenau", tableName: "Siri"))
                 navZeile(Text("Was du Siri fragen kannst", tableName: "Siri")) { zeigtSiri = true }

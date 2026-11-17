@@ -278,6 +278,8 @@ struct MehrScreen: View {
         Section {
             // Das System beschriftet den Link selbst und öffnet die Kurzbefehle bei Campus Ilmenau.
             ShortcutsLink()
+                // Der Link bringt seine eigene Fläche mit: oben und unten Luft, damit sie nicht an der Zelle klebt.
+                .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityHint(Text("Öffnet die Kurzbefehle von Campus Ilmenau", tableName: "Siri"))
             NavigationLink {
