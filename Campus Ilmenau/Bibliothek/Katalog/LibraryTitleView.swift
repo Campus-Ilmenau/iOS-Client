@@ -390,7 +390,11 @@ struct TitelDetail: View {
             if breit {
                 // iPad: Vormerken bzw. Online lesen und „Im UB-Katalog öffnen“ nebeneinander, der Hinweis linksbündig darunter.
                 VStack(alignment: .leading, spacing: 8) {
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                    // Steht nur ein Button da, füllt er die Zeile, statt links in der halben Spalte zu sitzen.
+                    let spalten = primary != nil && catalogURL != nil
+                        ? [GridItem(.flexible(), spacing: 10), GridItem(.flexible())]
+                        : [GridItem(.flexible())]
+                    LazyVGrid(columns: spalten, spacing: 10) {
                         if let primary {
                             PrimaryButton(LocalizedStringKey(primary.title), trailingSystemImage: "arrow.up.right") {
                                 model.open(primary.url)
