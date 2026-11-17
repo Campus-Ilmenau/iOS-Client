@@ -4,7 +4,7 @@ import SwiftUI
 /// vier Spalten, darunter zwei mit 28 pt Zeilenabstand. Daten, Filterregeln, Texte, Chips, Preisgruppe und Teilen-Inhalte
 /// sind die der iPhone-Ansicht (`MensaScreen`); hier ändert sich nur die Anordnung.
 ///
-/// Eine `ScrollView` für alles. Jede Zeile von Mensen ist eine `Section` mit angepinntem Kopf, der die Köpfe aller ihrer
+/// Kopf mit Filtern und Tagesleiste stehen fest, die Mensen scrollen darunter in einer `ScrollView`. Jede Zeile von Mensen ist eine `Section` mit angepinntem Kopf, der die Köpfe aller ihrer
 /// Spalten trägt: Sie bleiben beim Scrollen unter der schwebenden Tab-Leiste stehen (Hintergrund `background`), auch wenn
 /// eine Spalte kürzer ist als die anderen.
 /// Nach `Uebergabe.md`, „iPad“ → „Mensa“, Artboards `PadMensa` und `PadMensaFilter`.
@@ -70,25 +70,30 @@ struct MensaPadScreen: View {
     private var selectedDay: Date { days.indices.contains(selectedDayIndex) ? days[selectedDayIndex] : now }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    kopf
-                    if let zusammenfassung = filter.summary { zusatzfilter(zusammenfassung) }
-                    if let tipp {
-                        tipp.padding(.top, 8)
-                    }
-                    tagesleiste
-                    inhalt
+        VStack(alignment: .leading, spacing: 0) {
+            // Titel, Filter und Tagesleiste bleiben stehen; nur die Mensen darunter scrollen.
+            VStack(alignment: .leading, spacing: 0) {
+                kopf
+                if let zusammenfassung = filter.summary { zusatzfilter(zusammenfassung) }
+                if let tipp {
+                    tipp.padding(.top, 8)
                 }
-                .padding(.horizontal, raster.rand)
-                .padding(.bottom, 24)
+                tagesleiste
             }
-            .scrollBounceBehavior(.basedOnSize)
-            // Ein Link zu einer Mensa oder einem Gericht: zur Spalte scrollen.
-            .onChange(of: selectedVenue) { _, venue in
-                let zeile = zeilen.first { $0.contains(venue) }?.first ?? venue
-                withAnimation(.snappy) { proxy.scrollTo(zeile, anchor: .top) }
+            .padding(.horizontal, raster.rand)
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    inhalt
+                        .padding(.horizontal, raster.rand)
+                        .padding(.bottom, 24)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                // Ein Link zu einer Mensa oder einem Gericht: zur Spalte scrollen.
+                .onChange(of: selectedVenue) { _, venue in
+                    let zeile = zeilen.first { $0.contains(venue) }?.first ?? venue
+                    withAnimation(.snappy) { proxy.scrollTo(zeile, anchor: .top) }
+                }
             }
         }
         .background(Color(.background))
