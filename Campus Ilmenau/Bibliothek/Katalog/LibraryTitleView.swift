@@ -235,6 +235,10 @@ struct TitelDetail: View {
                 Text(media.title)
                     .display(size: 30, relativeTo: .title)
                     .foregroundStyle(Color(.textPrimary))
+                    // In einem schmalen Fenster passt ein langes Wort nicht in die Spalte neben dem Cover: lieber etwas
+                    // kleiner als mitten im Wort umbrechen.
+                    .lineLimit(6)
+                    .minimumScaleFactor(0.6)
                     .padding(.top, 4)
                     .accessibilityAddTraits(.isHeader)
                 if let subtitle = media.trimmedSubtitle {
