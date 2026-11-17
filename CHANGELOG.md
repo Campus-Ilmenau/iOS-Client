@@ -2,6 +2,40 @@
 
 Alle nennenswerten Änderungen an der Campus-Ilmenau-App. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Der Stand wurde aus der Git-Historie (2026-10-26 bis 2026-11-11) zusammengestellt.
 
+## [1.0.0] – Build 3
+
+### Apple Watch
+- Neue Watch-App mit Mensa, „Heute Abend“ und Merkliste.
+- Komplikationen, Widgets im Smart Stack und Siri auf der Apple Watch.
+- Neu auf dem iPhone: „Gefunden“.
+
+### iPad
+- Navigation mit Tab-Leiste oben und Seitenleiste. Die Logo-Ziege läuft im Kopf der Seitenleiste ein.
+- Heute in zwei Spalten, je nach Breite der Ansicht.
+- Mensa mit allen Mensen als Spalten. Bei großer Schrift sind es höchstens zwei Spalten, und die Tageskacheln wachsen mit.
+- Bibliothek mit drei bzw. zwei Spalten.
+- Katalog mit Treffern und Titel nebeneinander.
+- Merkliste mit Liste und Titel nebeneinander. Die Pfeiltasten ↑/↓ wechseln die Auswahl.
+- Veranstaltungen mit Liste und Detail nebeneinander.
+- „Mehr“ und Einstellungen mit Bereichen und Untermenü nebeneinander.
+
+### Mehr
+- Das App-Icon ist wählbar: Automatisch, Hell oder Dunkel, auf iPad und iPhone.
+
+### Behoben
+- Teilen als Bild über Nachrichten sendet keinen zusätzlichen Text mehr.
+- Mensa: Karten in der Gerichteliste hatten ungleiche Höhen und abgeschnittene Texte.
+- Bibliothek: Der Barcode-Scan der Thoska-Nummer im Login funktioniert.
+- Events: Absturz beim Entfernen des Sterns im Filter „Gemerkt“.
+- iPad: Einzelner Button im Titel steht mittig statt in der halben Spalte.
+- iPad: Der Mensa-Kopf mit Filtern und Tagesleiste bleibt beim Scrollen stehen.
+- Mehr: Der Kurzbefehle-Button hat Abstand oben und unten in der Zelle.
+- Navigation: Der Rückfall nach 0,6 s für wartende Wünsche ist entfernt.
+- Katalog: Ein langer Titel im schmalen Fenster bricht nicht mehr mitten im Wort.
+
+### Technik
+- Zustellung der Event-Links ist prüfbar und getestet.
+
 ## [1.0.0] – Build 2
 
 Erste Version der App. Sie umfasst alle Funktionen, die in der Git-Historie bis zum Stand 2026-11-11 enthalten sind.
