@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an der Campus-Ilmenau-App. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Der Stand wurde aus der Git-Historie (2026-10-26 bis 2026-11-11) zusammengestellt.
 
+## [1.0.0] – Build 4
+
+Build 3 wurde von App Store Connect abgelehnt (Fehler 90626). Build 4 enthält dieselben Funktionen plus die Korrektur.
+
+### Behoben
+- Siri: Die Beschreibung der Kurzbefehle enthält das Wort „iPhone“ nicht mehr. Damit besteht der Upload.
+
 ## [1.0.0] – Build 3
 
 ### Apple Watch
