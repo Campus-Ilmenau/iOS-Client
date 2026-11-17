@@ -1,6 +1,106 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "„Gibt es heute Abendessen bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Is there dinner today in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Hat die Mensa bei Campus Ilmenau offen?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Is the canteen open in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Lies meine Thoska mit Campus Ilmenau aus“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Read my Thoska with Campus Ilmenau”"
+          }
+        }
+      }
+    },
+    "„Suche im Katalog von Campus Ilmenau“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Search the catalog in Campus Ilmenau”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s heute in der Mensa bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s in the canteen today at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s heute Vegetarisches bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s vegetarian today at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was gibt’s zu essen in der Nanoteria bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s to eat at Nanoteria in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was ist heute Abend los bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s on tonight at Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Was steht auf meiner Merkliste bei Campus Ilmenau?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“What’s on my reading list in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
+    "„Welche Mensa hat bei Campus Ilmenau offen?“" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "“Which canteen is open in Campus Ilmenau?”"
+          }
+        }
+      }
+    },
     "%lld Titel" : {
       "localizations" : {
         "en" : {
@@ -33,22 +133,22 @@
         }
       }
     },
-    "Alle Treffer ›" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "All results ›"
-          }
-        }
-      }
-    },
     "Alle ›" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "All ›"
+          }
+        }
+      }
+    },
+    "Alle Treffer ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "All results ›"
           }
         }
       }
@@ -113,6 +213,9 @@
         }
       }
     },
+    "Das geht nur auf dem iPhone. Öffne dort Campus Ilmenau." : {
+
+    },
     "Dieses Ziel kenne ich nicht." : {
       "localizations" : {
         "en" : {
@@ -143,6 +246,16 @@
         }
       }
     },
+    "Fällt aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
     "Filter aus der App anwenden" : {
       "localizations" : {
         "en" : {
@@ -153,12 +266,12 @@
         }
       }
     },
-    "Fällt aus" : {
+    "fleischlos" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Cancelled"
+            "value" : "meatless"
           }
         }
       }
@@ -223,22 +336,22 @@
         }
       }
     },
-    "Link" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Link"
-          }
-        }
-      }
-    },
     "Läuft gerade" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Happening now"
+          }
+        }
+      }
+    },
+    "Link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
           }
         }
       }
@@ -323,12 +436,72 @@
         }
       }
     },
+    "offen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "open"
+          }
+        }
+      }
+    },
+    "Öffnet den Speiseplan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the menu"
+          }
+        }
+      }
+    },
+    "Öffnet die Kurzbefehle von Campus Ilmenau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the shortcuts for Campus Ilmenau"
+          }
+        }
+      }
+    },
+    "Öffnet die Suche im Katalog" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Opens the catalog search"
+          }
+        }
+      }
+    },
+    "ohne Fleisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "without meat"
+          }
+        }
+      }
+    },
     "Röntgenbau" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Röntgenbau"
+          }
+        }
+      }
+    },
+    "Sagt dir, dass die Thoska nur auf dem iPhone ausgelesen wird." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tells you that Thoska can only be read on iPhone."
           }
         }
       }
@@ -403,6 +576,9 @@
         }
       }
     },
+    "Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung." : {
+
+    },
     "Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung. „Thoska auslesen“ geht nur auf dem iPhone." : {
       "localizations" : {
         "en" : {
@@ -433,25 +609,22 @@
         }
       }
     },
-    "Das geht nur auf dem iPhone. Öffne dort Campus Ilmenau." : {
-
-    },
-    "Sagt dir, dass die Thoska nur auf dem iPhone ausgelesen wird." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Tells you that Thoska can only be read on iPhone."
-          }
-        }
-      }
-    },
     "Thoska auslesen" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "vegan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vegan"
           }
         }
       }
@@ -472,6 +645,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "vegan food"
+          }
+        }
+      }
+    },
+    "vegetarisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "vegetarian"
           }
         }
       }
@@ -546,192 +729,12 @@
         }
       }
     },
-    "fleischlos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "meatless"
-          }
-        }
-      }
-    },
-    "offen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "open"
-          }
-        }
-      }
-    },
-    "ohne Fleisch" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "without meat"
-          }
-        }
-      }
-    },
-    "vegan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "vegan"
-          }
-        }
-      }
-    },
-    "vegetarisch" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "vegetarian"
-          }
-        }
-      }
-    },
     "zu" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "closed"
-          }
-        }
-      }
-    },
-    "Öffnet den Speiseplan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Opens the menu"
-          }
-        }
-      }
-    },
-    "Öffnet die Kurzbefehle von Campus Ilmenau" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Opens the shortcuts for Campus Ilmenau"
-          }
-        }
-      }
-    },
-    "Öffnet die Suche im Katalog" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Opens the catalog search"
-          }
-        }
-      }
-    },
-    "„Gibt es heute Abendessen bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“Is there dinner today in Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Hat die Mensa bei Campus Ilmenau offen?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“Is the canteen open in Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Lies meine Thoska mit Campus Ilmenau aus“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“Read my Thoska with Campus Ilmenau”"
-          }
-        }
-      }
-    },
-    "„Suche im Katalog von Campus Ilmenau“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“Search the catalog in Campus Ilmenau”"
-          }
-        }
-      }
-    },
-    "„Was gibt’s heute Vegetarisches bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“What’s vegetarian today at Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Was gibt’s heute in der Mensa bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“What’s in the canteen today at Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Was gibt’s zu essen in der Nanoteria bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“What’s to eat at Nanoteria in Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Was ist heute Abend los bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“What’s on tonight at Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Was steht auf meiner Merkliste bei Campus Ilmenau?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“What’s on my reading list in Campus Ilmenau?”"
-          }
-        }
-      }
-    },
-    "„Welche Mensa hat bei Campus Ilmenau offen?“" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "“Which canteen is open in Campus Ilmenau?”"
           }
         }
       }

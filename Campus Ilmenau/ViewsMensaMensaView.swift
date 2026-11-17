@@ -128,6 +128,7 @@ struct MensaView: View {
         .onChange(of: mealtime) { _, _ in meldeAnSiri() }
         .onChange(of: router?.mensaWunsch) { _, _ in uebernehmeMensaWunsch() }
         .onChange(of: router?.mensaOeffnungszeiten) { _, _ in uebernehmeMensaWunsch() }
+        .onChange(of: router?.mensaFilterOeffnen) { _, _ in uebernehmeMensaWunsch() }
         .onChange(of: router?.gerichtWunsch) { _, _ in uebernehmeMensaWunsch() }
         .onChange(of: loadState) { _, neu in
             if neu != .loading { oeffneWartendesGericht() }
@@ -202,6 +203,15 @@ struct MensaView: View {
         if router?.mensaOeffnungszeiten == true {
             router?.mensaOeffnungszeiten = false
             zeigtOeffnungszeiten = true
+        }
+        if router?.mensaFilterOeffnen == true {
+            // „Mehr“ → „Filter für Ernährung und Allergene“: Popover (iPad) bzw. Sheet. Es hängt am Filter-Knopf, der erst
+            // nach dem Wechsel in den Tab steht.
+            router?.mensaFilterOeffnen = false
+            Task {
+                try? await Task.sleep(for: .milliseconds(450))
+                showFilterSheet = true
+            }
         }
         if let wunsch = router?.gerichtWunsch {
             router?.gerichtWunsch = nil

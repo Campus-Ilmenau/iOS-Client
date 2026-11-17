@@ -177,6 +177,30 @@ final class AppRouter {
     var ausweisWunsch = false
     /// Der Bibliothek-Tab öffnet beim nächsten Erscheinen die Merkliste.
     var merklisteOeffnen = false
+    /// „Mehr & Einstellungen“ zeigt beim nächsten Erscheinen diesen Bereich (iPad; Link `mehr?bereich=`).
+    var mehrBereich: MehrBereich?
+    /// Der Heute-Tab öffnet beim nächsten Erscheinen „Mehr“ (⌘, und Link bei geschlossener Seitenleiste, wie der Personen-Button).
+    var mehrOeffnen = false
+    /// Der Mensa-Tab öffnet beim nächsten Erscheinen den Filter (Popover bzw. Sheet), z. B. aus „Mehr“.
+    var mensaFilterOeffnen = false
+
+    /// Öffnet „Mehr & Einstellungen“ (⌘, und Link). Bei sichtbarer Seitenleiste ist es ihr Eintrag, sonst die Seite im Tab
+    /// „Heute“ (wie beim Personen-Button, mit „‹ Heute“).
+    func zeigeMehr(bereich: MehrBereich? = nil) {
+        mehrBereich = bereich
+        if padHuelleAktiv, seitenleisteSichtbar {
+            ziel = .mehr
+        } else {
+            ziel = .heute
+            mehrOeffnen = true
+        }
+    }
+
+    /// Mensa mit offenem Filter, aus „Mehr“ („Filter für Ernährung und Allergene“).
+    func zeigeMensaFilter() {
+        mensaFilterOeffnen = true
+        zeigeMensa()
+    }
 
     /// Wählt Tab und Ziel zu einem Deeplink (`campusilmenau://…`). Die Tabs lesen den Wunsch beim Erscheinen,
     /// auch wenn sie erst durch den Link zum ersten Mal aufgebaut werden.
@@ -211,6 +235,8 @@ final class AppRouter {
             zeigeOeffnungszeiten()
         case .merkliste:
             wechsle(zu: .merkliste) { self.merklisteOeffnen = true }
+        case .mehr(let bereich):
+            zeigeMehr(bereich: MehrBereich(link: bereich))
         }
     }
 }

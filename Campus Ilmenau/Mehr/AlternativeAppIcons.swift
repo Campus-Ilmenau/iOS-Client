@@ -18,6 +18,19 @@ enum AlternativeAppIcons {
     /// `nil` ist das Haupticon.
     static var aktuell: String? { UIApplication.shared.alternateIconName }
 
+    /// Bild für die Auswahl (64 pt) aus den Icon-Dateien der Info.plist; `nil`, wenn die Datei nicht als Bild ladbar ist.
+    static func vorschau(_ name: String?) -> UIImage? {
+        let icons = Bundle.main.infoDictionary?["CFBundleIcons"] as? [String: Any]
+        let eintrag: [String: Any]?
+        if let name {
+            eintrag = (icons?["CFBundleAlternateIcons"] as? [String: Any])?[name] as? [String: Any]
+        } else {
+            eintrag = icons?["CFBundlePrimaryIcon"] as? [String: Any]
+        }
+        guard let datei = (eintrag?["CFBundleIconFiles"] as? [String])?.last else { return nil }
+        return UIImage(named: datei)
+    }
+
     static func waehle(_ name: String?) async {
         try? await UIApplication.shared.setAlternateIconName(name)
     }

@@ -41,8 +41,14 @@ struct PadRootView: View {
             }
             TabSection("App") {
                 Tab("Mehr & Einstellungen", systemImage: "person.crop.circle", value: PadZiel.mehr) {
-                    NavigationStack { MehrView() }
-                        .tint(Color(.accent))
+                    // Eintrag der Seitenleiste: ohne Zurück. Bei geschlossener Seitenleiste führt „‹ Heute“ zurück.
+                    NavigationStack {
+                        MehrView(
+                            zurueckTitel: router.seitenleisteSichtbar ? nil : "Heute",
+                            onZurueck: { router.waehle(.heute) }
+                        )
+                    }
+                    .tint(Color(.accent))
                 }
             }
             // „Mehr“ ist kein Tab oben, nur ein Eintrag der Seitenleiste (und der Personen-Button auf Heute).

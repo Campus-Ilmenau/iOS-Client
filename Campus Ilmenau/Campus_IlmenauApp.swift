@@ -57,6 +57,11 @@ struct Campus_IlmenauApp: App {
                 Button("Neu laden") { AppRouter.gemeinsam.neuLaden() }
                     .keyboardShortcut("r", modifiers: .command)
             }
+            // ⌘, („Einstellungen …“ im Menü der App auf dem iPad): „Mehr & Einstellungen“.
+            CommandGroup(replacing: .appSettings) {
+                Button("Einstellungen …") { AppRouter.gemeinsam.zeigeMehr() }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
             // ⌘F (Menü „Bearbeiten“ auf dem iPad, Tastaturkürzel-Übersicht beim Halten von ⌘): Katalogsuche mit Cursor im Feld.
             CommandGroup(after: .textEditing) {
                 Button("Im Katalog suchen") { AppRouter.gemeinsam.zeigeKatalogSuche() }

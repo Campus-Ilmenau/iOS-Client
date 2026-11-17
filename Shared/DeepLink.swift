@@ -16,6 +16,7 @@ import Foundation
 /// | Katalog-Titel (Siri) | `campusilmenau://katalog/titel/<id>` |
 /// | Mensa-Öffnungszeiten (Siri) | `campusilmenau://mensa/zeiten` |
 /// | Merkliste (Siri) | `campusilmenau://bibliothek/merkliste` |
+/// | Mehr & Einstellungen | `campusilmenau://mehr` (iPad: optional `?bereich=<darstellung\|mensa\|konto\|sprache\|ueber>`) |
 ///
 /// `<id>` der Mensa ist `MensaVenue.rawValue` (z. B. `mensaEhrenberg`). Die Datei gehört zu App und Widget-Extension.
 nonisolated enum DeepLink: Equatable, Sendable {
@@ -37,6 +38,9 @@ nonisolated enum DeepLink: Equatable, Sendable {
     case katalogTitel(id: String)
     case mensaZeiten
     case merkliste
+    /// „Mehr & Einstellungen“; auf dem iPad mit vorgewähltem Bereich (`darstellung`, `mensa`, `konto`, `sprache`, `ueber`),
+    /// auf dem iPhone gibt es nur die eine Liste. Ein unbekannter Bereich gilt wie keiner.
+    case mehr(bereich: String?)
 
     // MARK: Lesen
 
@@ -73,6 +77,8 @@ nonisolated enum DeepLink: Equatable, Sendable {
             self = .katalogTitel(id: pfad[1])
         case "bibliothek" where pfad == ["merkliste"]:
             self = .merkliste
+        case "mehr" where pfad.isEmpty:
+            self = .mehr(bereich: parameter("bereich"))
         default:
             return nil
         }
@@ -119,6 +125,9 @@ nonisolated enum DeepLink: Equatable, Sendable {
         case .merkliste:
             komponenten.host = "bibliothek"
             komponenten.path = "/merkliste"
+        case .mehr(let bereich):
+            komponenten.host = "mehr"
+            if let bereich { komponenten.queryItems = [URLQueryItem(name: "bereich", value: bereich)] }
         }
         // Die Bestandteile sind fest oder kodiert; ein Fehlschlag wäre ein Programmierfehler.
         return komponenten.url ?? URL(fileURLWithPath: "/")

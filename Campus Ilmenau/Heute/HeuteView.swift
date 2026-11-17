@@ -53,7 +53,7 @@ struct HeuteView: View {
             .background(Color(.background))
             .toolbar(.hidden, for: .navigationBar)
             .refreshable { await model.laden() }
-            .navigationDestination(isPresented: $zeigtMehr) { MehrView() }
+            .navigationDestination(isPresented: $zeigtMehr) { MehrView(zurueckTitel: "Heute") }
             .navigationDestination(item: $geoeffnetesEvent) { event in
                 EventDetailView(id: event.id, event: event)
             }
@@ -72,7 +72,19 @@ struct HeuteView: View {
             await model.laden()
             await model.beobachten()
         }
-        .onAppear { model.mensaNeuLesen() }
+        .onAppear {
+            model.mensaNeuLesen()
+            oeffneMehrAufWunsch()
+        }
+        // ⌘, und der Link `mehr` bei geschlossener Seitenleiste: dieselbe Seite wie der Personen-Button.
+        .onChange(of: router?.mehrOeffnen) { _, _ in oeffneMehrAufWunsch() }
+        // „Mensa auf der Startseite“ und der Filter ändern sich unter „Mehr“: Beim Zurück bzw. beim Wechsel zu Heute gelten sie sofort.
+        .onChange(of: zeigtMehr) { _, offen in
+            if !offen { model.mensaNeuLesen() }
+        }
+        .onChange(of: router?.ziel) { _, neu in
+            if neu == .heute { model.mensaNeuLesen() }
+        }
         .onChange(of: scenePhase) { _, neu in
             guard neu == .active else { return }
             model.mensaNeuLesen()
@@ -83,6 +95,12 @@ struct HeuteView: View {
             guard router?.tab == .heute else { return }
             Task { await model.laden() }
         }
+    }
+
+    private func oeffneMehrAufWunsch() {
+        guard router?.mehrOeffnen == true else { return }
+        router?.mehrOeffnen = false
+        zeigtMehr = true
     }
 
     @ViewBuilder

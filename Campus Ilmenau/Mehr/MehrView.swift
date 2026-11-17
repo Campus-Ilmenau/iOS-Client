@@ -10,29 +10,149 @@ enum MehrKonto: Equatable {
 
 /// „Mehr und Einstellungen“ (Personen-Button auf Heute). Verdrahtet die Oberfläche (`MehrScreen`) mit dem
 /// PAIA-Service, dem Login-Sheet und dem Katalog. Nach `Mehr.dc.html`.
+///
+/// Ab 700 pt Breite der Ansicht (iPad) stehen die Bereiche links und das Untermenü rechts (`MehrPad`, nach `PadMehr.dc.html`),
+/// darunter gilt die iPhone-Ansicht. Beide zeigen dieselben Einstellungen unter denselben Schlüsseln.
 struct MehrView: View {
+    /// Beschriftung von „‹ …“ oben links (iPad-Anordnung), wenn die Seite nicht als Eintrag der Seitenleiste dasteht, sondern
+    /// aus „Heute“ kommt. Ohne Titel gibt es kein Zurück.
+    var zurueckTitel: String?
+    /// Was „‹ …“ tut; ohne Angabe schließt es die Seite im Stapel.
+    var onZurueck: (() -> Void)?
+
     @ObservedObject private var service = PAIAService.shared
+    /// Nur für die Öffnungszeiten unter „Mensa auf der Startseite“ (iPad-Anordnung).
+    @StateObject private var mensaService = MensaService()
     @State private var zeigtLogin = false
     @State private var zeigtKatalog = false
+    @State private var bereich = MehrBereich.standard
+
+    @Environment(AppRouter.self) private var router: AppRouter?
+    @Environment(\.dismiss) private var dismiss
+    /// Wo das System die Tabs zeigt. Der Eintrag „Mehr & Einstellungen“ der Seitenleiste ist kein `TabInhalt`, meldet die
+    /// Platzierung also selbst; sonst bliebe der Router bei geschlossener Seitenleiste auf „sichtbar“ (⌘, und Links
+    /// öffneten dann den Eintrag statt der Seite in „Heute“).
+    @Environment(\.tabBarPlacement) private var platzierung
+
+    init(zurueckTitel: String? = nil, onZurueck: (() -> Void)? = nil) {
+        self.zurueckTitel = zurueckTitel
+        self.onZurueck = onZurueck
+    }
+
+    private var konto: MehrKonto {
+        service.isAuthenticated ? .angemeldet(benutzernummer: service.lastUsername) : .abgemeldet
+    }
 
     var body: some View {
-        MehrScreen(
-            konto: service.isAuthenticated ? .angemeldet(benutzernummer: service.lastUsername) : .abgemeldet,
-            onAnmelden: { zeigtLogin = true },
-            // Verwirft Token und Sitzung im Speicher
-            onAbmelden: { service.logout() }
-        )
+        PadRasterMessung { raster in
+            if raster.istPad {
+                padSeite(raster)
+            } else {
+                MehrScreen(
+                    konto: konto,
+                    onAnmelden: { zeigtLogin = true },
+                    // Verwirft Token und Sitzung im Speicher
+                    onAbmelden: { service.logout() }
+                )
+            }
+        }
         .sheet(isPresented: $zeigtLogin) {
             PAIALoginSheet(service: service, onSuccess: {
                 zeigtLogin = false
             }, onOpenCatalog: {
                 // Wie in der Bibliothek: Sheet schließen und den Katalog ohne Anmeldung öffnen
                 zeigtLogin = false
-                zeigtKatalog = true
+                if let router, router.padHuelleAktiv {
+                    router.zeigeKatalogSuche()
+                } else {
+                    zeigtKatalog = true
+                }
             })
+            // iPad: Form Sheet (ca. 540 breit) wie in der Bibliothek, auf dem iPhone unverändert.
+            .formularBlatt(pad: UIDevice.current.userInterfaceIdiom == .pad)
         }
-        .navigationDestination(isPresented: $zeigtKatalog) {
-            LibraryCatalogView(autofocus: true)
+        .modifier(MehrKatalogImStapel(aktiv: router?.padHuelleAktiv != true, istOffen: $zeigtKatalog))
+        .onAppear(perform: uebernehmeWunsch)
+        .onChange(of: router?.mehrBereich) { _, _ in uebernehmeWunsch() }
+        .onChange(of: platzierung, initial: true) { _, neu in
+            guard let router, router.padHuelleAktiv else { return }
+            router.seitenleisteSichtbar = (neu == .sidebar)
+        }
+    }
+
+    private func padSeite(_ raster: PadRaster) -> some View {
+        MehrPad(
+            konto: konto,
+            raster: raster,
+            bereich: $bereich,
+            onAnmelden: { zeigtLogin = true },
+            onAbmelden: { service.logout() },
+            oeffnungszeiten: oeffnungszeiten
+        )
+        .task { try? await mensaService.fetchCanteens() }
+        // Die Navigationsleiste bleibt für „‹ Heute“; der Titel steht groß in der Liste.
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            if let zurueckTitel {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        if let onZurueck { onZurueck() } else { dismiss() }
+                    } label: {
+                        HStack(spacing: 2) {
+                            Image(systemName: "chevron.left").font(.body.weight(.semibold))
+                            Text(zurueckTitel)
+                        }
+                        .foregroundStyle(Color(.accent))
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Zurück zu \(zurueckTitel)")
+                }
+            }
+        }
+    }
+
+    /// Heutige Öffnungszeiten je Mensa für die Unterzeile („11:00–14:00 Uhr“); die Cafeteria Ehrenberg nennt das Abendessen.
+    private var oeffnungszeiten: [MensaVenue: String] {
+        var ergebnis: [MensaVenue: String] = [:]
+        for venue in MensaVenue.allCases {
+            guard let mensa = mensaService.canteens.first(where: { venue.matches(canteenName: $0.name) }) else { continue }
+            let heute = MensaOpeningHours.todayText(for: mensa.openingHours, now: .now)
+            guard heute != "heute geschlossen" else {
+                ergebnis[venue] = String(localized: "Heute geschlossen")
+                continue
+            }
+            ergebnis[venue] = venue.hasMealtimes
+                ? heute + " · " + String(localized: "Abendessen ab \(HeuteUhr.uhrzeit(minuten: HeuteModel.abendessenBeginn))")
+                : heute
+        }
+        return ergebnis
+    }
+
+    /// Ein Bereich aus dem Link (`mehr?bereich=`) oder von einem Sprung wird gewählt.
+    private func uebernehmeWunsch() {
+        guard let wunsch = router?.mehrBereich else { return }
+        router?.mehrBereich = nil
+        bereich = wunsch
+    }
+}
+
+/// Der Katalog im Stapel von „Mehr“ (iPhone, nach „Anmelden › Katalog ohne Anmeldung“). In der iPad-Hülle öffnet der Router
+/// den Katalog; dort bliebe die Anweisung ohne eigenen Navigationsstapel „fehlplatziert“ und SwiftUI meldet das im Log.
+private struct MehrKatalogImStapel: ViewModifier {
+    let aktiv: Bool
+    @Binding var istOffen: Bool
+
+    func body(content: Content) -> some View {
+        if aktiv {
+            content.navigationDestination(isPresented: $istOffen) {
+                LibraryCatalogView(autofocus: true)
+            }
+        } else {
+            content
         }
     }
 }

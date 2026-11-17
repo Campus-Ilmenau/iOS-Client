@@ -40,9 +40,12 @@ struct SiriFragenView: View {
         ])
     ]
 
+    /// Symbol des Abschnitts „Thoska auslesen“ (sein Merkmal beim Ausblenden auf dem iPad).
+    private static let thoskaSymbol = "wave.3.right"
+
     var body: some View {
         List {
-            ForEach(Self.abschnitte) { abschnitt in
+            ForEach(Self.abschnitte.filter { $0.symbol != Self.thoskaSymbol || ThoskaInMehr.sichtbar }) { abschnitt in
                 Section {
                     ForEach(Array(abschnitt.saetze.enumerated()), id: \.offset) { _, satz in
                         Text(satz)
@@ -68,7 +71,10 @@ struct SiriFragenView: View {
             Section {
                 EmptyView()
             } footer: {
-                Text("Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung. „Thoska auslesen“ geht nur auf dem iPhone.", tableName: "Siri")
+                // Auf dem iPad kommt Thoska nicht vor, auch nicht als Hinweis.
+                (ThoskaInMehr.sichtbar
+                    ? Text("Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung. „Thoska auslesen“ geht nur auf dem iPhone.", tableName: "Siri")
+                    : Text("Statt „Campus Ilmenau“ geht auch „Campus“. Die Sätze gehen sofort, ohne Einrichtung.", tableName: "Siri"))
                     .font(.footnote)
                     .foregroundStyle(Color(.textSecondary))
             }

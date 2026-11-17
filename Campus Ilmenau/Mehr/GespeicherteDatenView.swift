@@ -22,7 +22,8 @@ struct GespeicherteDatenView: View {
     var body: some View {
         List {
             titel
-            thoskaAbschnitt
+            // Ohne NFC (iPad) gibt es keinen Thoska-Verlauf.
+            if ThoskaInMehr.sichtbar { thoskaAbschnitt }
             merklisteAbschnitt
             eventsAbschnitt
             einstellungenAbschnitt
