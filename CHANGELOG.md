@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an der Campus-Ilmenau-App. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Der Stand wurde aus der Git-Historie (2026-10-26 bis 2026-11-11) zusammengestellt.
 
+## [1.0.0] – Build 5
+
+### Behoben
+- Bibliothek: Auf dem iPad blieb das Login-Sheet nach dem Ausfüllen per Passwort-AutoFill (Touch ID) leer. Das Formular ist neu aufgebaut. Auf dem Gerät noch zu prüfen.
+
 ## [1.0.0] – Build 4
 
 Build 3 wurde von App Store Connect abgelehnt (Fehler 90626). Build 4 enthält dieselben Funktionen plus die Korrektur.
