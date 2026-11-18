@@ -52,6 +52,20 @@ struct BibliothekView: View {
         PadRasterMessung { raster in
             seite(raster)
         }
+        .sheet(isPresented: $showLoginSheet) {
+            PAIALoginSheet(service: service, onSuccess: {
+                showLoginSheet = false
+                Task { await loadData() }
+            }, onOpenCatalog: {
+                showLoginSheet = false
+                returningFromCatalog = true
+                katalogSuchbegriff = nil
+                katalogAutofokus = true
+                showCatalog = true
+            })
+            // iPad: Form Sheet (ca. 540 breit), auf dem iPhone unverändert.
+            .formularBlatt(pad: UIDevice.current.userInterfaceIdiom == .pad)
+        }
     }
 
     private func seite(_ raster: PadRaster) -> some View {
@@ -265,20 +279,6 @@ struct BibliothekView: View {
                 ausweisDaten = nil
                 showLoginSheet = true
             }
-        }
-        .sheet(isPresented: $showLoginSheet) {
-            PAIALoginSheet(service: service, onSuccess: {
-                showLoginSheet = false
-                Task { await loadData() }
-            }, onOpenCatalog: {
-                showLoginSheet = false
-                returningFromCatalog = true
-                katalogSuchbegriff = nil
-                katalogAutofokus = true
-                showCatalog = true
-            })
-            // iPad: Form Sheet (ca. 540 breit), auf dem iPhone unverändert.
-            .formularBlatt(pad: UIDevice.current.userInterfaceIdiom == .pad)
         }
         .navigationDestination(isPresented: Binding(
             get: { showsMerkliste && wurzel != .merkliste },
