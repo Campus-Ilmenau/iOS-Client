@@ -113,49 +113,45 @@ struct PAIALoginContent: View {
 
     var body: some View {
         NavigationStack {
-            GeometryReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        header
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    header
 
-                        if isExpired {
-                            notice
-                        }
-                        if let errorMessage {
-                            errorBox(errorMessage)
-                        }
-
-                        usernameField
-                        passwordField
-
-                        PrimaryButton("Anmelden", isLoading: isLoggingIn, action: onLogin)
-                            .disabled(!canLogin)
-                            .accessibilityLabel(isLoggingIn ? "Anmelden, bitte warten" : "Anmelden")
-
-                        Button(action: onOpenCatalog) {
-                            Text("Ohne Anmeldung im Katalog suchen")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(Color(.accent))
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                        }
-
-                        Spacer(minLength: 8)
-
-                        Text("Anmeldung über die PAIA-Schnittstelle der Universitätsbibliothek. Benutzernummer und Passwort werden nicht gespeichert – nach einem Neustart der App meldest du dich neu an.")
-                            .font(.caption)
-                            .foregroundStyle(Color(.textTertiary))
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
+                    if isExpired {
+                        notice
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    .padding(.bottom, 24)
-                    // Fußnote steht am unteren Rand, solange der Inhalt kürzer ist als der Bildschirm.
-                    .frame(minHeight: proxy.size.height, alignment: .top)
+                    if let errorMessage {
+                        errorBox(errorMessage)
+                    }
+
+                    usernameField
+                    passwordField
+
+                    PrimaryButton("Anmelden", isLoading: isLoggingIn, action: onLogin)
+                        .disabled(!canLogin)
+                        .accessibilityLabel(isLoggingIn ? "Anmelden, bitte warten" : "Anmelden")
+
+                    Button(action: onOpenCatalog) {
+                        Text("Ohne Anmeldung im Katalog suchen")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Color(.accent))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Text("Anmeldung über die PAIA-Schnittstelle der Universitätsbibliothek. Benutzernummer und Passwort werden nicht gespeichert – nach einem Neustart der App meldest du dich neu an.")
+                        .font(.caption)
+                        .foregroundStyle(Color(.textTertiary))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
                 }
-                .scrollDismissesKeyboard(.interactively)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 24)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color(.background))
             .navigationTitle("Bibliothek")
             .navigationBarTitleDisplayMode(.inline)
