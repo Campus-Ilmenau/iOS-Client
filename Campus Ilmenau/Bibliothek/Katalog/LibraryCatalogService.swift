@@ -45,7 +45,7 @@ final class LibraryCatalogService {
 
     // MARK: - Initialization
     init(
-        baseURL: String = "https://dev-api.campus-ilmenau.de/develop",
+        baseURL: String = APIUmgebung.baseURL,
         session: URLSession = .shared
     ) {
         self.baseURL = baseURL

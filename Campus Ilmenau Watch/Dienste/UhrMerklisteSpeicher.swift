@@ -5,7 +5,7 @@ import Observation
 /// Je Titel zählt das erste Exemplar mit `available` bzw. `reference_only` (siehe `UhrRegalStand`).
 struct UhrRegalClient {
     static let paketgroesse = 20
-    var baseURL = "https://dev-api.campus-ilmenau.de/develop"
+    var baseURL = APIUmgebung.baseURL
     var session: URLSession = .shared
 
     // Die Antwort der API, nur die Felder, die die Uhr braucht (Schlüssel in snake_case, siehe `APIHilfen.decoder`).

@@ -39,7 +39,7 @@ final class EventsService {
     private let session: URLSession
 
     init(
-        baseURL: String = "https://dev-api.campus-ilmenau.de/develop",
+        baseURL: String = APIUmgebung.baseURL,
         session: URLSession = .shared
     ) {
         self.baseURL = baseURL
