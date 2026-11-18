@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an der Campus-Ilmenau-App. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Der Stand wurde aus der Git-Historie (2026-10-26 bis 2026-11-11) zusammengestellt.
 
+## [1.0.0] – Build 6
+
+### Behoben
+- Bibliothek: Das Login-Sheet verlor beim Szenenwechsel die Eingabe. Dadurch blieben die Felder nach dem AutoFill per Touch ID leer. Auf dem Gerät noch zu prüfen.
+
 ## [1.0.0] – Build 5
 
 ### Behoben
