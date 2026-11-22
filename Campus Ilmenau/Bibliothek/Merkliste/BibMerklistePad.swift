@@ -93,6 +93,10 @@ struct BibMerklistePad<LeerKarte: View>: View {
                 liste
             }
         }
+        // 1 pt Abstand zur Seitenleiste: Grenzt die Liste direkt an ihre Safe Area, zieht das System sie bis unter die
+        // Seitenleiste (Rahmen ab x = 0) und rechnet deren Breite in die Swipe-Aktion ein. „Entfernen“ schob die Karte
+        // dann um 280 pt zu weit aus der Spalte.
+        .padding(.leading, 1)
     }
 
     private var kopf: some View {
