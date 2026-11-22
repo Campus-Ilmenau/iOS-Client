@@ -31,6 +31,8 @@ struct BibMerklisteView: View {
     @State private var lageplan: LibraryExternalLink?
     /// iPad: der Titel rechts. Gilt nur, solange er in der Liste steht (siehe `gewaehlteID`).
     @State private var auswahlID: String?
+    /// iPhone: der Titel, den die Liste gerade im Stapel zeigt.
+    @State private var geoeffnet: GemerkterTitel?
 
     /// Was „Widerrufen“ rückgängig macht.
     private enum Widerruf: Equatable {
@@ -252,6 +254,15 @@ struct BibMerklisteView: View {
             await ergaenzen()
             await ladeStatus()
         }
+        .navigationDestination(item: $geoeffnet) { eintrag in
+            LibraryTitleView(
+                media: eintrag.alsMedia,
+                searchId: nil,
+                service: service,
+                coverLoader: coverLoader,
+                origin: .merkliste
+            )
+        }
     }
 
     private var fussnote: some View {
@@ -263,51 +274,38 @@ struct BibMerklisteView: View {
             .padding(.top, 4)
     }
 
-    /// Wischen ist bewusst umgekehrt zu Mail: nach rechts „Entfernen“ (links), nach links „Gefunden“ (rechts).
+    /// Wischen ist bewusst umgekehrt zu Mail: nach rechts „Entfernen“ (links), nach links „Gefunden“ (rechts). Die Flächen
+    /// dahinter sind so hoch wie die Zeile (`WischZeile`); den Chevron zeichnet die Zeile selbst, damit er mitwandert.
     private func zeile(_ eintrag: GemerkterTitel) -> some View {
-        NavigationLink {
-            LibraryTitleView(
-                media: eintrag.alsMedia,
-                searchId: nil,
-                service: service,
-                coverLoader: coverLoader,
-                origin: .merkliste
-            )
-        } label: {
-            BibMerklisteZeile(
-                eintrag: eintrag,
-                status: status.status(for: eintrag.id),
-                exemplar: status.exemplar(for: eintrag.id),
-                onLageplan: { lageplan = LibraryExternalLink(url: $0) }
-            )
+        WischZeile(
+            links: .entfernen { entfernen(eintrag) },
+            rechts: .gefunden(eintrag) { setzeGefunden($0, eintrag) }
+        ) {
+            // Kein `Button`: Er löste auch nach einem Wisch aus, solange der Finger auf der Zeile lag. Ein Tippen verfällt
+            // bei Bewegung, so öffnet ein Wisch den Titel nicht.
+            HStack(spacing: 8) {
+                BibMerklisteZeile(
+                    eintrag: eintrag,
+                    status: status.status(for: eintrag.id),
+                    exemplar: status.exemplar(for: eintrag.id),
+                    onLageplan: { lageplan = LibraryExternalLink(url: $0) }
+                )
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color(.textTertiary))
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.surface))
+            .contentShape(Rectangle())
+            .wischTipp { geoeffnet = eintrag }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { geoeffnet = eintrag }
         }
+        .listRowInsets(EdgeInsets())
         .listRowBackground(Color(.surface))
-        // iOS setzt die Schrift der Wischtasten immer weiß, `.tint` färbt nur die Fläche (Assets `swipe…`).
-        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                entfernen(eintrag)
-            } label: {
-                Label("Entfernen", systemImage: "trash")
-            }
-            .tint(Color(.swipeDelete))
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            if eintrag.istGefunden {
-                Button {
-                    setzeGefunden(false, eintrag)
-                } label: {
-                    Label("Nicht gefunden", systemImage: "arrow.uturn.backward")
-                }
-                .tint(Color(.swipeNeutral))
-            } else {
-                Button {
-                    setzeGefunden(true, eintrag)
-                } label: {
-                    Label("Gefunden", systemImage: "checkmark")
-                }
-                .tint(Color(.swipeFound))
-            }
-        }
         .contextMenu {
             Button {
                 setzeGefunden(!eintrag.istGefunden, eintrag)

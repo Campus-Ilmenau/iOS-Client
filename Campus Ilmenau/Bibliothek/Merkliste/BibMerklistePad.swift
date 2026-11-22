@@ -193,35 +193,16 @@ struct BibMerklistePad<LeerKarte: View>: View {
         .refreshable { await onAktualisieren() }
     }
 
-    /// Eine Karte: Kreis (44 pt) hakt ab, der Rest wählt den Titel rechts. Wischen wie auf dem iPhone.
+    /// Eine Karte: Kreis (44 pt) hakt ab, der Rest wählt den Titel rechts. Wischen wie auf dem iPhone, die Flächen dahinter
+    /// sind so hoch wie die Karte (`WischZeile`).
     private func zeile(_ eintrag: GemerkterTitel) -> some View {
-        let gewaehlt = eintrag.id == gewaehlteID
         let form = RoundedRectangle(cornerRadius: 16, style: .continuous)
-        return HStack(spacing: 4) {
-            abhakKreis(eintrag)
-            Button {
-                onWahl(eintrag)
-                // Danach gehen die Pfeiltasten.
-                listeFokus = true
-            } label: {
-                BibMerklisteZeile(
-                    eintrag: eintrag,
-                    status: status.status(for: eintrag.id),
-                    exemplar: status.exemplar(for: eintrag.id),
-                    pad: true
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(gewaehlt ? .isSelected : [])
-        }
-        .padding(.leading, 4)
-        .padding(.trailing, 12)
-        .padding(.vertical, 4)
-        .background(Color(.surface), in: form)
-        .overlay {
-            if gewaehlt { form.strokeBorder(Color(.accent), lineWidth: 2) }
+        return WischZeile(
+            links: .entfernen { onEntfernen(eintrag) },
+            rechts: .gefunden(eintrag) { onGefunden($0, eintrag) },
+            eckenradius: 16
+        ) {
+            karte(eintrag, form: form)
         }
         .contentShape(.hoverEffect, form)
         .hoverEffect()
@@ -243,56 +224,63 @@ struct BibMerklistePad<LeerKarte: View>: View {
         }
         .listZeile(links: rand.links, rechts: rand.rechts)
         .id(eintrag.id)
-        // Wischen bleibt wie auf dem iPhone: nach rechts „Entfernen“, nach links „Gefunden“.
-        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                onEntfernen(eintrag)
-            } label: {
-                Label("Entfernen", systemImage: "trash")
-            }
-            .tint(Color(.swipeDelete))
+    }
+
+    private func karte(_ eintrag: GemerkterTitel, form: RoundedRectangle) -> some View {
+        let gewaehlt = eintrag.id == gewaehlteID
+        return HStack(spacing: 4) {
+            abhakKreis(eintrag)
+            // Kein `Button`: Er löste auch nach einem Wisch aus, solange der Finger auf der Zeile lag. Ein Tippen verfällt
+            // bei Bewegung, so bleibt das Wischen von der Auswahl getrennt.
+            BibMerklisteZeile(
+                eintrag: eintrag,
+                status: status.status(for: eintrag.id),
+                exemplar: status.exemplar(for: eintrag.id),
+                pad: true
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .wischTipp { waehle(eintrag) }
+            .accessibilityAddTraits(gewaehlt ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { waehle(eintrag) }
         }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            if eintrag.istGefunden {
-                Button {
-                    onGefunden(false, eintrag)
-                } label: {
-                    Label("Nicht gefunden", systemImage: "arrow.uturn.backward")
-                }
-                .tint(Color(.swipeNeutral))
-            } else {
-                Button {
-                    onGefunden(true, eintrag)
-                } label: {
-                    Label("Gefunden", systemImage: "checkmark")
-                }
-                .tint(Color(.swipeFound))
-            }
+        .padding(.leading, 4)
+        .padding(.trailing, 12)
+        .padding(.vertical, 4)
+        .background(Color(.surface), in: form)
+        .overlay {
+            if gewaehlt { form.strokeBorder(Color(.accent), lineWidth: 2) }
         }
     }
 
     /// Wie auf der Uhr: leer mit Rand `textTertiary`, abgehakt `green` mit Häkchen. 24 pt sichtbar, 44 pt Tippfläche.
     private func abhakKreis(_ eintrag: GemerkterTitel) -> some View {
         let an = eintrag.istGefunden
-        return Button {
-            onGefunden(!an, eintrag)
-        } label: {
-            ZStack {
-                Circle().fill(an ? Color(.green) : Color.clear)
-                Circle().strokeBorder(an ? Color(.green) : Color(.textTertiary), lineWidth: 2)
-                if an {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .heavy))
-                        .foregroundStyle(Color(.onGreen))
-                }
+        // Wie die Zeile ein Tippen statt eines `Button`, damit ein Wisch, der auf dem Kreis beginnt, die Zeile wischt.
+        return ZStack {
+            Circle().fill(an ? Color(.green) : Color.clear)
+            Circle().strokeBorder(an ? Color(.green) : Color(.textTertiary), lineWidth: 2)
+            if an {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 12, weight: .heavy))
+                    .foregroundStyle(Color(.onGreen))
             }
-            .frame(width: 24, height: 24)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .frame(width: 24, height: 24)
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+        .wischTipp { onGefunden(!an, eintrag) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(an ? "Gefunden" : "Nicht gefunden")
         .accessibilityHint(an ? "Haken entfernen" : "Als gefunden abhaken")
+        .accessibilityAction { onGefunden(!an, eintrag) }
+    }
+
+    /// Wählt den Titel rechts; danach gehen die Pfeiltasten.
+    private func waehle(_ eintrag: GemerkterTitel) {
+        onWahl(eintrag)
+        listeFokus = true
     }
 
     // MARK: Rechts

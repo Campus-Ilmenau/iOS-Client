@@ -174,3 +174,19 @@ struct BibMerklisteZeile: View {
         .accessibilityHidden(true)
     }
 }
+
+extension WischAktion {
+    /// Nach rechts wischen: „Entfernen“.
+    static func entfernen(_ handler: @escaping () -> Void) -> WischAktion {
+        WischAktion(titel: "Entfernen", symbol: "trash", flaeche: Color(.swipeDelete), handler: handler)
+    }
+
+    /// Nach links wischen: „Gefunden“, bei einer schon gefundenen Zeile „Nicht gefunden“.
+    static func gefunden(_ eintrag: GemerkterTitel, setze: @escaping (Bool) -> Void) -> WischAktion {
+        if eintrag.istGefunden {
+            WischAktion(titel: "Nicht gefunden", symbol: "arrow.uturn.backward", flaeche: Color(.swipeNeutral)) { setze(false) }
+        } else {
+            WischAktion(titel: "Gefunden", symbol: "checkmark", flaeche: Color(.swipeFound)) { setze(true) }
+        }
+    }
+}
