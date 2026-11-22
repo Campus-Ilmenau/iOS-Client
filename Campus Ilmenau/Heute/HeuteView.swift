@@ -258,6 +258,7 @@ struct HeuteView: View {
         switch ziel {
         case .speiseplan(let venue): router?.zeigeMensa(venue)
         case .oeffnungszeiten(let venue): router?.zeigeOeffnungszeiten(venue)
+        case .gericht(let id, let tag): router?.zeigeGericht(id: id, tag: tag)
         case .event(let event): geoeffnetesEvent = event
         case .alleEvents: router?.zeigeEvents()
         }
@@ -338,13 +339,19 @@ private struct HeuteHinweisKarte: View {
 
 
 /// Nur Debug-Builds: Das Startargument `-HeuteUhr 11:45` stellt die Uhr der Seite „Heute“ (Phase, Jetzt-Karte,
-/// „Heute Abend“) auf diese Uhrzeit heute. Damit lassen sich Mittag und Abend im Simulator zeigen. Sonst gilt die Systemuhr.
+/// „Heute Abend“) auf diese Uhrzeit heute. Mit Tagesversatz geht auch ein anderer Tag: `-HeuteUhr "+1 11:45"` ist
+/// morgen um 11:45, `"-1 11:45"` gestern. Damit lassen sich Mittag, Abend und andere Tage im Simulator zeigen.
+/// Sonst gilt die Systemuhr.
 enum HeuteUhrUeberschreibung {
     static func jetzt() -> Date {
         #if DEBUG
         if let text = UserDefaults.standard.string(forKey: "HeuteUhr") {
-            let teile = text.split(separator: ":").compactMap { Int($0) }
-            if teile.count == 2, let datum = Calendar.current.date(bySettingHour: teile[0], minute: teile[1], second: 0, of: .now) {
+            var teile = text.split(separator: " ").map(String.init)
+            let versatz = teile.count == 2 ? Int(teile.removeFirst()) : 0
+            let zeit = teile.first?.split(separator: ":").compactMap { Int($0) } ?? []
+            if zeit.count == 2, let versatz,
+               let tag = Calendar.current.date(byAdding: .day, value: versatz, to: .now),
+               let datum = Calendar.current.date(bySettingHour: zeit[0], minute: zeit[1], second: 0, of: tag) {
                 return datum
             }
         }

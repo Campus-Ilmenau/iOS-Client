@@ -14,10 +14,19 @@ struct HeuteJetztKarteView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            kopf
+            kopfMitZiel
             ForEach(karte.zeilen) { zeile in
                 trenner
-                HeuteZeileView(zeile: zeile, breit: raster.istPad)
+                if let ziel = zeile.ziel {
+                    Button { onLink(ziel) } label: {
+                        HeuteZeileView(zeile: zeile, breit: raster.istPad)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect()
+                } else {
+                    HeuteZeileView(zeile: zeile, breit: raster.istPad)
+                }
             }
             trenner
             Button { onLink(karte.ziel) } label: {
@@ -39,6 +48,20 @@ struct HeuteJetztKarteView: View {
 
     private var trenner: some View {
         Rectangle().fill(Color(.separator)).frame(height: 1)
+    }
+
+    /// Mensa-Karten: Tipp auf den Kopf öffnet den Speiseplan der Mensa. Event-Karten bleiben ohne Tipp im Kopf.
+    @ViewBuilder
+    private var kopfMitZiel: some View {
+        if karte.stil == .mensa {
+            Button { onLink(karte.ziel) } label: {
+                kopf.contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .hoverEffect()
+        } else {
+            kopf
+        }
     }
 
     private var kopf: some View {

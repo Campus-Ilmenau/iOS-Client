@@ -368,13 +368,20 @@ final class HeuteModel {
         filter.apply(to: gerichte)
     }
 
-    private func zeile(_ gericht: MensaMeal) -> HeuteZeile {
+    /// `tag`: Tag des Gerichts, wenn es nicht heute ist (die IDs der API gelten nur für einen Tag).
+    private func zeile(_ gericht: MensaMeal, tag: Date? = nil) -> HeuteZeile {
         HeuteZeile(
             id: gericht.id,
             name: gericht.name,
             chips: gericht.listChips,
-            rechts: gericht.price.formatted(for: preisgruppe())
+            rechts: gericht.price.formatted(for: preisgruppe()),
+            ziel: .gericht(id: gericht.id, tag: tag.map(Self.tagText))
         )
+    }
+
+    private static func tagText(_ tag: Date) -> String {
+        let k = Calendar(identifier: .gregorian).dateComponents(in: TimeZone(identifier: "Europe/Berlin") ?? .current, from: tag)
+        return String(format: "%04d-%02d-%02d", k.year ?? 0, k.month ?? 0, k.day ?? 0)
     }
 
     /// Jetzt-Karte der gewählten Mensa (morgens, mittags und als Rückfall am Nachmittag und Abend).
@@ -383,19 +390,24 @@ final class HeuteModel {
         guard speiseplanHeute != nil, mensen != nil else { return nil }
         let minuten = HeuteUhr.minuten(jetzt)
         let kicker: String
+        let geschlossen: Bool
         if let zeiten = oeffnung(mensa, am: jetzt), minuten < zeiten.closes {
+            geschlossen = false
             kicker = minuten >= zeiten.opens
                 ? "Jetzt geöffnet · bis \(HeuteUhr.uhrzeit(minuten: zeiten.closes))"
                 : "Heute · ab \(HeuteUhr.uhrzeit(minuten: zeiten.opens))"
         } else {
+            geschlossen = true
             kicker = "Heute geschlossen"
         }
+        // Ohne Angebot (z. B. sonntags) sagt die Kachel das ausdrücklich
+        let keinAngebot = mittagGerichte(mensa, in: speiseplanHeute).isEmpty
         return HeuteJetztKarte(
             ueberschrift: phase.ueberschrift,
             kicker: kicker,
             titel: mensa.displayName,
-            unterzeile: unterzeile,
-            zeilen: passend(mittagGerichte(mensa, in: speiseplanHeute)).prefix(anzahl).map(zeile),
+            unterzeile: keinAngebot ? (geschlossen ? "Mensa heute geschlossen" : "Heute keine Angebote") : unterzeile,
+            zeilen: passend(mittagGerichte(mensa, in: speiseplanHeute)).prefix(anzahl).map { zeile($0) },
             linkText: "Ganzer Speiseplan",
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
@@ -476,7 +488,7 @@ final class HeuteModel {
             kicker: kicker,
             titel: titel,
             unterzeile: unterzeile,
-            zeilen: passend(gerichte).prefix(3).map(zeile),
+            zeilen: passend(gerichte).prefix(3).map { zeile($0) },
             linkText: "Zum Abendangebot",
             ziel: .speiseplan(ort),
             mensaAendernSichtbar: true,
@@ -535,7 +547,7 @@ final class HeuteModel {
             kicker: kicker,
             titel: mensa.displayName,
             unterzeile: "Mittagsangebot morgen",
-            zeilen: passend(gerichte).prefix(3).map(zeile),
+            zeilen: passend(gerichte).prefix(3).map { zeile($0, tag: morgenTag) },
             linkText: "Ganzer Speiseplan",
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,

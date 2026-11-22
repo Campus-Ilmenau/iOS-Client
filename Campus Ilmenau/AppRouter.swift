@@ -99,6 +99,12 @@ final class AppRouter {
         tab = .mensa
     }
 
+    /// Der Mensa-Tab öffnet das Detail des Gerichts (am Tag `yyyy-MM-dd`, `nil` heißt heute).
+    func zeigeGericht(id: String, tag: String?) {
+        gerichtWunsch = GerichtWunsch(id: id, tag: tag)
+        tab = .mensa
+    }
+
     /// Der Mensa-Tab öffnet beim nächsten Erscheinen die Öffnungszeiten.
     var mensaOeffnungszeiten = false
     /// Der Events-Tab schaltet beim nächsten Erscheinen „Heute Abend“ ein.
