@@ -90,6 +90,10 @@ struct HeuteView: View {
             model.mensaNeuLesen()
             Task { await model.szeneWurdeAktiv() }
         }
+        // Sprache gewechselt (Mehr → Sprache): Die Gerichte der Karten kommen in der neuen Sprache von der API.
+        .onChange(of: AppSprache.gemeinsam.aktuell) { _, _ in
+            Task { await model.laden() }
+        }
         // ⌘R („Neu laden“ im Menü): lädt neu, wenn „Heute“ gerade offen ist.
         .onChange(of: router?.neuLadenZaehler) { _, _ in
             guard router?.tab == .heute else { return }
