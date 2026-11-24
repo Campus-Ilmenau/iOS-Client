@@ -45,12 +45,8 @@
     "%lld" : {
       "shouldTranslate" : false
     },
-    "+%lld weitere heute" : {
-
-    },
-    "+%lld weitere morgen" : {
-
-    },
+    "+%lld weitere heute" : {},
+    "+%lld weitere morgen" : {},
     "Abendessen" : {
       "localizations" : {
         "en" : {
@@ -348,9 +344,7 @@
         }
       }
     },
-    "Mittagsangebot" : {
-
-    },
+    "Mittagsangebot" : {},
     "Morgen: %@" : {
       "localizations" : {
         "en" : {
@@ -422,18 +416,10 @@
         }
       }
     },
-    "siri.abend.faelltAus %@" : {
-
-    },
-    "siri.abend.fallenAus %@" : {
-
-    },
-    "siri.abend.gerade %@" : {
-
-    },
-    "siri.abend.keineDaten" : {
-
-    },
+    "siri.abend.faelltAus %@" : {},
+    "siri.abend.fallenAus %@" : {},
+    "siri.abend.gerade %@" : {},
+    "siri.abend.keineDaten" : {},
     "siri.abend.kopfIst %@ %@" : {
       "localizations" : {
         "de" : {
@@ -454,9 +440,7 @@
         }
       }
     },
-    "siri.abend.nichtsHeute %@" : {
-
-    },
+    "siri.abend.nichtsHeute %@" : {},
     "siri.abend.nichtsLos %@ %@" : {
       "localizations" : {
         "de" : {
@@ -467,15 +451,9 @@
         }
       }
     },
-    "siri.abend.ort.im %@" : {
-
-    },
-    "siri.abend.ort.inDer %@" : {
-
-    },
-    "siri.abend.ort.strich %@" : {
-
-    },
+    "siri.abend.ort.im %@" : {},
+    "siri.abend.ort.inDer %@" : {},
+    "siri.abend.ort.strich %@" : {},
     "siri.abend.um %@ %@" : {
       "localizations" : {
         "de" : {
@@ -506,12 +484,8 @@
         }
       }
     },
-    "siri.abend.vorbei" : {
-
-    },
-    "siri.abend.vorbeiNichtsMorgen" : {
-
-    },
+    "siri.abend.vorbei" : {},
+    "siri.abend.vorbeiNichtsMorgen" : {},
     "siri.abendessen.jaBeginn %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -532,15 +506,9 @@
         }
       }
     },
-    "siri.abendessen.keins" : {
-
-    },
-    "siri.abendessen.kicker" : {
-
-    },
-    "siri.abendessen.naechstesMorgen %@" : {
-
-    },
+    "siri.abendessen.keins" : {},
+    "siri.abendessen.kicker" : {},
+    "siri.abendessen.naechstesMorgen %@" : {},
     "siri.abendessen.naechstesTag %@ %@" : {
       "localizations" : {
         "de" : {
@@ -551,9 +519,7 @@
         }
       }
     },
-    "siri.abendessen.vorbei" : {
-
-    },
+    "siri.abendessen.vorbei" : {},
     "siri.abendessen.vorbeiNaechstes %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -564,30 +530,14 @@
         }
       }
     },
-    "siri.ernaehrung.eins.vegan" : {
-
-    },
-    "siri.ernaehrung.eins.vegetarisch" : {
-
-    },
-    "siri.ernaehrung.mehr.vegan %@" : {
-
-    },
-    "siri.ernaehrung.mehr.vegetarisch %@" : {
-
-    },
-    "siri.ernaehrung.nichts.vegan" : {
-
-    },
-    "siri.ernaehrung.nichts.vegetarisch" : {
-
-    },
-    "siri.ernaehrung.vegan" : {
-
-    },
-    "siri.ernaehrung.vegetarisch" : {
-
-    },
+    "siri.ernaehrung.eins.vegan" : {},
+    "siri.ernaehrung.eins.vegetarisch" : {},
+    "siri.ernaehrung.mehr.vegan %@" : {},
+    "siri.ernaehrung.mehr.vegetarisch %@" : {},
+    "siri.ernaehrung.nichts.vegan" : {},
+    "siri.ernaehrung.nichts.vegetarisch" : {},
+    "siri.ernaehrung.vegan" : {},
+    "siri.ernaehrung.vegetarisch" : {},
     "siri.gericht.fuerPreis %@ %@" : {
       "localizations" : {
         "de" : {
@@ -598,12 +548,8 @@
         }
       }
     },
-    "siri.gerichteAnzahl %lld" : {
-
-    },
-    "siri.katalog.derErste %@" : {
-
-    },
+    "siri.gerichteAnzahl %lld" : {},
+    "siri.katalog.derErste %@" : {},
     "siri.katalog.derErsteIst %@ %@" : {
       "localizations" : {
         "de" : {
@@ -614,9 +560,7 @@
         }
       }
     },
-    "siri.katalog.einl.eins %@" : {
-
-    },
+    "siri.katalog.einl.eins %@" : {},
     "siri.katalog.einl.mehr %@ %@" : {
       "localizations" : {
         "de" : {
@@ -627,12 +571,8 @@
         }
       }
     },
-    "siri.katalog.erIst %@" : {
-
-    },
-    "siri.katalog.fuer %@" : {
-
-    },
+    "siri.katalog.erIst %@" : {},
+    "siri.katalog.fuer %@" : {},
     "siri.katalog.fuerStatt %@ %@" : {
       "localizations" : {
         "de" : {
@@ -643,24 +583,12 @@
         }
       }
     },
-    "siri.katalog.gesucht %@" : {
-
-    },
-    "siri.katalog.karte.eins" : {
-
-    },
-    "siri.katalog.karte.mehr %@" : {
-
-    },
-    "siri.katalog.keineTreffer" : {
-
-    },
-    "siri.katalog.kicker" : {
-
-    },
-    "siri.katalog.korr.eins %@" : {
-
-    },
+    "siri.katalog.gesucht %@" : {},
+    "siri.katalog.karte.eins" : {},
+    "siri.katalog.karte.mehr %@" : {},
+    "siri.katalog.keineTreffer" : {},
+    "siri.katalog.kicker" : {},
+    "siri.katalog.korr.eins %@" : {},
     "siri.katalog.korr.mehr %@ %@" : {
       "localizations" : {
         "de" : {
@@ -671,9 +599,7 @@
         }
       }
     },
-    "siri.katalog.nichtErreichbar" : {
-
-    },
+    "siri.katalog.nichtErreichbar" : {},
     "siri.katalog.nichts %@ %@" : {
       "localizations" : {
         "de" : {
@@ -684,42 +610,18 @@
         }
       }
     },
-    "siri.katalog.ohneAnmeldung" : {
-
-    },
-    "siri.katalog.status.ausgeliehen" : {
-
-    },
-    "siri.katalog.status.ausgeliehenBis %@" : {
-
-    },
-    "siri.katalog.status.ausleihbar" : {
-
-    },
-    "siri.katalog.status.nurVorOrt" : {
-
-    },
-    "siri.katalog.status.online" : {
-
-    },
-    "siri.katalog.ungueltig" : {
-
-    },
-    "siri.mensa.abendangebot" : {
-
-    },
-    "siri.mensa.ausDeinerFrage %@" : {
-
-    },
-    "siri.mensa.cafeterienZu" : {
-
-    },
-    "siri.mensa.fussOhneFilter %@" : {
-
-    },
-    "siri.mensa.gefiltert %@" : {
-
-    },
+    "siri.katalog.ohneAnmeldung" : {},
+    "siri.katalog.status.ausgeliehen" : {},
+    "siri.katalog.status.ausgeliehenBis %@" : {},
+    "siri.katalog.status.ausleihbar" : {},
+    "siri.katalog.status.nurVorOrt" : {},
+    "siri.katalog.status.online" : {},
+    "siri.katalog.ungueltig" : {},
+    "siri.mensa.abendangebot" : {},
+    "siri.mensa.ausDeinerFrage %@" : {},
+    "siri.mensa.cafeterienZu" : {},
+    "siri.mensa.fussOhneFilter %@" : {},
+    "siri.mensa.gefiltert %@" : {},
     "siri.mensa.gibt.abendBeginn %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -810,54 +712,22 @@
         }
       }
     },
-    "siri.mensa.hatHeuteZu %@" : {
-
-    },
-    "siri.mensa.heuteNichtsMehr" : {
-
-    },
-    "siri.mensa.heuteZusatz" : {
-
-    },
-    "siri.mensa.keineDaten" : {
-
-    },
-    "siri.mensa.keinPlan %@" : {
-
-    },
-    "siri.mensa.kicker.abendAb %@" : {
-
-    },
-    "siri.mensa.kicker.abendBis %@" : {
-
-    },
-    "siri.mensa.kicker.mittagMorgen" : {
-
-    },
-    "siri.mensa.kicker.mittagWochentag %@" : {
-
-    },
-    "siri.mensa.kicker.zeitAb %@" : {
-
-    },
-    "siri.mensa.mahlzeit.abend" : {
-
-    },
-    "siri.mensa.mahlzeit.mittagJetzt" : {
-
-    },
-    "siri.mensa.mahlzeit.mittagMorgen" : {
-
-    },
-    "siri.mensa.mahlzeit.mittagSpaeter" : {
-
-    },
-    "siri.mensa.mahlzeit.mittagWochentag %@" : {
-
-    },
-    "siri.mensa.nachsatzOffenBis %@" : {
-
-    },
+    "siri.mensa.hatHeuteZu %@" : {},
+    "siri.mensa.heuteNichtsMehr" : {},
+    "siri.mensa.heuteZusatz" : {},
+    "siri.mensa.keineDaten" : {},
+    "siri.mensa.keinPlan %@" : {},
+    "siri.mensa.kicker.abendAb %@" : {},
+    "siri.mensa.kicker.abendBis %@" : {},
+    "siri.mensa.kicker.mittagMorgen" : {},
+    "siri.mensa.kicker.mittagWochentag %@" : {},
+    "siri.mensa.kicker.zeitAb %@" : {},
+    "siri.mensa.mahlzeit.abend" : {},
+    "siri.mensa.mahlzeit.mittagJetzt" : {},
+    "siri.mensa.mahlzeit.mittagMorgen" : {},
+    "siri.mensa.mahlzeit.mittagSpaeter" : {},
+    "siri.mensa.mahlzeit.mittagWochentag %@" : {},
+    "siri.mensa.nachsatzOffenBis %@" : {},
     "siri.mensa.naechsteMahlzeit %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -868,21 +738,11 @@
         }
       }
     },
-    "siri.mensa.name.abend" : {
-
-    },
-    "siri.mensa.name.mittagJetzt" : {
-
-    },
-    "siri.mensa.name.mittagMorgen" : {
-
-    },
-    "siri.mensa.name.mittagSpaeter" : {
-
-    },
-    "siri.mensa.name.mittagWochentag %@" : {
-
-    },
+    "siri.mensa.name.abend" : {},
+    "siri.mensa.name.mittagJetzt" : {},
+    "siri.mensa.name.mittagMorgen" : {},
+    "siri.mensa.name.mittagSpaeter" : {},
+    "siri.mensa.name.mittagWochentag %@" : {},
     "siri.mensa.nichtsErnaehrung %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -893,15 +753,9 @@
         }
       }
     },
-    "siri.mensa.ohneFilterGibt %lld" : {
-
-    },
-    "siri.mensa.passendEins" : {
-
-    },
-    "siri.mensa.passendMehr %@" : {
-
-    },
+    "siri.mensa.ohneFilterGibt %lld" : {},
+    "siri.mensa.passendEins" : {},
+    "siri.mensa.passendMehr %@" : {},
     "siri.mensa.passt.abendBeginn %@ %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1002,45 +856,19 @@
         }
       }
     },
-    "siri.mensa.rueckfrage.abendessenBis %@" : {
-
-    },
-    "siri.mensa.rueckfrage.oeffnetUm %@" : {
-
-    },
-    "siri.mensa.rueckfrage.offenBis %@" : {
-
-    },
-    "siri.mensa.verbPasstEins" : {
-
-    },
-    "siri.mensa.verbPasstMehr" : {
-
-    },
-    "siri.mensa.weitereGerichte %lld" : {
-
-    },
-    "siri.mensa.zumBeispiel" : {
-
-    },
-    "siri.merkliste.ausgeliehen.eins %@" : {
-
-    },
-    "siri.merkliste.ausgeliehen.mehr %@" : {
-
-    },
-    "siri.merkliste.fuss.gefunden %lld" : {
-
-    },
-    "siri.merkliste.fuss.nichtImRegal %lld" : {
-
-    },
-    "siri.merkliste.fuss.weitere %lld" : {
-
-    },
-    "siri.merkliste.gefunden.eins" : {
-
-    },
+    "siri.mensa.rueckfrage.abendessenBis %@" : {},
+    "siri.mensa.rueckfrage.oeffnetUm %@" : {},
+    "siri.mensa.rueckfrage.offenBis %@" : {},
+    "siri.mensa.verbPasstEins" : {},
+    "siri.mensa.verbPasstMehr" : {},
+    "siri.mensa.weitereGerichte %lld" : {},
+    "siri.mensa.zumBeispiel" : {},
+    "siri.merkliste.ausgeliehen.eins %@" : {},
+    "siri.merkliste.ausgeliehen.mehr %@" : {},
+    "siri.merkliste.fuss.gefunden %lld" : {},
+    "siri.merkliste.fuss.nichtImRegal %lld" : {},
+    "siri.merkliste.fuss.weitere %lld" : {},
+    "siri.merkliste.gefunden.eins" : {},
     "siri.merkliste.gefunden.mehr %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1051,36 +879,16 @@
         }
       }
     },
-    "siri.merkliste.gefundenAlle %lld" : {
-
-    },
-    "siri.merkliste.karte.alles" : {
-
-    },
-    "siri.merkliste.karte.nichts" : {
-
-    },
-    "siri.merkliste.karte.sortiert" : {
-
-    },
-    "siri.merkliste.karte.titel %lld" : {
-
-    },
-    "siri.merkliste.keinerEins" : {
-
-    },
-    "siri.merkliste.keinerMehr %lld" : {
-
-    },
-    "siri.merkliste.leer" : {
-
-    },
-    "siri.merkliste.online.eins %@" : {
-
-    },
-    "siri.merkliste.online.mehr %@" : {
-
-    },
+    "siri.merkliste.gefundenAlle %lld" : {},
+    "siri.merkliste.karte.alles" : {},
+    "siri.merkliste.karte.nichts" : {},
+    "siri.merkliste.karte.sortiert" : {},
+    "siri.merkliste.karte.titel %lld" : {},
+    "siri.merkliste.keinerEins" : {},
+    "siri.merkliste.keinerMehr %lld" : {},
+    "siri.merkliste.leer" : {},
+    "siri.merkliste.online.eins %@" : {},
+    "siri.merkliste.online.mehr %@" : {},
     "siri.merkliste.regal.alle %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1091,9 +899,7 @@
         }
       }
     },
-    "siri.merkliste.regal.eins %@" : {
-
-    },
+    "siri.merkliste.regal.eins %@" : {},
     "siri.merkliste.regal.liste %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1104,12 +910,8 @@
         }
       }
     },
-    "siri.merkliste.standortUnbekannt.eins" : {
-
-    },
-    "siri.merkliste.standortUnbekannt.mehr %lld" : {
-
-    },
+    "siri.merkliste.standortUnbekannt.eins" : {},
+    "siri.merkliste.standortUnbekannt.mehr %lld" : {},
     "siri.merkliste.teil.erster %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1120,9 +922,7 @@
         }
       }
     },
-    "siri.merkliste.teil.uebrig %@" : {
-
-    },
+    "siri.merkliste.teil.uebrig %@" : {},
     "siri.merkliste.teil.weiter %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1133,24 +933,12 @@
         }
       }
     },
-    "siri.merkliste.titelGefunden" : {
-
-    },
-    "siri.merkliste.unbekannt.eins" : {
-
-    },
-    "siri.merkliste.unbekannt.mehr %lld" : {
-
-    },
-    "siri.merkliste.wort.1" : {
-
-    },
-    "siri.merkliste.wort.2" : {
-
-    },
-    "siri.merkliste.wort.3" : {
-
-    },
+    "siri.merkliste.titelGefunden" : {},
+    "siri.merkliste.unbekannt.eins" : {},
+    "siri.merkliste.unbekannt.mehr %lld" : {},
+    "siri.merkliste.wort.1" : {},
+    "siri.merkliste.wort.2" : {},
+    "siri.merkliste.wort.3" : {},
     "siri.offen.abendessenAb %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1171,9 +959,7 @@
         }
       }
     },
-    "siri.offen.alleZu %@" : {
-
-    },
+    "siri.offen.alleZu %@" : {},
     "siri.offen.andere.bald %@ %lld %@" : {
       "localizations" : {
         "de" : {
@@ -1194,12 +980,8 @@
         }
       }
     },
-    "siri.offen.andereKlein.keine" : {
-
-    },
-    "siri.offen.andereKlein.offen %@" : {
-
-    },
+    "siri.offen.andereKlein.keine" : {},
+    "siri.offen.andereKlein.offen %@" : {},
     "siri.offen.caf.abendessen %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1270,15 +1052,9 @@
         }
       }
     },
-    "siri.offen.caf.kleinAbend %@" : {
-
-    },
-    "siri.offen.caf.kleinNochZu" : {
-
-    },
-    "siri.offen.caf.kleinZu" : {
-
-    },
+    "siri.offen.caf.kleinAbend %@" : {},
+    "siri.offen.caf.kleinNochZu" : {},
+    "siri.offen.caf.kleinZu" : {},
     "siri.offen.caf.nochZu %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1289,9 +1065,7 @@
         }
       }
     },
-    "siri.offen.caf.zu" : {
-
-    },
+    "siri.offen.caf.zu" : {},
     "siri.offen.caf.zuNaechster %@ %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1302,30 +1076,14 @@
         }
       }
     },
-    "siri.offen.chip.noch %lld" : {
-
-    },
-    "siri.offen.gross.abendAb %@" : {
-
-    },
-    "siri.offen.gross.heuteZu" : {
-
-    },
-    "siri.offen.gross.jaBis %@" : {
-
-    },
-    "siri.offen.gross.neinHeuteZu" : {
-
-    },
-    "siri.offen.gross.neinSeit %@" : {
-
-    },
-    "siri.offen.gross.neinZu" : {
-
-    },
-    "siri.offen.gross.oeffnetUm %@" : {
-
-    },
+    "siri.offen.chip.noch %lld" : {},
+    "siri.offen.gross.abendAb %@" : {},
+    "siri.offen.gross.heuteZu" : {},
+    "siri.offen.gross.jaBis %@" : {},
+    "siri.offen.gross.neinHeuteZu" : {},
+    "siri.offen.gross.neinSeit %@" : {},
+    "siri.offen.gross.neinZu" : {},
+    "siri.offen.gross.oeffnetUm %@" : {},
     "siri.offen.ja.bald %@ %lld %@" : {
       "localizations" : {
         "de" : {
@@ -1346,15 +1104,9 @@
         }
       }
     },
-    "siri.offen.keineDaten" : {
-
-    },
-    "siri.offen.keineMehr %@" : {
-
-    },
-    "siri.offen.klein.alleZu" : {
-
-    },
+    "siri.offen.keineDaten" : {},
+    "siri.offen.keineMehr %@" : {},
+    "siri.offen.klein.alleZu" : {},
     "siri.offen.klein.schliesstIn %@ %lld" : {
       "localizations" : {
         "de" : {
@@ -1365,9 +1117,7 @@
         }
       }
     },
-    "siri.offen.mittagZu %@" : {
-
-    },
+    "siri.offen.mittagZu %@" : {},
     "siri.offen.oeffnetUm %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1388,18 +1138,10 @@
         }
       }
     },
-    "siri.offen.stat.abendAb %@" : {
-
-    },
-    "siri.offen.stat.bis %@" : {
-
-    },
-    "siri.offen.stat.oeffnet %@" : {
-
-    },
-    "siri.offen.stat.zu" : {
-
-    },
+    "siri.offen.stat.abendAb %@" : {},
+    "siri.offen.stat.bis %@" : {},
+    "siri.offen.stat.oeffnet %@" : {},
+    "siri.offen.stat.zu" : {},
     "siri.offen.stat.zuAb %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1410,45 +1152,19 @@
         }
       }
     },
-    "siri.ort.gruppe.cafeteriaEhrenberg" : {
-
-    },
-    "siri.ort.gruppe.nanoteria" : {
-
-    },
-    "siri.ort.in.cafeteriaEhrenberg" : {
-
-    },
-    "siri.ort.in.mensaEhrenberg" : {
-
-    },
-    "siri.ort.in.nanoteria" : {
-
-    },
-    "siri.ort.in.roentgenbau" : {
-
-    },
-    "siri.ort.subjekt.cafeteriaEhrenberg" : {
-
-    },
-    "siri.ort.subjekt.mensaEhrenberg" : {
-
-    },
-    "siri.ort.subjekt.nanoteria" : {
-
-    },
-    "siri.ort.subjekt.roentgenbau" : {
-
-    },
-    "siri.tag.heute" : {
-
-    },
-    "siri.tag.morgen" : {
-
-    },
-    "siri.tag.morgenKlein" : {
-
-    },
+    "siri.ort.gruppe.cafeteriaEhrenberg" : {},
+    "siri.ort.gruppe.nanoteria" : {},
+    "siri.ort.in.cafeteriaEhrenberg" : {},
+    "siri.ort.in.mensaEhrenberg" : {},
+    "siri.ort.in.nanoteria" : {},
+    "siri.ort.in.roentgenbau" : {},
+    "siri.ort.subjekt.cafeteriaEhrenberg" : {},
+    "siri.ort.subjekt.mensaEhrenberg" : {},
+    "siri.ort.subjekt.nanoteria" : {},
+    "siri.ort.subjekt.roentgenbau" : {},
+    "siri.tag.heute" : {},
+    "siri.tag.morgen" : {},
+    "siri.tag.morgenKlein" : {},
     "siri.uhr.minuten %lld %@ %@" : {
       "localizations" : {
         "de" : {
@@ -1469,21 +1185,11 @@
         }
       }
     },
-    "siri.und" : {
-
-    },
-    "siri.zahl.drei" : {
-
-    },
-    "siri.zahl.eins" : {
-
-    },
-    "siri.zahl.zwei" : {
-
-    },
-    "siri.zitat %@" : {
-
-    },
+    "siri.und" : {},
+    "siri.zahl.drei" : {},
+    "siri.zahl.eins" : {},
+    "siri.zahl.zwei" : {},
+    "siri.zitat %@" : {},
     "Sucht im Katalog der UB Ilmenau." : {
       "localizations" : {
         "en" : {
@@ -1572,6 +1278,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Additives"
+          }
+        }
+      }
+    },
+    "Mensa offen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen open?"
+          }
+        }
+      }
+    },
+    "offen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "open"
+          }
+        }
+      }
+    },
+    "zu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "closed"
           }
         }
       }

@@ -169,7 +169,7 @@ struct UhrSiriOffenAnsicht: View {
     var body: some View {
         if let karte {
             UhrSiriRahmen(ziel: ziel) {
-                UhrSiriKicker(text: "Mensa offen?")
+                UhrSiriKicker(text: LocalizedStringResource("Mensa offen?").inAppSprache)
                 Text(karte.gross)
                     .jakartaSeitentitel()
                     .foregroundStyle(Color(.watchText))
@@ -230,7 +230,7 @@ private struct UhrSiriOffenZeile: View {
         .uhrSchrift(13)
         .foregroundStyle(Color(.watchText))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name), \(zeile.offen ? "offen" : "zu"), \(zeile.stat)" + (zeile.chip.map { ", \($0)" } ?? ""))
+        .accessibilityLabel("\(name), \(zeile.offen ? LocalizedStringResource("offen").inAppSprache : LocalizedStringResource("zu").inAppSprache), \(zeile.stat)" + (zeile.chip.map { ", \($0)" } ?? ""))
     }
 }
 
@@ -262,7 +262,7 @@ struct UhrSiriAbendAnsicht: View {
                                 Image(systemName: "star.fill")
                                     .font(.system(size: 10))
                                     .foregroundStyle(Color(.watchAccent))
-                                    .accessibilityLabel("gemerkt")
+                                    .accessibilityLabel(LocalizedStringResource("gemerkt").inAppSprache)
                             }
                         }
                     } rechts: {
@@ -291,7 +291,7 @@ struct UhrSiriMerklisteAnsicht: View {
     var body: some View {
         if let karte {
             UhrSiriRahmen(ziel: ziel) {
-                UhrSiriKicker(text: "Merkliste")
+                UhrSiriKicker(text: LocalizedStringResource("Merkliste").inAppSprache)
                 Text(karte.titel)
                     .uhrSchrift(15, .semibold)
                     .fixedSize(horizontal: false, vertical: true)
