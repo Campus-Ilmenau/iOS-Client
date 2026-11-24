@@ -33,10 +33,10 @@ struct BibliotheksausweisDaten: Identifiable {
     /// Text für den Status-Kasten, genau wie in der Übergabe. Bei Status 0 oder unbekannt `nil`.
     var statusText: String? {
         switch status {
-        case 1: "Konto gesperrt – bitte an der Ausleihtheke melden."
-        case 2: "Ausweis abgelaufen – bitte an der Ausleihtheke verlängern lassen."
-        case 3: "Konto gesperrt wegen offener Gebühren – bitte an der Ausleihtheke bezahlen."
-        case 4: "Ausweis abgelaufen und Gebühren offen – bitte an der Ausleihtheke melden."
+        case 1: String(localized: "Konto gesperrt – bitte an der Ausleihtheke melden.")
+        case 2: String(localized: "Ausweis abgelaufen – bitte an der Ausleihtheke verlängern lassen.")
+        case 3: String(localized: "Konto gesperrt wegen offener Gebühren – bitte an der Ausleihtheke bezahlen.")
+        case 4: String(localized: "Ausweis abgelaufen und Gebühren offen – bitte an der Ausleihtheke melden.")
         default: nil
         }
     }
@@ -61,9 +61,10 @@ struct BibliotheksausweisDaten: Identifiable {
     /// PAIA liefert `expires` als reines Datum, das der Dekoder als Mitternacht UTC liest; also in UTC formatieren.
     static func datum(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
+        formatter.locale = .current
         formatter.timeZone = TimeZone(identifier: "UTC")
-        formatter.dateFormat = "dd.MM.yyyy"
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
         return formatter.string(from: date)
     }
 

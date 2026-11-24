@@ -13,11 +13,11 @@ enum LoanUrgency: Equatable {
 enum BibliothekFormat {
     /// Kurzes Datum wie „12. Nov.“.
     static func shortDate(_ date: Date) -> String {
-        date.formatted(.dateTime.day().month(.abbreviated).locale(Locale(identifier: "de_DE")))
+        date.formatted(.dateTime.day().month(.abbreviated).locale(.current))
     }
 
     static func days(_ count: Int) -> String {
-        count == 1 ? "1 Tag" : "\(count) Tagen"
+        String(localized: "\(count) Tagen")
     }
 }
 
@@ -28,7 +28,7 @@ extension PAIALoanItem {
     /// Wie bisher: Nur ein ausdrückliches `false` des Servers sperrt das Verlängern.
     var canBeRenewed: Bool { canrenew != false }
 
-    var displayTitle: String { about ?? label ?? "Unbekanntes Medium" }
+    var displayTitle: String { about ?? label ?? String(localized: "Unbekanntes Medium") }
 
     /// Die Signatur steht unter dem Titel, solange sie nicht selbst der Titel ist.
     var signature: String? { about != nil ? label : nil }
@@ -72,10 +72,10 @@ struct BibliothekLoanInfo: Equatable {
     /// Text im Fälligkeits-Chip: „Fällig 12. Nov.“, „Fällig in 5 Tagen“, „Überfällig seit 2 Tagen“.
     var dueText: String? {
         guard let days, let dueDate else { return nil }
-        if days < 0 { return "Überfällig seit \(BibliothekFormat.days(-days))" }
-        if days == 0 { return "Heute fällig" }
-        if days <= 5 { return "Fällig in \(BibliothekFormat.days(days))" }
-        return "Fällig \(BibliothekFormat.shortDate(dueDate))"
+        if days < 0 { return String(localized: "Überfällig seit \(BibliothekFormat.days(-days))") }
+        if days == 0 { return String(localized: "Heute fällig") }
+        if days <= 5 { return String(localized: "Fällig in \(BibliothekFormat.days(days))") }
+        return String(localized: "Fällig \(BibliothekFormat.shortDate(dueDate))")
     }
 
     /// Anteil der aktuellen Leihperiode, der vorbei ist. Überfällig: voll. Mindestens 4 %, damit der Strich sichtbar bleibt.
@@ -88,22 +88,22 @@ struct BibliothekLoanInfo: Equatable {
 
     /// Fußzeile: „2× verlängert“ bzw. „Noch nicht verlängert“, bei Sperre „· nicht verlängerbar“.
     var metaText: String {
-        let renewed = renewals > 0 ? "\(renewals)× verlängert" : "Noch nicht verlängert"
-        return canRenew ? renewed : "\(renewed) · nicht verlängerbar"
+        let renewed = renewals > 0 ? String(localized: "\(renewals)× verlängert") : String(localized: "Noch nicht verlängert")
+        return canRenew ? renewed : String(localized: "\(renewed) · nicht verlängerbar")
     }
 
     /// VoiceOver-Text der Zeitleiste: „Leihfrist: fällig am 12. Nov., 1-mal verlängert“.
     var timelineLabel: String {
         let due: String
         if isOverdue {
-            due = "überfällig"
+            due = String(localized: "überfällig")
         } else if let dueDate {
-            due = "fällig am \(BibliothekFormat.shortDate(dueDate))"
+            due = String(localized: "fällig am \(BibliothekFormat.shortDate(dueDate))")
         } else {
-            due = "ohne Fälligkeit"
+            due = String(localized: "ohne Fälligkeit")
         }
-        let renewed = renewals > 0 ? "\(renewals)-mal verlängert" : "noch nicht verlängert"
-        return "Leihfrist: \(due), \(renewed)"
+        let renewed = renewals > 0 ? String(localized: "\(renewals)-mal verlängert") : String(localized: "noch nicht verlängert")
+        return String(localized: "Leihfrist: \(due), \(renewed)")
     }
 }
 
@@ -116,11 +116,11 @@ struct BibliothekHoldInfo: Equatable {
 
     init(item: PAIALoanItem) {
         switch item.status {
-        case .provided: (statusText, variant) = ("Abholbereit", .green)
-        case .ordered: (statusText, variant) = ("Bestellt", .blue)
-        case .reserved: (statusText, variant) = ("Vorgemerkt", .neutral)
-        case .rejected: (statusText, variant) = ("Abgelehnt", .dangerSoft)
-        case .none, .held: (statusText, variant) = ("Kein Status", .neutral)
+        case .provided: (statusText, variant) = (String(localized: "Abholbereit"), .green)
+        case .ordered: (statusText, variant) = (String(localized: "Bestellt"), .blue)
+        case .reserved: (statusText, variant) = (String(localized: "Vorgemerkt"), .neutral)
+        case .rejected: (statusText, variant) = (String(localized: "Abgelehnt"), .dangerSoft)
+        case .none, .held: (statusText, variant) = (String(localized: "Kein Status"), .neutral)
         }
 
         // Aus den PAIA-Feldern comment, storage, queue und (bei Bereitstellung) endtime zusammengesetzt.
@@ -129,13 +129,13 @@ struct BibliothekHoldInfo: Equatable {
             parts.append(comment)
         }
         if let storage = item.storage?.trimmingCharacters(in: .whitespacesAndNewlines), !storage.isEmpty {
-            parts.append(item.status == .provided ? "Abholort: \(storage)" : "Standort: \(storage)")
+            parts.append(item.status == .provided ? String(localized: "Abholort: \(storage)") : String(localized: "Standort: \(storage)"))
         }
         if let queue = item.queue, queue > 0 {
-            parts.append("Warteschlange: \(queue)")
+            parts.append(String(localized: "Warteschlange: \(queue)"))
         }
         if item.status == .provided, let end = item.endtime {
-            parts.append("Abholbar bis \(BibliothekFormat.shortDate(end))")
+            parts.append(String(localized: "Abholbar bis \(BibliothekFormat.shortDate(end))"))
         }
         detail = parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
@@ -162,13 +162,13 @@ struct BibliothekLists: Equatable {
 
     /// Zeile unter dem Titel: „4 ausgeliehen · 1 überfällig · 2 bald fällig“.
     func summary(now: Date = .now, calendar: Calendar = .current) -> String {
-        guard !loans.isEmpty else { return "Nichts ausgeliehen" }
+        guard !loans.isEmpty else { return String(localized: "Nichts ausgeliehen") }
         let infos = loans.map { BibliothekLoanInfo(item: $0, now: now, calendar: calendar) }
         let overdue = infos.filter(\.isOverdue).count
         let soon = infos.filter { ($0.days ?? Int.max) >= 0 && ($0.days ?? Int.max) <= 5 }.count
-        var parts = ["\(loans.count) ausgeliehen"]
-        if overdue > 0 { parts.append("\(overdue) überfällig") }
-        if soon > 0 { parts.append("\(soon) bald fällig") }
+        var parts = [String(localized: "\(loans.count) ausgeliehen")]
+        if overdue > 0 { parts.append(String(localized: "\(overdue) überfällig")) }
+        if soon > 0 { parts.append(String(localized: "\(soon) bald fällig")) }
         return parts.joined(separator: " · ")
     }
 }

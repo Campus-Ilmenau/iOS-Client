@@ -44,6 +44,16 @@
         }
       }
     },
+    "„von“ darf nicht nach „bis“ liegen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“From” must not be after “to”."
+          }
+        }
+      }
+    },
     "(i)" : {
       "shouldTranslate" : false
     },
@@ -106,6 +116,16 @@
         }
       }
     },
+    "%@ · nicht verlängerbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · cannot be renewed"
+          }
+        }
+      }
+    },
     "%@ ab 17 Uhr" : {
       "localizations" : {
         "en" : {
@@ -124,6 +144,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ recognised"
+          }
+        }
+      }
+    },
+    "%@ Euro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ euros"
           }
         }
       }
@@ -241,6 +271,16 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld ausgeliehen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld borrowed"
+          }
+        }
+      }
+    },
     "%lld Auslesungen, %@ bis %@" : {
       "localizations" : {
         "de" : {
@@ -253,6 +293,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld readings, %@ to %@"
+          }
+        }
+      }
+    },
+    "%lld bald fällig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld due soon"
           }
         }
       }
@@ -281,6 +331,46 @@
         }
       }
     },
+    "%lld Tagen" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days"
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Tag"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Tagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld Titel" : {
       "localizations" : {
         "en" : {
@@ -299,6 +389,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld überfällig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld overdue"
           }
         }
       }
@@ -339,6 +439,26 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld-mal verlängert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "renewed %lld times"
+          }
+        }
+      }
+    },
+    "%lld× verlängert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renewed %lld×"
           }
         }
       }
@@ -509,12 +629,52 @@
         }
       }
     },
+    "Abgelehnt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected"
+          }
+        }
+      }
+    },
     "Abgesagte ausblenden" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hide cancelled"
+          }
+        }
+      }
+    },
+    "Abholbar bis %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick up by %@"
+          }
+        }
+      }
+    },
+    "Abholbereit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready for pickup"
+          }
+        }
+      }
+    },
+    "Abholort: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pickup location: %@"
           }
         }
       }
@@ -1095,6 +1255,16 @@
         }
       }
     },
+    "Ausleihbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available"
+          }
+        }
+      }
+    },
     "Ausleihen" : {
       "localizations" : {
         "en" : {
@@ -1145,6 +1315,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Card"
+          }
+        }
+      }
+    },
+    "Ausweis abgelaufen – bitte an der Ausleihtheke verlängern lassen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card expired – please have it renewed at the loan desk."
+          }
+        }
+      }
+    },
+    "Ausweis abgelaufen und Gebühren offen – bitte an der Ausleihtheke melden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card expired and fees outstanding – please see the loan desk."
           }
         }
       }
@@ -1275,6 +1465,16 @@
         }
       }
     },
+    "Bereitgestellt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provided"
+          }
+        }
+      }
+    },
     "Bestandteile" : {
       "comment" : "A heading for the ingredients of a meal.",
       "isCommentAutoGenerated" : true,
@@ -1283,6 +1483,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Components"
+          }
+        }
+      }
+    },
+    "Bestellt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordered"
           }
         }
       }
@@ -1329,6 +1539,16 @@
         }
       }
     },
+    "Bio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organic"
+          }
+        }
+      }
+    },
     "bis" : {
       "comment" : "A label for the \"to\" field in a year range.",
       "isCommentAutoGenerated" : true,
@@ -1341,12 +1561,32 @@
         }
       }
     },
+    "Bitte das Jahr vierstellig eingeben." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter the year with four digits."
+          }
+        }
+      }
+    },
     "Bitte erneut anmelden" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please sign in again"
+          }
+        }
+      }
+    },
+    "Bitte gib einen Suchbegriff ein." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter a search term."
           }
         }
       }
@@ -1545,6 +1785,16 @@
         }
       }
     },
+    "Der Suchbegriff darf höchstens %lld Zeichen lang sein." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The search term may be at most %lld characters long."
+          }
+        }
+      }
+    },
     "Der Termin ist noch nicht bestätigt. Schau kurz vorher noch einmal rein." : {
       "comment" : "A message that appears when the event's date is not confirmed.",
       "isCommentAutoGenerated" : true,
@@ -1611,6 +1861,16 @@
         }
       }
     },
+    "Die Seitenzahl muss mindestens 1 sein." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The page number must be at least 1."
+          }
+        }
+      }
+    },
     "Diese Preise zeigt der Speiseplan zuerst. Die anderen stehen beim Gericht." : {
       "localizations" : {
         "en" : {
@@ -1621,12 +1881,42 @@
         }
       }
     },
+    "Dieser Kartentyp wird nicht unterstützt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This card type is not supported."
+          }
+        }
+      }
+    },
     "Dieser Titel ist im Katalog nicht (mehr) vorhanden." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "This title is no longer in the catalogue."
+          }
+        }
+      }
+    },
+    "Dieses Gerät unterstützt kein NFC." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device does not support NFC."
+          }
+        }
+      }
+    },
+    "Dieses Medium kann nicht verlängert werden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item cannot be renewed"
           }
         }
       }
@@ -1857,6 +2147,36 @@
         }
       }
     },
+    "Fällig %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due %@"
+          }
+        }
+      }
+    },
+    "fällig am %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "due on %@"
+          }
+        }
+      }
+    },
+    "Fällig in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due in %@"
+          }
+        }
+      }
+    },
     "fällt aus" : {
       "localizations" : {
         "en" : {
@@ -2056,6 +2376,16 @@
         }
       }
     },
+    "gefunden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "found"
+          }
+        }
+      }
+    },
     "Gefunden" : {
       "localizations" : {
         "en" : {
@@ -2122,6 +2452,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open"
+          }
+        }
+      }
+    },
+    "Gerade eben" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
           }
         }
       }
@@ -2228,6 +2568,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stored data"
+          }
+        }
+      }
+    },
+    "Gestern" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
           }
         }
       }
@@ -2391,6 +2741,16 @@
     "Halloween-Party" : {
       "shouldTranslate" : false
     },
+    "Halte deine Thoska an dein iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold your Thoska against your iPhone."
+          }
+        }
+      }
+    },
     "Halte deine Thoska an die Oberseite deines iPhones. Das Guthaben wird nur auf deinem Gerät gespeichert." : {
       "comment" : "A description of how to read a Thoska.",
       "isCommentAutoGenerated" : true,
@@ -2519,6 +2879,16 @@
         }
       }
     },
+    "Heute fällig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due today"
+          }
+        }
+      }
+    },
     "Heute geschlossen" : {
       "localizations" : {
         "en" : {
@@ -2602,6 +2972,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notices"
+          }
+        }
+      }
+    },
+    "Höchstens %lld Jahre auf einmal." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At most %lld years at a time."
           }
         }
       }
@@ -2921,6 +3301,16 @@
         }
       }
     },
+    "Karte …%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card …%@"
+          }
+        }
+      }
+    },
     "Karte benennen" : {
       "comment" : "A title for a card-renaming alert.",
       "isCommentAutoGenerated" : true,
@@ -2993,6 +3383,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No filter active"
+          }
+        }
+      }
+    },
+    "Kein Status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No status"
           }
         }
       }
@@ -3167,6 +3567,26 @@
         }
       }
     },
+    "Konto gesperrt – bitte an der Ausleihtheke melden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account blocked – please see the loan desk."
+          }
+        }
+      }
+    },
+    "Konto gesperrt wegen offener Gebühren – bitte an der Ausleihtheke bezahlen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account blocked due to outstanding fees – please pay at the loan desk."
+          }
+        }
+      }
+    },
     "Kopieren" : {
       "localizations" : {
         "en" : {
@@ -3293,6 +3713,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Renew loan period?"
+          }
+        }
+      }
+    },
+    "Leihfrist: %@, %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Leihfrist: %1$@, %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loan period: %@, %@"
           }
         }
       }
@@ -3969,6 +4405,16 @@
         }
       }
     },
+    "Nichts ausgeliehen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing borrowed"
+          }
+        }
+      }
+    },
     "Nichts passt zu deinem Filter" : {
       "localizations" : {
         "en" : {
@@ -4023,6 +4469,26 @@
         }
       }
     },
+    "noch nicht verlängert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "not renewed yet"
+          }
+        }
+      }
+    },
+    "Noch nicht verlängert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not renewed yet"
+          }
+        }
+      }
+    },
     "Noch nichts gemerkt" : {
       "localizations" : {
         "en" : {
@@ -4073,6 +4539,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only a few left"
+          }
+        }
+      }
+    },
+    "Nur vor Ort" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On-site only"
           }
         }
       }
@@ -4211,6 +4687,16 @@
         }
       }
     },
+    "ohne Fälligkeit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no due date"
+          }
+        }
+      }
+    },
     "Ohne Gluten" : {
       "localizations" : {
         "en" : {
@@ -4227,6 +4713,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        }
+      }
+    },
+    "Online" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online"
           }
         }
       }
@@ -5392,6 +5888,16 @@
         }
       }
     },
+    "Sitzung abgelaufen, bitte erneut anmelden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session expired, please sign in again"
+          }
+        }
+      }
+    },
     "Sitzung abgelaufen, bitte erneut anmelden." : {
       "localizations" : {
         "en" : {
@@ -5508,6 +6014,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "iPad language: %@"
+          }
+        }
+      }
+    },
+    "Standort %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location %@"
+          }
+        }
+      }
+    },
+    "Standort %@, und %lld weitere Exemplare" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Standort %1$@, und %2$lld weitere Exemplare"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location %@, and %lld more copies"
+          }
+        }
+      }
+    },
+    "Standort: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location: %@"
           }
         }
       }
@@ -5884,6 +6426,26 @@
         }
       }
     },
+    "überfällig" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "overdue"
+          }
+        }
+      }
+    },
+    "Überfällig seit %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overdue for %@"
+          }
+        }
+      }
+    },
     "Um deine Ausleihen und Vormerkungen zu sehen und Leihfristen zu verlängern." : {
       "comment" : "Ein kurzer Text, der erklärt, warum man sich bei der Bibliothek anmelden muss.",
       "isCommentAutoGenerated" : true,
@@ -5908,12 +6470,42 @@
         }
       }
     },
+    "Unbekannt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
+    "Unbekanntes Medium" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown item"
+          }
+        }
+      }
+    },
     "Ungültige API-URL" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invalid API URL"
+          }
+        }
+      }
+    },
+    "Ungültige PAIA-Server-URL" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid PAIA server URL"
           }
         }
       }
@@ -6084,6 +6676,16 @@
         }
       }
     },
+    "Verlängerung fehlgeschlagen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renewal failed: %@"
+          }
+        }
+      }
+    },
     "Verlauf" : {
       "localizations" : {
         "en" : {
@@ -6148,6 +6750,16 @@
         }
       }
     },
+    "Vorgemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On hold"
+          }
+        }
+      }
+    },
     "Vorgemerkte und bestellte Medien erscheinen hier, bis du sie abholst." : {
       "comment" : "A hint for the user, what to expect in the \"Vormerkungen\" section.",
       "isCommentAutoGenerated" : true,
@@ -6206,6 +6818,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Walnuts"
+          }
+        }
+      }
+    },
+    "Warteschlange: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queue: %lld"
           }
         }
       }
@@ -6596,16 +7218,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cache"
-          }
-        }
-      }
-    },
-    "Bio" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organic"
           }
         }
       }

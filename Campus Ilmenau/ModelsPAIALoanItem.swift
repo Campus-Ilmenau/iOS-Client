@@ -62,12 +62,12 @@ enum PAIAItemStatus: Int, Decodable {
 
     var label: String {
         switch self {
-        case .none: return "Kein Status"
-        case .reserved: return "Vorgemerkt"
-        case .ordered: return "Bestellt"
-        case .held: return "Ausgeliehen"
-        case .provided: return "Bereitgestellt"
-        case .rejected: return "Abgelehnt"
+        case .none: return String(localized: "Kein Status")
+        case .reserved: return String(localized: "Vorgemerkt")
+        case .ordered: return String(localized: "Bestellt")
+        case .held: return String(localized: "Ausgeliehen")
+        case .provided: return String(localized: "Bereitgestellt")
+        case .rejected: return String(localized: "Abgelehnt")
         }
     }
 }

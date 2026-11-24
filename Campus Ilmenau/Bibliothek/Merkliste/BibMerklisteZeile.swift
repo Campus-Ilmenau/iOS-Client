@@ -4,11 +4,11 @@ extension LibraryAvailabilityStatus {
     /// Kurzer Text im Status-Chip der Listen: Ausleihbar, Online, Ausgeliehen, Nur vor Ort, Unbekannt.
     var chipText: String {
         switch self {
-        case .available: "Ausleihbar"
-        case .onLoan: "Ausgeliehen"
-        case .referenceOnly: "Nur vor Ort"
-        case .online: "Online"
-        case .unknown: "Unbekannt"
+        case .available: String(localized: "Ausleihbar")
+        case .onLoan: String(localized: "Ausgeliehen")
+        case .referenceOnly: String(localized: "Nur vor Ort")
+        case .online: String(localized: "Online")
+        case .unknown: String(localized: "Unbekannt")
         }
     }
 }
@@ -140,13 +140,13 @@ struct BibMerklisteZeile: View {
         var parts: [String] = [
             eintrag.anzeigeTitel,
             eintrag.untertitel,
-            gefunden ? "gefunden" : (status?.chipText ?? "Verfügbarkeit wird geladen"),
+            gefunden ? String(localized: "gefunden") : (status?.chipText ?? String(localized: "Verfügbarkeit wird geladen")),
             eintrag.mediaType.displayName
         ]
-        if !pad, let signatur = exemplar?.signatur { parts.append("Signatur \(signatur)") }
+        if !pad, let signatur = exemplar?.signatur { parts.append(String(localized: "Signatur \(signatur)")) }
         if !pad, let standort = exemplar?.standort {
             let weitere = exemplar?.weitere ?? 0
-            parts.append(weitere > 0 ? "Standort \(standort), und \(weitere) weitere Exemplare" : "Standort \(standort)")
+            parts.append(weitere > 0 ? String(localized: "Standort \(standort), und \(weitere) weitere Exemplare") : String(localized: "Standort \(standort)"))
         }
         return parts.filter { !$0.isEmpty }.joined(separator: ", ")
     }

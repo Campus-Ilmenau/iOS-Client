@@ -21,7 +21,7 @@ enum ThoskaCardNaming {
     }
 
     static func fallbackName(for cardId: String) -> String {
-        "Karte …\(cardId.suffix(4).uppercased())"
+        String(localized: "Karte …\(cardId.suffix(4).uppercased())")
     }
 
     static func option(for cardId: String, names: [ThoskaCardName]) -> ThoskaCardOption {
