@@ -28,6 +28,8 @@ struct MensaMeal: Identifiable {
     /// Allergene mit sprachunabhängigem Kürzel. Filter und Prüfung nutzen nur die Kürzel, nie `allergies`.
     var allergenCodes: [MensaCodeRef] = []
     var additiveCodes: [MensaCodeRef] = []
+    /// Symbole der API (`V`, `V*`, `S` …) mit Kürzel.
+    var symbolCodes: [MensaCodeRef] = []
 }
 
 /// Ein Code der API (`Wz`, `V*`, `7`): das Kürzel ist der stabile Schlüssel, der Name folgt der Sprache.

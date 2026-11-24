@@ -211,7 +211,8 @@ class MensaService: ObservableObject {
             date: apiMeal.date,
             translated: apiMeal.translated ?? false,
             allergenCodes: apiMeal.allergenCodes.map { MensaCodeRef(code: $0.code, name: $0.name) },
-            additiveCodes: apiMeal.additiveCodes.map { MensaCodeRef(code: $0.code, name: $0.name) }
+            additiveCodes: apiMeal.additiveCodes.map { MensaCodeRef(code: $0.code, name: $0.name) },
+            symbolCodes: apiMeal.symbolCodes.map { MensaCodeRef(code: $0.code, name: $0.name) }
         )
     }
 
