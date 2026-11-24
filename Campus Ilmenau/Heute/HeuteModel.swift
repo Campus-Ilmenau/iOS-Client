@@ -235,7 +235,7 @@ final class HeuteModel {
 
     /// „Donnerstag, 29. Oktober · 11:45“
     var datumZeile: String {
-        "\(EventKalender.format(jetzt, "EEEE, d. MMMM")) · \(HeuteUhr.uhrzeit(jetzt))"
+        "\(EventKalender.lokal(jetzt) { $0.weekday(.wide).day().month(.wide) }) · \(HeuteUhr.uhrzeit(jetzt))"
     }
 
     /// Ab 15:00 und nicht nachts steht „Heute Abend“ vor „Als Nächstes“.
@@ -266,12 +266,12 @@ final class HeuteModel {
     var jetztKarte: HeuteJetztKarte? {
         switch phase {
         case .morgen:
-            return mensaKarte(anzahl: 2, unterzeile: "Vorschau auf das Mittagsangebot")
+            return mensaKarte(anzahl: 2, unterzeile: String(localized: "Vorschau auf das Mittagsangebot"))
         case .mittag:
-            return mensaKarte(anzahl: 3, unterzeile: "Mittagsangebot")
+            return mensaKarte(anzahl: 3, unterzeile: String(localized: "Mittagsangebot"))
         case .nachmittag, .abend:
             // Ohne Abendessen-Daten heute (z. B. Wochenende) bleibt die gewählte Mensa.
-            return abendessenKarte() ?? mensaKarte(anzahl: 3, unterzeile: "Mittagsangebot")
+            return abendessenKarte() ?? mensaKarte(anzahl: 3, unterzeile: String(localized: "Mittagsangebot"))
         case .nacht:
             return eventKarte() ?? mittagMorgenKarte()
         }
@@ -321,10 +321,12 @@ final class HeuteModel {
         MensaVenue.allCases.map { venue in
             var info: String?
             if mensen != nil {
-                info = oeffnung(venue, am: jetzt).map { "\(HeuteUhr.uhrzeit(minuten: $0.opens))–\(HeuteUhr.uhrzeit(minuten: $0.closes)) Uhr" }
-                    ?? "Heute geschlossen"
-                if abendessenOrte?.contains(venue) == true, let text = info, text != "Heute geschlossen" {
-                    info = "\(text) · Abendessen ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))"
+                let geschlossen = String(localized: "Heute geschlossen")
+                info = oeffnung(venue, am: jetzt).map {
+                    String(localized: "\(HeuteUhr.uhrzeit(minuten: $0.opens))–\(HeuteUhr.uhrzeit(minuten: $0.closes)) Uhr")
+                } ?? geschlossen
+                if abendessenOrte?.contains(venue) == true, let text = info, text != geschlossen {
+                    info = String(localized: "\(text) · Abendessen ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))")
                 }
             }
             return MensaOption(venue: venue, info: info)
@@ -337,9 +339,9 @@ final class HeuteModel {
             ueberschrift: phase.ueberschrift,
             kicker: "",
             titel: mensa.displayName,
-            unterzeile: "Speiseplan gerade nicht verfügbar",
+            unterzeile: String(localized: "Speiseplan gerade nicht verfügbar"),
             zeilen: [],
-            linkText: "Zum Mensa-Tab",
+            linkText: String(localized: "Zum Mensa-Tab"),
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: phase != .nacht,
             stil: .mensa
@@ -394,11 +396,11 @@ final class HeuteModel {
         if let zeiten = oeffnung(mensa, am: jetzt), minuten < zeiten.closes {
             geschlossen = false
             kicker = minuten >= zeiten.opens
-                ? "Jetzt geöffnet · bis \(HeuteUhr.uhrzeit(minuten: zeiten.closes))"
-                : "Heute · ab \(HeuteUhr.uhrzeit(minuten: zeiten.opens))"
+                ? String(localized: "Jetzt geöffnet · bis \(HeuteUhr.uhrzeit(minuten: zeiten.closes))")
+                : String(localized: "Heute · ab \(HeuteUhr.uhrzeit(minuten: zeiten.opens))")
         } else {
             geschlossen = true
-            kicker = "Heute geschlossen"
+            kicker = String(localized: "Heute geschlossen")
         }
         // Ohne Angebot (z. B. sonntags) sagt die Kachel das ausdrücklich
         let keinAngebot = mittagGerichte(mensa, in: speiseplanHeute).isEmpty
@@ -406,9 +408,11 @@ final class HeuteModel {
             ueberschrift: phase.ueberschrift,
             kicker: kicker,
             titel: mensa.displayName,
-            unterzeile: keinAngebot ? (geschlossen ? "Mensa heute geschlossen" : "Heute keine Angebote") : unterzeile,
+            unterzeile: keinAngebot
+                ? (geschlossen ? String(localized: "Mensa heute geschlossen") : String(localized: "Heute keine Angebote"))
+                : unterzeile,
             zeilen: passend(mittagGerichte(mensa, in: speiseplanHeute)).prefix(anzahl).map { zeile($0) },
-            linkText: "Ganzer Speiseplan",
+            linkText: String(localized: "Ganzer Speiseplan"),
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -450,8 +454,8 @@ final class HeuteModel {
     /// „Cafeteria“ bzw. „Mensa“: wo im Gebäude.
     private func ortKurz(_ venue: MensaVenue) -> String {
         switch venue {
-        case .cafeteriaEhrenberg: "Cafeteria"
-        case .mensaEhrenberg: "Mensa"
+        case .cafeteriaEhrenberg: String(localized: "Cafeteria")
+        case .mensaEhrenberg: String(localized: "Mensa")
         default: venue.shortName
         }
     }
@@ -466,21 +470,21 @@ final class HeuteModel {
 
         switch phase {
         case .abend where eigeneMensaHatAbendessen:
-            kicker = "Jetzt geöffnet · Abendessen"
+            kicker = String(localized: "Jetzt geöffnet · Abendessen")
             titel = gebaeudeName(ort)
             unterzeile = ortKurz(ort)
         case .abend:
-            kicker = "\(mensa.displayName) hat geschlossen"
-            titel = "Abendessen in der \(gebaeudeName(ort))"
-            unterzeile = "Tipp · jetzt geöffnet"
+            kicker = String(localized: "\(mensa.displayName) hat geschlossen")
+            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
+            unterzeile = String(localized: "Tipp · jetzt geöffnet")
         case _ where eigeneMensaHatAbendessen:
-            kicker = "Heute ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))"
-            titel = "Abendessen in der \(gebaeudeName(ort))"
+            kicker = String(localized: "Heute ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))")
+            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
             unterzeile = ortKurz(ort)
         default:
-            kicker = "\(mensa.displayName) hat geschlossen"
-            titel = "Abendessen in der \(gebaeudeName(ort))"
-            unterzeile = "Tipp · ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn)) in der \(ortKurz(ort))"
+            kicker = String(localized: "\(mensa.displayName) hat geschlossen")
+            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
+            unterzeile = String(localized: "Tipp · ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn)) in der \(ortKurz(ort))")
         }
 
         return HeuteJetztKarte(
@@ -489,7 +493,7 @@ final class HeuteModel {
             titel: titel,
             unterzeile: unterzeile,
             zeilen: passend(gerichte).prefix(3).map { zeile($0) },
-            linkText: "Zum Abendangebot",
+            linkText: String(localized: "Zum Abendangebot"),
             ziel: .speiseplan(ort),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -502,7 +506,7 @@ final class HeuteModel {
             id: "abendessen",
             zeit: HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn),
             farbe: .brandOrange,
-            titel: "Abendessen",
+            titel: String(localized: "Abendessen"),
             unterzeile: "\(gebaeudeName(ort)) · \(ortKurz(ort))",
             ziel: .speiseplan(ort)
         )
@@ -516,13 +520,13 @@ final class HeuteModel {
         if zeiten.opens > minuten {
             termine.append(HeuteTermin(
                 id: "mensa-oeffnet", zeit: HeuteUhr.uhrzeit(minuten: zeiten.opens), farbe: .brandOrange,
-                titel: "Öffnet", unterzeile: mensa.displayName, ziel: .speiseplan(mensa)
+                titel: String(localized: "Öffnet"), unterzeile: mensa.displayName, ziel: .speiseplan(mensa)
             ))
         }
         if zeiten.closes > minuten {
             termine.append(HeuteTermin(
                 id: "mensa-schliesst", zeit: HeuteUhr.uhrzeit(minuten: zeiten.closes), farbe: .brandOrange,
-                titel: "Schließt", unterzeile: mensa.displayName, ziel: .oeffnungszeiten(mensa)
+                titel: String(localized: "Schließt"), unterzeile: mensa.displayName, ziel: .oeffnungszeiten(mensa)
             ))
         }
         return termine
@@ -541,14 +545,14 @@ final class HeuteModel {
         let gerichte = morgenGerichte
         guard !gerichte.isEmpty else { return nil }
         let kicker = oeffnung(mensa, am: morgenTag)
-            .map { "Morgen · ab \(HeuteUhr.uhrzeit(minuten: $0.opens))" } ?? "Morgen"
+            .map { String(localized: "Morgen · ab \(HeuteUhr.uhrzeit(minuten: $0.opens))") } ?? String(localized: "Morgen")
         return HeuteJetztKarte(
             ueberschrift: phase.ueberschrift,
             kicker: kicker,
             titel: mensa.displayName,
-            unterzeile: "Mittagsangebot morgen",
+            unterzeile: String(localized: "Mittagsangebot morgen"),
             zeilen: passend(gerichte).prefix(3).map { zeile($0, tag: morgenTag) },
-            linkText: "Ganzer Speiseplan",
+            linkText: String(localized: "Ganzer Speiseplan"),
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -557,12 +561,13 @@ final class HeuteModel {
 
     private var mittagMorgenTermin: HeuteTermin? {
         guard let erstes = morgenGerichte.first else { return nil }
-        let ab = oeffnung(mensa, am: morgenTag).map { "morgen ab \(HeuteUhr.uhrzeit(minuten: $0.opens))" } ?? "morgen"
+        let ab = oeffnung(mensa, am: morgenTag).map { String(localized: "morgen ab \(HeuteUhr.uhrzeit(minuten: $0.opens))") }
+            ?? String(localized: "morgen")
         return HeuteTermin(
             id: "mittag-morgen",
             zeit: HeuteUhr.wochentagKurz(morgenTag),
             farbe: .brandOrange,
-            titel: "Mittag: \(erstes.name)",
+            titel: String(localized: "Mittag: \(erstes.name)"),
             unterzeile: "\(mensa.displayName) · \(ab)",
             ziel: .speiseplan(mensa)
         )
@@ -609,13 +614,13 @@ final class HeuteModel {
         let laeuft = laufendesEvent
 
         let kicker = laeuft != nil
-            ? "Läuft gerade · seit \(HeuteUhr.uhrzeit(hauptEvent.beginn))"
-            : "Heute · ab \(HeuteUhr.uhrzeit(hauptEvent.beginn))"
+            ? String(localized: "Läuft gerade · seit \(HeuteUhr.uhrzeit(hauptEvent.beginn))")
+            : String(localized: "Heute · ab \(HeuteUhr.uhrzeit(hauptEvent.beginn))")
         let danach = kommendeEvents.first { $0.id != hauptEvent.id && $0.beginn > hauptEvent.beginn }
         let zeilen = danach.map { event in
             [HeuteZeile(
                 id: event.id,
-                name: "Danach: \(event.titel)",
+                name: String(localized: "Danach: \(event.titel)"),
                 chips: [],
                 rechts: HeuteUhr.istGleicherTag(event.beginn, jetzt)
                     ? HeuteUhr.uhrzeit(event.beginn)
@@ -629,7 +634,7 @@ final class HeuteModel {
             titel: hauptEvent.titel,
             unterzeile: ortUndVeranstalter(hauptEvent),
             zeilen: zeilen,
-            linkText: "Alle Veranstaltungen",
+            linkText: String(localized: "Alle Veranstaltungen"),
             ziel: .alleEvents,
             mensaAendernSichtbar: false,
             stil: .event

@@ -13,9 +13,14 @@ nonisolated enum HeuteUhr {
         uhrzeit(minuten: minuten(datum))
     }
 
-    /// 630 → „10:30“
+    /// 630 → „10:30“ (24-Stunden-Schreibweise der Region, in 12-Stunden-Regionen „10:30 AM“).
+    /// Gerechnet wird in UTC ab einem festen Bezugstag, damit Umstellungstage der Sommerzeit nichts verschieben.
     static func uhrzeit(minuten: Int) -> String {
-        String(format: "%02d:%02d", minuten / 60, minuten % 60)
+        let beginn = Date(timeIntervalSinceReferenceDate: 0)
+        let datum = beginn.addingTimeInterval(TimeInterval(minuten * 60))
+        let stil = Date.FormatStyle(locale: .current, calendar: Calendar(identifier: .gregorian), timeZone: .gmt)
+            .hour(.twoDigits(amPM: .abbreviated)).minute(.twoDigits)
+        return datum.formatted(stil)
     }
 
     /// „11:00“ → 660; `nil`, wenn der Text keine Uhrzeit ist.
@@ -34,7 +39,7 @@ nonisolated enum HeuteUhr {
 
     /// „Fr“
     static func wochentagKurz(_ datum: Date) -> String {
-        EventKalender.format(datum, "EEE").replacingOccurrences(of: ".", with: "")
+        EventKalender.lokal(datum) { $0.weekday(.abbreviated) }.replacingOccurrences(of: ".", with: "")
     }
 
     static func istGleicherTag(_ a: Date, _ b: Date) -> Bool {

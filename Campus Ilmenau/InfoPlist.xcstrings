@@ -1,6 +1,33 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "Campus" : {
+
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Campus Ilmenau"
+          }
+        }
+      }
+    },
+    "NFCReaderUsageDescription" : {
+      "comment" : "Privacy - NFC Scan Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Die App benötigt NFC, um das Guthaben deiner Thoska-Karte auszulesen."
+          }
+        }
+      }
+    },
     "NSCalendarsWriteOnlyAccessUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {

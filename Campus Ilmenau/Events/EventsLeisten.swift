@@ -140,17 +140,17 @@ struct EventsTagesleiste: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
-            tag.map { formatter.abschnittstitel(fuer: $0) + (hatEvents ? ", mit Veranstaltungen" : "") }
-                ?? "Alles ab heute"
+            tag.map { formatter.abschnittstitel(fuer: $0) + (hatEvents ? String(localized: ", mit Veranstaltungen") : "") }
+                ?? String(localized: "Alles ab heute")
         )
         .accessibilityAddTraits(gewaehlt ? .isSelected : [])
     }
 
     private func oben(tag: Date?, heute: Date) -> String {
-        guard let tag else { return "Ab heute" }
-        if tag == heute { return "Heute" }
-        if tag == EventKalender.tag(heute, plus: 1) { return "Morgen" }
-        return EventKalender.format(tag, "EEE").replacingOccurrences(of: ".", with: "")
+        guard let tag else { return String(localized: "Ab heute") }
+        if tag == heute { return String(localized: "Heute") }
+        if tag == EventKalender.tag(heute, plus: 1) { return String(localized: "Morgen") }
+        return EventKalender.lokal(tag) { $0.weekday(.abbreviated) }.replacingOccurrences(of: ".", with: "")
     }
 }
 
