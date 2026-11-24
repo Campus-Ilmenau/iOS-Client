@@ -58,8 +58,10 @@ nonisolated enum MensaMealtime: Hashable {
     case lunch
     case dinner
 
-    /// Das Gericht gehört zum Abendessen, wenn die Gruppe der API „Abendessen“ heißt.
+    /// Das Gericht gehört zum Abendessen, wenn die Gruppe der API „Abendessen“ heißt. Bei `lang=en` heißt sie „Dinner“,
+    /// bei nicht übersetzten Gerichten (morgen, später) bleibt sie deutsch: Beide Namen zählen. Die Gruppe ist hier nur
+    /// ein Schlüssel zum Erkennen; ein Filter nach Gruppe würde immer den deutschen Namen („Abendessen“) senden.
     static func isDinner(_ meal: MensaMeal) -> Bool {
-        meal.category.localizedCaseInsensitiveContains("abend")
+        meal.category.localizedCaseInsensitiveContains("abend") || meal.category.localizedCaseInsensitiveContains("dinner")
     }
 }

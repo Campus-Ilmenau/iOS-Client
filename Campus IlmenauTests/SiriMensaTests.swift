@@ -28,7 +28,7 @@ private func gericht(
     WidgetGericht(
         id: "id-\(name)", name: name, gruppe: abend ? "Abendessen" : "Mittag", abendessen: abend,
         preisStudierende: preis, preisBedienstete: preis + 1, preisGaeste: nil, waehrung: "EUR", chips: chips,
-        allergene: allergene
+        allergene: allergene, allergenCodes: allergene.map(MensaAllergen.migratedCode)
     )
 }
 
@@ -202,7 +202,7 @@ struct SiriMensaKeinPlanTests {
 struct SiriMensaFilterTests {
     private var veganOhneMilch: SiriMensaEinstellungen {
         var einstellungen = standard
-        einstellungen.appFilter = MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])
+        einstellungen.appFilter = MensaFilter(diet: .vegan, excludedAllergens: ["Mi"])
         return einstellungen
     }
 

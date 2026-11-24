@@ -75,8 +75,8 @@ private struct MensaPadVorschau: View {
 
 #Preview("Filter-Popover") {
     MensaFilterPopover(
-        filter: .constant(MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Gluten"])),
-        allergens: MensaFilter.allergens(onDay: MensaPreviewData.meals, keeping: ["Gluten"])
+        filter: .constant(MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Wz"])),
+        allergens: MensaFilter.allergens(onDay: MensaPreviewData.meals, keeping: ["Wz"])
     )
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     .padding(40)

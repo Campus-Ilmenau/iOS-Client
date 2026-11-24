@@ -164,12 +164,12 @@ private struct MensaPreviewHost: View {
 }
 
 #Preview("Filter aktiv – Light") {
-    MensaPreviewHost(filter: MensaFilter(diet: .vegetarisch, onlyBio: false, excludedAllergens: ["Gluten", "Ei"]))
+    MensaPreviewHost(filter: MensaFilter(diet: .vegetarisch, onlyBio: false, excludedAllergens: ["Wz", "Ei"]))
         .preferredColorScheme(.light)
 }
 
 #Preview("Filter aktiv – Dark") {
-    MensaPreviewHost(filter: MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Gluten"]))
+    MensaPreviewHost(filter: MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Wz"]))
         .preferredColorScheme(.dark)
 }
 

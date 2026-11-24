@@ -27,9 +27,9 @@ struct MensaComponentInfo: Identifiable {
     /// „Allergene: Sellerie · Zusatzstoffe: Antioxidationsmittel“ oder „Keine weiteren Angaben“.
     var infoText: String {
         var parts: [String] = []
-        if !allergens.isEmpty { parts.append("Allergene: " + allergens.joined(separator: ", ")) }
-        if !additives.isEmpty { parts.append("Zusatzstoffe: " + additives.joined(separator: ", ")) }
-        return parts.isEmpty ? "Keine weiteren Angaben" : parts.joined(separator: " · ")
+        if !allergens.isEmpty { parts.append(String(localized: "Allergene: \(allergens.joined(separator: ", "))")) }
+        if !additives.isEmpty { parts.append(String(localized: "Zusatzstoffe: \(additives.joined(separator: ", "))")) }
+        return parts.isEmpty ? String(localized: "Keine weiteren Angaben") : parts.joined(separator: " · ")
     }
 }
 
@@ -62,25 +62,19 @@ extension MensaMeal {
 
     var uniqueAdditives: [String] { additives.uniquedKeepingOrder() }
 
-    /// Zusatzstoffe, wie die API sie kennt (`/v1/mensa/codes`, Kategorie `additive`).
-    private static let knownAdditives: Set<String> = [
-        "Farbstoff", "Konservierungsstoff", "Antioxidationsmittel", "Geschmacksverstärker", "Geschwärzt", "Gewachst",
-        "Phosphat", "Süßungsmittel", "Phenylalaninquelle", "Kakaohaltige Fettglasur", "Koffeinhaltig", "Chininhaltig",
-        "Tierische Gelatine", "Tierisches Lab", "Karmin", "Sepia", "Honig"
-    ]
-
-    /// Die Codes einer Komponente kommen ohne Kategorie. Die Zuordnung läuft deshalb über die Namen:
+    /// Die Codes einer Komponente kommen ohne Kategorie. Die Zuordnung läuft über das sprachunabhängige Kürzel:
     /// Allergene aus der festen Liste und dem Gericht, Zusatzstoffe aus der Liste der API und dem Gericht.
     /// Symbole wie „Vegan“ oder „Knoblauch“ und „Ohne Zusatzstoffe“ gehören zu keinem von beiden.
+    /// Die Namen stehen so, wie die API sie in der App-Sprache liefert.
     var componentInfos: [MensaComponentInfo] {
-        let allergenNames = Set(MensaFilter.knownAllergens).union(allergies)
-        let additiveNames = Self.knownAdditives.union(additives)
+        let allergenCodes = Set(MensaAllergen.knownCodes).union(self.allergenCodes.map(\.code))
+        let additiveCodes = MensaAllergen.knownAdditiveCodes.union(self.additiveCodes.map(\.code))
         return components.map { component in
             MensaComponentInfo(
                 id: component.id,
                 name: component.name,
-                allergens: component.codes.filter { allergenNames.contains($0) }.uniquedKeepingOrder(),
-                additives: component.codes.filter { additiveNames.contains($0) }.uniquedKeepingOrder()
+                allergens: component.codeRefs.filter { allergenCodes.contains($0.code) }.compactMap(\.name).uniquedKeepingOrder(),
+                additives: component.codeRefs.filter { additiveCodes.contains($0.code) }.compactMap(\.name).uniquedKeepingOrder()
             )
         }
     }

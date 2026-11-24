@@ -188,7 +188,7 @@ struct WidgetStoreTests {
             snapshot.gemerkteEventIDs = ["a"]
         }
         let json = try #require(try JSONSerialization.jsonObject(with: Data(contentsOf: datei)) as? [String: Any])
-        #expect(Set(json.keys) == ["mensen", "events", "gemerkteEventIDs", "stand"])
+        #expect(Set(json.keys) == ["mensen", "events", "gemerkteEventIDs", "stand", "sprache"])
         let mensa = try #require((json["mensen"] as? [[String: Any]])?.first)
         #expect(Set(mensa.keys) == ["id", "name", "kurzname", "oeffnungszeiten"])
     }

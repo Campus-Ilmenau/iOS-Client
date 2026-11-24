@@ -342,6 +342,7 @@ struct MensaWechselTests {
 private func filterGericht(_ name: String, chips: [WidgetChip] = [], allergene: [String] = []) -> WidgetGericht {
     var g = gericht(name, chips: chips)
     g.allergene = allergene
+    g.allergenCodes = allergene.map(MensaAllergen.migratedCode)
     return g
 }
 
@@ -369,7 +370,7 @@ private func gefiltert(_ uhr: String, _ filter: MensaFilter?, tag: String = "202
 }
 
 struct MensaWidgetFilterTests {
-    let veganOhneMilch = MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])
+    let veganOhneMilch = MensaFilter(diet: .vegan, excludedAllergens: ["Mi"])
 
     @Test func mittagZeigtNurPassendes() {
         let a = gefiltert("11:45", veganOhneMilch)
@@ -574,10 +575,10 @@ struct MensaSperreRotationTests {
     }
 
     @Test func einEinzelnesGerichtRotiertNicht() {
-        let a = sperre("11:45", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"]))
+        let a = sperre("11:45", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Mi"]))
         #expect(a.anzahl == 1)
         #expect(a.positionText.isEmpty)
-        #expect(sperre("11:50", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])).gericht == a.gericht)
+        #expect(sperre("11:50", daten: filterDaten(), filter: MensaFilter(diet: .vegan, excludedAllergens: ["Mi"])).gericht == a.gericht)
     }
 
     @Test func zeitleisteIstKurzUndGerundet() {

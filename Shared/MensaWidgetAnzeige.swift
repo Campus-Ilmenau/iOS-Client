@@ -191,7 +191,7 @@ nonisolated enum MensaWidgetPhasen {
         }
         guard let wert else { return "–" }
         let code = gericht.waehrung.count == 3 ? gericht.waehrung.uppercased() : "EUR"
-        return wert.formatted(.currency(code: code).locale(Locale(identifier: "de_DE")))
+        return wert.formatted(.currency(code: code).locale(.current))
     }
 }
 

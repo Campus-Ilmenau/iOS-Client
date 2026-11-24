@@ -36,7 +36,7 @@ enum MensaWidgetVorschau {
     }
 
     /// „Vegan · ohne Milch“: lässt in der Mensa Ehrenberg zum Mittag zwei von drei Gerichten durch.
-    static let filterVeganOhneMilch = MensaFilter(diet: .vegan, excludedAllergens: ["Milch und Milchzucker"])
+    static let filterVeganOhneMilch = MensaFilter(diet: .vegan, excludedAllergens: ["Mi"])
     /// „Vegan · Nur Bio“: Im Beispielplan ist nichts Bio, es passt also nichts.
     static let filterNichtsPasst = MensaFilter(diet: .vegan, onlyBio: true)
 
@@ -145,7 +145,7 @@ enum MensaWidgetVorschau {
         WidgetGericht(
             id: "meal_\(name)", name: name, gruppe: abend ? "Abendessen" : "Mittag", abendessen: abend,
             preisStudierende: preis, preisBedienstete: preis + 1, preisGaeste: preis + 2, waehrung: "EUR",
-            chips: chips.map(\.wert), allergene: allergene
+            chips: chips.map(\.wert), allergene: allergene, allergenCodes: allergene.map(MensaAllergen.migratedCode)
         )
     }
 }

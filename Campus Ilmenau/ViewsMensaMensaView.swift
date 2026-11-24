@@ -24,6 +24,8 @@ struct MensaView: View {
     @State private var filter = MensaFilterStore.load()
     /// Wunsch von der Startseite („Ganzer Speiseplan“): wechselt auf diese Mensa.
     @Environment(AppRouter.self) private var router: AppRouter?
+    @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     @State private var zeigtOeffnungszeiten = false
     /// Siri-Tipp: wie oft der Speiseplan geöffnet wurde, und ob der Nutzer den Tipp mit × geschlossen hat.
     @AppStorage(SiriTipp.mensaOeffnungen) private var tippOeffnungen = 0
@@ -149,6 +151,20 @@ struct MensaView: View {
         }
         .onChange(of: selectedDayIndex) { _, newIndex in
             load(days[newIndex])
+        }
+        // Die Texte der API folgen der App-Sprache: Nach einem Wechsel neu laden, sonst bliebe die alte Sprache stehen.
+        .onChange(of: AppLanguage(locale: locale)) { _, _ in
+            load(days[selectedDayIndex])
+        }
+        // Nach einem Tageswechsel (App über Nacht offen): Tage neu bilden und einmal neu laden, denn erst am Ausgabetag
+        // gibt es die englischen Texte.
+        .onChange(of: scenePhase) { _, neu in
+            guard neu == .active else { return }
+            let aktuell = MensaFormatting.workdays(from: .now)
+            guard aktuell != days else { return }
+            days = aktuell
+            selectedDayIndex = min(selectedDayIndex, aktuell.count - 1)
+            load(days[selectedDayIndex])
         }
         .task {
             load(days[selectedDayIndex])

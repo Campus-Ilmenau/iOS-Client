@@ -7,7 +7,7 @@ struct UhrEinstellungenTests {
     @Test func kontextUmlaufErhaeltAlles() throws {
         let original = UhrEinstellungen(
             mensa: .nanoteria, preisgruppe: .gaeste,
-            filter: MensaFilter(diet: .vegan, onlyBio: true, excludedAllergens: ["Milch und Milchzucker"]),
+            filter: MensaFilter(diet: .vegan, onlyBio: true, excludedAllergens: ["Mi"]),
             gemerkteEvents: ["b", "a"]
         )
         let gelesen = try #require(UhrEinstellungen(kontext: original.kontext))

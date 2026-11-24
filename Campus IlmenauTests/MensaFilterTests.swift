@@ -24,7 +24,8 @@ struct MensaFilterTests {
             co2GramPerPortion: nil,
             components: [],
             canteenName: canteen,
-            date: .now
+            date: .now,
+            allergenCodes: allergies.map { MensaCodeRef(code: MensaAllergen.migratedCode($0), name: $0) }
         )
     }
 
@@ -70,12 +71,12 @@ struct MensaFilterTests {
     }
 
     @Test func dietBioAndAllergenAllApplyTogether() {
-        let filter = MensaFilter(diet: .vegan, onlyBio: true, excludedAllergens: ["Soja"])
+        let filter = MensaFilter(diet: .vegan, onlyBio: true, excludedAllergens: ["So"])
         #expect(ids(filter.apply(to: [bioVegan, bioVegetarian, veganOnly])) == ["bioVegan"])
     }
 
     @Test func excludedAllergenRemovesMealsWithAnyOfThem() {
-        let filter = MensaFilter(excludedAllergens: ["Milch", "Soja"])
+        let filter = MensaFilter(excludedAllergens: ["Milch", "So"])
         #expect(ids(filter.apply(to: [meat, vegetarian, veganOnly, vegan])) == ["meat", "vegan"])
     }
 
@@ -108,9 +109,9 @@ struct MensaFilterTests {
     // MARK: - Texte
 
     @Test func summaryListsBioAndSortedAllergens() {
-        let filter = MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Gluten", "Ei"])
-        #expect(filter.summary == "Nur Bio · ohne Ei, Gluten")
-        #expect(filter.activeDescription == "Vegetarisch · Nur Bio · ohne Ei, Gluten")
+        let filter = MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Wz", "Ei"])
+        #expect(filter.summary == "Nur Bio · ohne Hühnerei, Weizen")
+        #expect(filter.activeDescription == "Vegetarisch · Nur Bio · ohne Hühnerei, Weizen")
     }
 
     @Test func availableAllergensAlwaysContainAllTwentySixKnownOnes() {
@@ -118,18 +119,17 @@ struct MensaFilterTests {
         #expect(MensaFilter.knownAllergens.count == 26)
         #expect(Set(MensaFilter.knownAllergens).count == 26)
         #expect(list.count == 26)
-        // Auch Allergene, die selten im Speiseplan stehen.
-        #expect(list.contains("Walnüsse"))
-        #expect(list.contains("Hühnerei"))
-        #expect(list.contains("Milch und Milchzucker"))
-        #expect(list.contains("Weichtiere"))
+        // Auch Allergene, die selten im Speiseplan stehen (Kürzel der API).
+        for code in ["Wa", "Ei", "Mi", "We"] { #expect(list.contains(code)) }
+        #expect(MensaFilter.allergenName(code: "Wa") == "Walnüsse")
     }
 
-    @Test func availableAllergensAreSortedAndWithoutDuplicates() {
+    @Test func availableAllergensAreSortedByNameAndWithoutDuplicates() {
         let meals = [meal("x", allergies: ["Sellerie", "Sellerie", "Hühnerei"])]
         let list = MensaFilter.availableAllergens(in: meals, keeping: [])
         #expect(list.count == 26)
-        #expect(list == list.sorted { $0.localizedCompare($1) == .orderedAscending })
+        let names = list.map { MensaFilter.allergenName(code: $0) }
+        #expect(names == names.sorted { $0.localizedCompare($1) == .orderedAscending })
     }
 
     @Test func availableAllergensAddUnknownOnesFromMealsAndExcluded() {
@@ -198,7 +198,7 @@ struct MensaFilterTests {
 
     @Test func saveAndLoadRoundTrip() {
         let defaults = makeDefaults()
-        let filter = MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Ei", "Soja"])
+        let filter = MensaFilter(diet: .vegetarisch, onlyBio: true, excludedAllergens: ["Ei", "So"])
         MensaFilterStore.save(filter, defaults: defaults)
         #expect(MensaFilterStore.load(defaults: defaults) == filter)
     }
@@ -218,7 +218,7 @@ struct MensaFilterTests {
         let meals = [meat, vegetarian, vegan, veganOnly, bioVegan, bioVegetarian]
         let filters = [
             MensaFilter(), MensaFilter(diet: .vegetarisch), MensaFilter(diet: .vegan), MensaFilter(onlyBio: true),
-            MensaFilter(diet: .vegan, onlyBio: true), MensaFilter(excludedAllergens: ["Gluten", "Soja"]),
+            MensaFilter(diet: .vegan, onlyBio: true), MensaFilter(excludedAllergens: ["Gluten", "So"]),
             MensaFilter(diet: .vegetarisch, excludedAllergens: ["Milch"])
         ]
         for filter in filters {
@@ -226,7 +226,7 @@ struct MensaFilterTests {
                 WidgetGericht(
                     id: meal.id, name: meal.name, gruppe: "Mittag", abendessen: false, preisStudierende: nil,
                     preisBedienstete: nil, preisGaeste: nil, waehrung: "EUR", chips: meal.widgetChips,
-                    allergene: meal.allergies
+                    allergene: meal.allergies, allergenCodes: meal.allergenCodes.map(\.code)
                 )
             }
             #expect(filter.apply(to: gerichte).map(\.id) == ids(filter.apply(to: meals)), "Filter: \(filter.activeDescription)")

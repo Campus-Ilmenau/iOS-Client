@@ -59,7 +59,7 @@ struct MensaMealDetailContent: View {
     }
 
     private var kicker: String {
-        let category = meal.category.isEmpty ? "Gericht" : meal.category
+        let category = meal.category.isEmpty ? String(localized: "Gericht") : meal.category
         return "\(venueName) · \(category) · \(MensaFormatting.dayLabel(meal.date))"
     }
 
@@ -131,7 +131,7 @@ struct MensaMealDetailContent: View {
             if let co2 = meal.co2GramPerPortion {
                 sectionHead("Umwelt", icon: "leaf")
                 Card {
-                    Text("≈ \(co2.formatted(.number.precision(.fractionLength(0)).locale(Locale(identifier: "de_DE")))) g CO₂ pro Portion")
+                    Text("≈ \(co2.formatted(.number.precision(.fractionLength(0)))) g CO₂ pro Portion")
                         .font(.body)
                         .foregroundStyle(Color(.textPrimary))
                 }
@@ -174,6 +174,12 @@ struct MensaMealDetailContent: View {
                         }
                     }
                     .padding(.top, 12)
+                }
+
+                // Nur bei maschinell übersetzten Gerichten (`translated == true`), einmal und dezent.
+                if meal.translated {
+                    MaschinellUebersetztHinweis()
+                        .padding(.top, 12)
                 }
             }
         }

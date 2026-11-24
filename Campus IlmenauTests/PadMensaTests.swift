@@ -26,12 +26,13 @@ struct PadMensaTests {
             MensaMeal(id: id, category: "", name: id, description: nil,
                       price: MensaMealPrice(student: 1, staff: 2, guest: 3, currency: "€"),
                       allergies: allergies, badges: [], additives: [], categories: [], co2GramPerPortion: nil,
-                      components: [], canteenName: "Mensa Ehrenberg", date: .now)
+                      components: [], canteenName: "Mensa Ehrenberg", date: .now,
+                      allergenCodes: allergies.map { MensaCodeRef(code: MensaAllergen.migratedCode($0), name: $0) })
         }
         let tag = [meal("a", ["Weizen", "Soja"]), meal("b", ["Soja", "Fisch"])]
-        #expect(MensaFilter.allergens(onDay: tag, keeping: []) == ["Fisch", "Soja", "Weizen"])
+        #expect(MensaFilter.allergens(onDay: tag, keeping: []) == ["Fi", "So", "Wz"])
         // Ausgeschlossene bleiben sichtbar, auch wenn der Tag sie nicht nennt.
-        #expect(MensaFilter.allergens(onDay: tag, keeping: ["Sellerie"]) == ["Fisch", "Sellerie", "Soja", "Weizen"])
+        #expect(MensaFilter.allergens(onDay: tag, keeping: ["Sel"]) == ["Fi", "Sel", "So", "Wz"])
         // Im Sheet dagegen stehen alle bekannten Allergene.
         #expect(MensaFilter.availableAllergens(in: tag, keeping: []).count >= MensaFilter.knownAllergens.count)
         #expect(MensaFilter.allergens(onDay: [], keeping: []).isEmpty)

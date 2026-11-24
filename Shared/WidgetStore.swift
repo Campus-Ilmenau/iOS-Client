@@ -15,6 +15,10 @@ nonisolated struct WidgetSnapshot: Codable, Equatable, Sendable {
     var woche: WidgetWoche?
     /// Wann die App den Speicher zuletzt geschrieben hat.
     var stand: Date?
+    /// Sprache (`AppLanguage.apiCode`), in der die Mensa-Texte geladen wurden. Fehlt sie oder weicht sie von der
+    /// aktuellen ab, liest `WidgetStore` keine Gerichte (sonst stünden deutsche Texte in einer englischen Oberfläche
+    /// und umgekehrt, und alte Stände ohne Allergen-Kürzel würden den Filter umgehen).
+    var sprache: String?
 
     func mensa(id: String) -> WidgetMensa? {
         mensen.first { $0.id == id }
@@ -60,13 +64,15 @@ nonisolated struct WidgetGericht: Codable, Equatable, Sendable, Identifiable {
     var preisGaeste: Double?
     var waehrung: String
     var chips: [WidgetChip]
-    /// Allergene wie in der API; der Filter „Allergene ausschließen“ prüft sie.
+    /// Namen der Allergene wie in der API (in der Sprache des Stands), nur zur Anzeige.
     var allergene: [String] = []
+    /// Kürzel der Allergene (`Wz`, `Mi`); der Filter „Allergene ausschließen“ prüft nur sie.
+    var allergenCodes: [String] = []
     /// Zusatzstoffe wie in der API („Antioxidationsmittel“), ohne Doppelte. Nur die Apple Watch zeigt sie.
     var zusatzstoffe: [String] = []
 
     enum CodingKeys: String, CodingKey {
-        case id, name, gruppe, abendessen, preisStudierende, preisBedienstete, preisGaeste, waehrung, chips, allergene, zusatzstoffe
+        case id, name, gruppe, abendessen, preisStudierende, preisBedienstete, preisGaeste, waehrung, chips, allergene, allergenCodes, zusatzstoffe
     }
 }
 
@@ -84,6 +90,7 @@ extension WidgetGericht {
         waehrung = try container.decode(String.self, forKey: .waehrung)
         chips = try container.decode([WidgetChip].self, forKey: .chips)
         allergene = try container.decodeIfPresent([String].self, forKey: .allergene) ?? []
+        allergenCodes = try container.decodeIfPresent([String].self, forKey: .allergenCodes) ?? []
         zusatzstoffe = try container.decodeIfPresent([String].self, forKey: .zusatzstoffe) ?? []
     }
 }
@@ -150,18 +157,33 @@ nonisolated struct WidgetStore: Sendable {
     private let dateiURL: URL?
 
     /// - Parameter dateiURL: Ort der Datei. Vorgabe ist die App Group; Tests und Previews geben einen eigenen Ort.
-    init(dateiURL: URL? = WidgetStore.standardDatei) {
+    init(dateiURL: URL? = WidgetStore.standardDatei, sprache: @escaping () -> AppLanguage = { .current }) {
         self.dateiURL = dateiURL
+        self.sprache = sprache
     }
+
+    private let sprache: () -> AppLanguage
 
     static var standardDatei: URL? {
         AppGroup.ordner?.appendingPathComponent("WidgetStore.json")
     }
 
-    /// Der gespeicherte Stand; leer, wenn nichts da ist oder die Datei sich nicht lesen lässt.
+    /// Der gespeicherte Stand; leer, wenn nichts da ist oder die Datei sich nicht lesen lässt. Gerichte in einer anderen
+    /// Sprache als der aktuellen fehlen (siehe `WidgetSnapshot.sprache`).
     func lesen() -> WidgetSnapshot {
         guard let dateiURL, let daten = try? Data(contentsOf: dateiURL),
-              let snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: daten) else { return WidgetSnapshot() }
+              var snapshot = try? JSONDecoder().decode(WidgetSnapshot.self, from: daten) else { return WidgetSnapshot() }
+        let aktuell = sprache().apiCode
+        if snapshot.sprache != aktuell {
+            // Stand in anderer (oder unbekannter) Sprache: Gerichte verwerfen, die App oder das Widget lädt sie neu.
+            snapshot.mensen = snapshot.mensen.map { mensa in
+                var mensa = mensa
+                mensa.heute = nil
+                mensa.naechsterOeffnungstag = nil
+                return mensa
+            }
+            snapshot.sprache = aktuell
+        }
         return snapshot
     }
 
@@ -173,6 +195,7 @@ nonisolated struct WidgetStore: Sendable {
         let alt = lesen()
         var neu = alt
         aenderung(&neu)
+        neu.sprache = sprache().apiCode
         guard neu != alt else { return false }
         neu.stand = .now
         guard let daten = try? JSONEncoder().encode(neu) else { return false }

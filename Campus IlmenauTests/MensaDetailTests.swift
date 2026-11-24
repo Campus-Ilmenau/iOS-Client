@@ -15,7 +15,8 @@ struct MensaDetailTests {
         MensaMeal(
             id: "x", category: "Mittagessen", name: name, description: nil, price: price,
             allergies: allergies, badges: badges, additives: additives, categories: categories,
-            co2GramPerPortion: nil, components: components, canteenName: "Mensa Ehrenberg", date: .now
+            co2GramPerPortion: nil, components: components, canteenName: "Mensa Ehrenberg", date: .now,
+            allergenCodes: allergies.map { MensaCodeRef(code: MensaAllergen.migratedCode($0), name: $0) }
         )
     }
 
@@ -54,8 +55,13 @@ struct MensaDetailTests {
             allergies: ["Sellerie"],
             additives: ["Antioxidationsmittel"],
             components: [
-                MensaMealComponent(name: "Mango-Chutney", codes: ["Senf", "Antioxidationsmittel", "Vegan", "Knoblauch"]),
-                MensaMealComponent(name: "Basmatireis", codes: ["Ohne Zusatzstoffe", "Vegan"])
+                MensaMealComponent(name: "Mango-Chutney", codes: [], codeRefs: [
+                    MensaCodeRef(code: "Sen", name: "Senf"), MensaCodeRef(code: "3", name: "Antioxidationsmittel"),
+                    MensaCodeRef(code: "V*", name: "Vegan"), MensaCodeRef(code: "K", name: "Knoblauch")
+                ]),
+                MensaMealComponent(name: "Basmatireis", codes: [], codeRefs: [
+                    MensaCodeRef(code: "odZ", name: "Ohne Zusatzstoffe"), MensaCodeRef(code: "V*", name: "Vegan")
+                ])
             ]
         )
         let infos = m.componentInfos

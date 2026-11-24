@@ -37,7 +37,7 @@ struct MensaFilterSheet: View {
                     group {
                         ForEach(Array(availableAllergens.enumerated()), id: \.element) { index, allergen in
                             if index > 0 { separator }
-                            toggleRow("Ohne \(allergen)", isOn: allergenBinding(allergen))
+                            toggleRow("Ohne \(MensaFilter.allergenName(code: allergen))", isOn: allergenBinding(allergen))
                         }
                     }
                     note("Alle Allergene, die der Speiseplan kennt. Der Filter gilt für alle Mensen und Tage und bleibt gespeichert.")
@@ -146,7 +146,7 @@ struct MensaFilterPopover: View {
                         gruppe {
                             ForEach(Array(allergens.enumerated()), id: \.element) { index, allergen in
                                 if index > 0 { Rectangle().fill(Color(.separator)).frame(height: 1) }
-                                zeile("Ohne \(allergen)", isOn: allergenBinding(allergen))
+                                zeile("Ohne \(MensaFilter.allergenName(code: allergen))", isOn: allergenBinding(allergen))
                             }
                         }
                     }
@@ -231,7 +231,7 @@ struct MensaFilterPopover: View {
 /// Zeigt das Sheet ohne Präsentations-Animation: bei `.medium` etwa halbe Höhe über dem abgedunkelten Hintergrund, bei `.large` fast ganz.
 private struct FilterSheetPreview: View {
     let detent: PresentationDetent
-    var filter = MensaFilter(diet: .vegetarisch, onlyBio: false, excludedAllergens: ["Weizen"])
+    var filter = MensaFilter(diet: .vegetarisch, onlyBio: false, excludedAllergens: ["Wz"])
     @State private var currentFilter = MensaFilter()
 
     var body: some View {

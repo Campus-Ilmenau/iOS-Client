@@ -16,6 +16,8 @@ nonisolated enum MensaDiet: String, Codable, CaseIterable, Hashable, Sendable {
 nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     var diet: MensaDiet = .alle
     var onlyBio = false
+    /// Kürzel der ausgeschlossenen Allergene (`Wz`, `Mi` …), nie angezeigte Namen: Die Namen wechseln mit der Sprache,
+    /// das Kürzel nicht. Ein Filter mit deutschen Namen aus älteren Versionen wird beim Lesen umgestellt.
     var excludedAllergens: Set<String> = []
 
     // Namen der Badges, wie `MensaService.determineBadges` sie vergibt. Die Chips des Widgets heißen genauso.
@@ -23,7 +25,7 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     private static let vegetarianBadge = "Vegetarisch"
     private static let bioBadge = "Bio"
 
-    /// Die eine Prüfung, auf der alles andere aufbaut.
+    /// Die eine Prüfung, auf der alles andere aufbaut. `allergies` sind die Allergen-**Kürzel** des Gerichts.
     func matches(badges: Set<String>, allergies: [String]) -> Bool {
         switch diet {
         case .alle:
@@ -39,7 +41,7 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
 
     /// Ein Gericht im Speicher der Widgets. Dessen Chips tragen die Namen der Badges (Vegan, Vegetarisch, Bio).
     func matches(_ gericht: WidgetGericht) -> Bool {
-        matches(badges: Set(gericht.chips.map(\.titel)), allergies: gericht.allergene)
+        matches(badges: Set(gericht.chips.map(\.titel)), allergies: gericht.allergenCodes)
     }
 
     func apply(to gerichte: [WidgetGericht]) -> [WidgetGericht] {
@@ -52,12 +54,15 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     /// Anzahl der Einstellungen jenseits der Pills: „Nur Bio“ und ausgeschlossene Allergene (Zahl an der Filter-Taste).
     var extraCount: Int { (onlyBio ? 1 : 0) + excludedAllergens.count }
 
-    /// „Nur Bio“, „ohne Gluten, Ei“; ohne die Ernährungsstufe, die steht in den Pills.
+    /// „Nur Bio“, „ohne Gluten, Ei“ (Namen in der App-Sprache); ohne die Ernährungsstufe, die steht in den Pills.
     var summaryParts: [String] {
         var parts: [String] = []
-        if onlyBio { parts.append("Nur Bio") }
+        if onlyBio { parts.append(String(localized: "Nur Bio")) }
         if !excludedAllergens.isEmpty {
-            parts.append("ohne " + excludedAllergens.sorted { $0.localizedCompare($1) == .orderedAscending }.joined(separator: ", "))
+            let names = excludedAllergens.map(MensaAllergen.displayName(code:))
+                .sorted { $0.localizedCompare($1) == .orderedAscending }
+                .joined(separator: ", ")
+            parts.append(String(localized: "ohne \(names)"))
         }
         return parts
     }
@@ -71,38 +76,62 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     var activeDescription: String {
         let dietName: [String] = switch diet {
         case .alle: []
-        case .vegetarisch: ["Vegetarisch"]
-        case .vegan: ["Vegan"]
+        case .vegetarisch: [String(localized: "Vegetarisch")]
+        case .vegan: [String(localized: "Vegan")]
         }
         return (dietName + summaryParts).joined(separator: " · ")
     }
 
-    /// Alle 26 Allergene, die die Mensa-API kennt (`/v1/mensa/codes`, Kategorie `allergen`), mit den Namen der API.
+    /// Alle 26 Allergene, die die Mensa-API kennt (`/v1/mensa/codes`, Kategorie `allergen`), als Kürzel.
     /// Das Sheet zeigt sie immer, auch wenn der Speiseplan des Tages sie nicht enthält: Wer etwas meiden muss,
     /// soll den Filter an jedem Tag im Voraus einstellen können.
-    static let knownAllergens: [String] = [
-        "Weizen", "Roggen", "Gerste", "Hafer", "Dinkel", "Kamut", "Krebstiere", "Hühnerei", "Fisch", "Erdnüsse",
-        "Soja", "Milch und Milchzucker", "Mandeln", "Haselnüsse", "Walnüsse", "Cashewnüsse", "Pekannüsse",
-        "Paranüsse", "Pistazien", "Macadamianüsse", "Sellerie", "Senf", "Sesam", "Schwefeloxid/Sulfite", "Lupine",
-        "Weichtiere"
-    ]
+    static let knownAllergens: [String] = MensaAllergen.knownCodes
+}
+
+extension MensaFilter {
+    private enum CodingKeys: String, CodingKey {
+        case diet, onlyBio, excludedAllergens
+    }
+
+    /// Defensiv: fehlende Felder bekommen ihren Standard, gespeicherte deutsche Allergen-Namen werden zu Kürzeln.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        diet = try container.decodeIfPresent(MensaDiet.self, forKey: .diet) ?? .alle
+        onlyBio = try container.decodeIfPresent(Bool.self, forKey: .onlyBio) ?? false
+        excludedAllergens = Set(
+            (try container.decodeIfPresent(Set<String>.self, forKey: .excludedAllergens) ?? [])
+                .map(MensaAllergen.migratedCode)
+        )
+    }
 }
 
 // Die Gerichte der App (`MensaMeal`) gehören nicht zum Widget; hier stehen nur die Anschlüsse an die Prüfung oben.
 extension MensaFilter {
     func matches(_ meal: MensaMeal) -> Bool {
-        matches(badges: Set(meal.badges), allergies: meal.allergies)
+        matches(badges: Set(meal.badges), allergies: meal.allergenCodes.map(\.code))
     }
 
     func apply(to meals: [MensaMeal]) -> [MensaMeal] {
         isActive ? meals.filter { matches($0) } : meals
     }
 
-    /// Allergene für das Sheet, alphabetisch: die feste Liste, dazu alles, was ein geladenes Gericht nennt
-    /// (falls die API ein neues Allergen einführt), und ausgeschlossene, die nicht mehr in der Liste stehen.
+    /// Allergen-Kürzel für das Sheet, alphabetisch nach Anzeigename: die feste Liste, dazu alles, was ein geladenes
+    /// Gericht nennt (falls die API ein neues Allergen einführt), und ausgeschlossene, die nicht mehr in der Liste stehen.
     static func availableAllergens(in meals: [MensaMeal], keeping excluded: Set<String>) -> [String] {
-        Set(knownAllergens).union(meals.flatMap(\.allergies)).union(excluded)
-            .sorted { $0.localizedCompare($1) == .orderedAscending }
+        sortedByName(Set(knownAllergens).union(meals.flatMap { $0.allergenCodes.map(\.code) }).union(excluded), in: meals)
+    }
+
+    /// Anzeigename eines Kürzels: aus der festen Liste (App-Sprache), sonst der Name, den die API für das Gericht lieferte.
+    static func allergenName(code: String, in meals: [MensaMeal] = []) -> String {
+        let known = MensaAllergen.displayName(code: code)
+        guard known == code else { return known }
+        return meals.lazy.flatMap(\.allergenCodes).first { $0.code == code }?.name ?? code
+    }
+
+    private static func sortedByName(_ codes: Set<String>, in meals: [MensaMeal]) -> [String] {
+        codes.sorted {
+            allergenName(code: $0, in: meals).localizedCompare(allergenName(code: $1, in: meals)) == .orderedAscending
+        }
     }
 }
 
@@ -110,8 +139,7 @@ extension MensaFilter {
     /// Allergene für das Popover auf dem iPad, alphabetisch: nur die, die ein Gericht des geladenen Tages nennt, dazu die
     /// ausgeschlossenen (sie bleiben sichtbar, damit man sie wieder abschalten kann).
     static func allergens(onDay meals: [MensaMeal], keeping excluded: Set<String>) -> [String] {
-        Set(meals.flatMap(\.allergies)).union(excluded)
-            .sorted { $0.localizedCompare($1) == .orderedAscending }
+        sortedByName(Set(meals.flatMap { $0.allergenCodes.map(\.code) }).union(excluded), in: meals)
     }
 }
 
@@ -152,7 +180,9 @@ nonisolated enum MensaFilterStore {
             filter.diet = .vegetarisch
         }
         filter.onlyBio = legacy["Bio"] == "include"
-        filter.excludedAllergens = Set(legacy.filter { $0.value == "exclude" && !badges.contains($0.key) }.keys)
+        filter.excludedAllergens = Set(
+            legacy.filter { $0.value == "exclude" && !badges.contains($0.key) }.keys.map(MensaAllergen.migratedCode)
+        )
         return filter
     }
 }

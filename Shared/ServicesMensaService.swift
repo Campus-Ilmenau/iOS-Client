@@ -21,14 +21,18 @@ class MensaService: ObservableObject {
     // MARK: - Properties
     private let baseURL: String
     private let session: URLSession
+    /// Sprache der Anfragen. Wird bei jeder Anfrage neu gelesen, damit ein Wechsel sofort gilt.
+    private let language: () -> AppLanguage
     
     // MARK: - Initialization
     init(
         baseURL: String = APIUmgebung.baseURL,
-        session: URLSession = .shared
+        session: URLSession = .shared,
+        language: @escaping () -> AppLanguage = { .current }
     ) {
         self.baseURL = baseURL
         self.session = session
+        self.language = language
     }
     
     // MARK: - Public Methods
@@ -82,36 +86,13 @@ class MensaService: ObservableObject {
         errorMessage = nil
         
         do {
-            guard let url = buildMealsURL(period: period, canteenId: canteenId) else {
+            guard let url = Self.mealsURL(baseURL: baseURL, period: period, canteenId: canteenId, language: language()) else {
                 throw MensaAPIError.invalidURL
             }
             
             let response: ListResponse<APIMeal> = try await performRequest(url: url)
             
-            self.meals = response.data.map { apiMeal in
-                MensaMeal(
-                    id: apiMeal.id,
-                    category: apiMeal.mealGroup ?? "Gericht",
-                    name: apiMeal.title,
-                    description: formatComponents(apiMeal.components),
-                    price: MensaMealPrice(
-                        student: apiMeal.price?.student,
-                        staff: apiMeal.price?.staff,
-                        guest: apiMeal.price?.guest,
-                        currency: apiMeal.price?.currency ?? "€"
-                    ),
-                    allergies: apiMeal.allergenCodes.compactMap { $0.name },
-                    badges: determineBadges(from: apiMeal),
-                    additives: apiMeal.additiveCodes.compactMap { $0.name },
-                    categories: apiMeal.symbolCodes.compactMap { $0.name },
-                    co2GramPerPortion: apiMeal.co2GramPerPortion,
-                    components: apiMeal.components.map { component in
-                        MensaMealComponent(name: component.name, codes: component.codes.compactMap { $0.name })
-                    },
-                    canteenName: apiMeal.canteen.name,
-                    date: apiMeal.date
-                )
-            }
+            self.meals = response.data.map(Self.meal(from:))
             isLoading = false
         } catch {
             isLoading = false
@@ -150,10 +131,24 @@ class MensaService: ObservableObject {
         }
     }
     
-    private func buildMealsURL(period: Period, canteenId: Int?) -> URL? {
-        var components = URLComponents(string: "\(baseURL)/v1/mensa")
+    /// Die einzige Stelle, die `lang` anhängt: Jede URL unter `/v1/mensa` und `/v1/mensa/codes` trägt es, auch bei `de`.
+    /// Es gibt kein `Accept-Language`. Die Historie (`/v1/mensa/dishes/...`), `canteens` und `like-request` kennen
+    /// `lang` nicht. Eine Suche (`q`) braucht kein `lang`: Ohne es werden deutsche und englische Titel durchsucht, mit
+    /// `lang=en&q=Pilz` ergibt es 0 Treffer (gegen Dev geprüft). Die App hat keine Mensa-Suche.
+    nonisolated static func url(baseURL: String, path: String, queryItems: [URLQueryItem], language: AppLanguage) -> URL? {
+        var items = queryItems
+        if path == "/v1/mensa" || path == "/v1/mensa/codes" {
+            items.removeAll { $0.name == "lang" }
+            items.append(URLQueryItem(name: "lang", value: language.apiCode))
+        }
+        var components = URLComponents(string: baseURL + path)
+        components?.queryItems = items.isEmpty ? nil : items
+        return components?.url
+    }
+
+    nonisolated static func mealsURL(baseURL: String, period: Period, canteenId: Int?, language: AppLanguage) -> URL? {
         var queryItems: [URLQueryItem] = []
-        
+
         // Datum/Period
         switch period {
         case .today:
@@ -162,28 +157,70 @@ class MensaService: ObservableObject {
             queryItems.append(URLQueryItem(name: "period", value: "week"))
         case .date(let date):
             let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
             dateFormatter.dateFormat = "yyyy-MM-dd"
             queryItems.append(URLQueryItem(name: "date", value: dateFormatter.string(from: date)))
         }
-        
+
         // Canteen-Filter
         if let canteenId = canteenId {
             queryItems.append(URLQueryItem(name: "canteen", value: String(canteenId)))
         }
-        
+
         // Limit erhöhen (max 100)
         queryItems.append(URLQueryItem(name: "per_page", value: "100"))
-        
-        components?.queryItems = queryItems
-        return components?.url
+
+        return url(baseURL: baseURL, path: "/v1/mensa", queryItems: queryItems, language: language)
     }
-    
-    private func formatComponents(_ components: [APIComponent]) -> String? {
+
+    /// Liest die Antwort von `GET /v1/mensa`. Fehlt `translated` (älterer API-Stand), gilt `false`.
+    nonisolated static func meals(from data: Data) throws -> [MensaMeal] {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(ListResponse<APIMeal>.self, from: data).data.map(meal(from:))
+    }
+
+    /// Ein Gericht der API als Gericht der App. Titel, Gruppe, Komponenten und Namen der Codes stehen so, wie sie kommen
+    /// (je Feld Deutsch oder Englisch); Allergene und Symbole tragen zusätzlich ihr sprachunabhängiges Kürzel.
+    fileprivate nonisolated static func meal(from apiMeal: APIMeal) -> MensaMeal {
+        MensaMeal(
+            id: apiMeal.id,
+            category: apiMeal.mealGroup ?? String(localized: "Gericht"),
+            name: apiMeal.title,
+            description: Self.formatComponents(apiMeal.components),
+            price: MensaMealPrice(
+                student: apiMeal.price?.student,
+                staff: apiMeal.price?.staff,
+                guest: apiMeal.price?.guest,
+                currency: apiMeal.price?.currency ?? "€"
+            ),
+            allergies: apiMeal.allergenCodes.compactMap { $0.name },
+            badges: Self.determineBadges(from: apiMeal),
+            additives: apiMeal.additiveCodes.compactMap { $0.name },
+            categories: apiMeal.symbolCodes.compactMap { $0.name },
+            co2GramPerPortion: apiMeal.co2GramPerPortion,
+            components: apiMeal.components.map { component in
+                MensaMealComponent(
+                    name: component.name,
+                    codes: component.codes.compactMap { $0.name },
+                    codeRefs: component.codes.map { MensaCodeRef(code: $0.code, name: $0.name) }
+                )
+            },
+            canteenName: apiMeal.canteen.name,
+            date: apiMeal.date,
+            translated: apiMeal.translated ?? false,
+            allergenCodes: apiMeal.allergenCodes.map { MensaCodeRef(code: $0.code, name: $0.name) },
+            additiveCodes: apiMeal.additiveCodes.map { MensaCodeRef(code: $0.code, name: $0.name) }
+        )
+    }
+
+    private nonisolated static func formatComponents(_ components: [APIComponent]) -> String? {
         guard !components.isEmpty else { return nil }
         return components.map { $0.name }.joined(separator: ", ")
     }
     
-    private func determineBadges(from meal: APIMeal) -> [String] {
+    private nonisolated static func determineBadges(from meal: APIMeal) -> [String] {
         var badges: [String] = []
         
         if meal.flags.vegan {
@@ -204,7 +241,7 @@ class MensaService: ObservableObject {
 
 // MARK: - Period Enum
 extension MensaService {
-    enum Period {
+    nonisolated enum Period {
         case today
         case week
         case date(Date)
@@ -231,6 +268,8 @@ private struct APIMeal: Decodable {
     let mealGroup: String?
     let title: String
     let dishId: String?
+    /// Fehlt bei älteren API-Ständen: dann `false`.
+    let translated: Bool?
     let isActive: Bool
     let lastSeenAt: Date
     let additiveCodes: [APICode]
@@ -371,17 +410,17 @@ enum MensaAPIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Ungültige API-URL"
+            return String(localized: "Ungültige API-URL")
         case .invalidResponse:
-            return "Ungültige Server-Antwort"
+            return String(localized: "Ungültige Server-Antwort")
         case .httpError(let statusCode):
-            return "HTTP-Fehler: \(statusCode)"
+            return String(localized: "HTTP-Fehler: \(statusCode)")
         case .apiError(let code, let message):
-            return "API-Fehler (\(code)): \(message)"
+            return String(localized: "API-Fehler (\(code)): \(message)")
         case .decodingError(let error):
-            return "Fehler beim Dekodieren: \(error.localizedDescription)"
+            return String(localized: "Fehler beim Dekodieren: \(error.localizedDescription)")
         case .networkError(let error):
-            return "Netzwerk-Fehler: \(error.localizedDescription)"
+            return String(localized: "Netzwerk-Fehler: \(error.localizedDescription)")
         }
     }
 }
