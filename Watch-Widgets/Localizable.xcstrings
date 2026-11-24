@@ -1,0 +1,202 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "" : {
+      "shouldTranslate" : false
+    },
+    "%lld" : {
+      "shouldTranslate" : false
+    },
+    "Bio" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organic"
+          }
+        }
+      }
+    },
+    "Die nächsten Veranstaltungen in Ilmenau." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The next events in Ilmenau."
+          }
+        }
+      }
+    },
+    "Gefiltert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtered"
+          }
+        }
+      }
+    },
+    "gemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "saved"
+          }
+        }
+      }
+    },
+    "Gericht %lld von %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Gericht %1$lld von %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dish %lld of %lld"
+          }
+        }
+      }
+    },
+    "Heute Abend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tonight"
+          }
+        }
+      }
+    },
+    "Heute Abend nichts eingetragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing listed for tonight"
+          }
+        }
+      }
+    },
+    "Im Katalog suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the catalogue"
+          }
+        }
+      }
+    },
+    "Mensa heute" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen today"
+          }
+        }
+      }
+    },
+    "Merkliste" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
+          }
+        }
+      }
+    },
+    "Öffnet Campus Ilmenau und liest deine Thoska." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Campus Ilmenau and reads your Thoska."
+          }
+        }
+      }
+    },
+    "Regional" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regional"
+          }
+        }
+      }
+    },
+    "Sucht im Katalog der UB Ilmenau." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searches the UB Ilmenau catalogue."
+          }
+        }
+      }
+    },
+    "Thoska auslesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "Vegan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegan"
+          }
+        }
+      }
+    },
+    "Vegetarisch" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegetarian"
+          }
+        }
+      }
+    },
+    "Was es gerade in deiner Mensa gibt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What’s currently on at your canteen."
+          }
+        }
+      }
+    },
+    "Wie viele Titel deiner Merkliste im Regal stehen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How many titles from your saved list are on the shelf."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

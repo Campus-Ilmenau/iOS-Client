@@ -455,7 +455,7 @@ final class HeuteModel {
     private func ortKurz(_ venue: MensaVenue) -> String {
         switch venue {
         case .cafeteriaEhrenberg: String(localized: "Cafeteria")
-        case .mensaEhrenberg: String(localized: "Mensa")
+        case .mensaEhrenberg: "Mensa"
         default: venue.shortName
         }
     }

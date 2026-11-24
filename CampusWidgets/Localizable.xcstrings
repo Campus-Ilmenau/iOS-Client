@@ -1,0 +1,418 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "" : {
+      "shouldTranslate" : false
+    },
+    "%@" : {
+      "shouldTranslate" : false
+    },
+    "%@. Tippen zeigt alle im Speiseplan." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Tap to see all on the menu."
+          }
+        }
+      }
+    },
+    "Alle ›" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All ›"
+          }
+        }
+      }
+    },
+    "bis" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "until"
+          }
+        }
+      }
+    },
+    "Cafeteria Ehrenberg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Ehrenberg"
+          }
+        }
+      }
+    },
+    "Cafeteria Nanoteria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Nanoteria"
+          }
+        }
+      }
+    },
+    "Cafeteria Röntgenbau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cafeteria Röntgenbau"
+          }
+        }
+      }
+    },
+    "Der Speiseplan ist noch nicht da" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The menu isn’t available yet"
+          }
+        }
+      }
+    },
+    "Die nächsten Veranstaltungen in Ilmenau." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The next events in Ilmenau."
+          }
+        }
+      }
+    },
+    "Fällt aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "Filter aus der App anwenden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply filter from the app"
+          }
+        }
+      }
+    },
+    "Gefiltert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtered"
+          }
+        }
+      }
+    },
+    "gemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "saved"
+          }
+        }
+      }
+    },
+    "Gericht %lld von %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Gericht %1$lld von %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dish %lld of %lld"
+          }
+        }
+      }
+    },
+    "Heute Abend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tonight"
+          }
+        }
+      }
+    },
+    "Heute Abend ist nichts eingetragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing is listed for tonight"
+          }
+        }
+      }
+    },
+    "Im Katalog suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the catalogue"
+          }
+        }
+      }
+    },
+    "Läuft gerade" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Happening now"
+          }
+        }
+      }
+    },
+    "Mensa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen"
+          }
+        }
+      }
+    },
+    "Mensa Ehrenberg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mensa Ehrenberg"
+          }
+        }
+      }
+    },
+    "Mensa heute" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen today"
+          }
+        }
+      }
+    },
+    "Mensa wechseln" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch canteen"
+          }
+        }
+      }
+    },
+    "Mensa wechseln, als Nächstes %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch canteen, next: %@"
+          }
+        }
+      }
+    },
+    "Nichts eingetragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing listed"
+          }
+        }
+      }
+    },
+    "Nichts passt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing matches"
+          }
+        }
+      }
+    },
+    "Nichts passt zu deinem Filter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing matches your filter"
+          }
+        }
+      }
+    },
+    "Noch kein Plan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No menu yet"
+          }
+        }
+      }
+    },
+    "Öffnet Campus Ilmenau und liest deine Thoska." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Campus Ilmenau and reads your Thoska."
+          }
+        }
+      }
+    },
+    "Sucht im Katalog der UB Ilmenau." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searches the UB Ilmenau catalogue."
+          }
+        }
+      }
+    },
+    "Thoska auslesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "Tippen zum Laden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to load"
+          }
+        }
+      }
+    },
+    "Tippen, um ihn in der App zu laden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to load it in the app."
+          }
+        }
+      }
+    },
+    "Tippen, um ihn in der App zu laden. Öffnungszeiten stehen trotzdem unten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to load it in the app. Opening hours are still shown below."
+          }
+        }
+      }
+    },
+    "Was es gerade in deiner Mensa gibt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What’s currently on at your canteen."
+          }
+        }
+      }
+    },
+    "Welche Mensa das Widget zeigt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which canteen the widget shows."
+          }
+        }
+      }
+    },
+    "Wie auf der Startseite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as on the home page"
+          }
+        }
+      }
+    },
+    "Zeigt nur Gerichte, die zu deinem Filter in der Mensa-Ansicht passen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only shows dishes that match your filter in the canteen view."
+          }
+        }
+      }
+    },
+    "Vegan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegan"
+          }
+        }
+      }
+    },
+    "Vegetarisch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegetarian"
+          }
+        }
+      }
+    },
+    "Bio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organic"
+          }
+        }
+      }
+    },
+    "Regional" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regional"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -57,12 +57,12 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     /// „Nur Bio“, „ohne Gluten, Ei“ (Namen in der App-Sprache); ohne die Ernährungsstufe, die steht in den Pills.
     var summaryParts: [String] {
         var parts: [String] = []
-        if onlyBio { parts.append(String(localized: "Nur Bio")) }
+        if onlyBio { parts.append(String(localized: "Nur Bio", table: "Shared")) }
         if !excludedAllergens.isEmpty {
             let names = excludedAllergens.map(MensaAllergen.displayName(code:))
                 .sorted { $0.localizedCompare($1) == .orderedAscending }
                 .joined(separator: ", ")
-            parts.append(String(localized: "ohne \(names)"))
+            parts.append(String(localized: "ohne \(names)", table: "Shared"))
         }
         return parts
     }
@@ -76,8 +76,8 @@ nonisolated struct MensaFilter: Equatable, Codable, Sendable {
     var activeDescription: String {
         let dietName: [String] = switch diet {
         case .alle: []
-        case .vegetarisch: [String(localized: "Vegetarisch")]
-        case .vegan: [String(localized: "Vegan")]
+        case .vegetarisch: [String(localized: "Vegetarisch", table: "Shared")]
+        case .vegan: [String(localized: "Vegan", table: "Shared")]
         }
         return (dietName + summaryParts).joined(separator: " · ")
     }

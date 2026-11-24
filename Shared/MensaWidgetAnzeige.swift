@@ -72,7 +72,7 @@ nonisolated struct MensaWidgetAnzeige: Equatable, Sendable {
 
         /// „3 Gerichte ohne Filter“
         var ohneFilterText: String {
-            ohneFilterAnzahl == 1 ? "1 Gericht ohne Filter" : "\(ohneFilterAnzahl) Gerichte ohne Filter"
+            String(localized: "\(ohneFilterAnzahl) Gerichte ohne Filter", table: "Shared")
         }
     }
 }
@@ -252,7 +252,7 @@ private nonisolated struct Rechner {
     }
 
     private static func ortKurz(_ venue: MensaVenue) -> String {
-        venue == .cafeteriaEhrenberg ? "Cafeteria" : venue == .mensaEhrenberg ? "Mensa" : venue.shortName
+        venue == .cafeteriaEhrenberg ? String(localized: "Cafeteria", table: "Shared") : venue == .mensaEhrenberg ? "Mensa" : venue.shortName
     }
 
     // MARK: Zeilen
@@ -332,26 +332,26 @@ private nonisolated struct Rechner {
         let kicker: String
         if let zeiten {
             kicker = minuten >= zeiten.oeffnet || phase == .mittag
-                ? "Geöffnet bis \(uhrzeit(zeiten.schliesst))"
-                : "Heute ab \(uhrzeit(zeiten.oeffnet))"
+                ? String(localized: "Geöffnet bis \(uhrzeit(zeiten.schliesst))", table: "Shared")
+                : String(localized: "Heute ab \(uhrzeit(zeiten.oeffnet))", table: "Shared")
         } else {
-            kicker = "Heute"
+            kicker = String(localized: "Heute", table: "Shared")
         }
 
         var termine: [Anzeige.Termin] = []
         if let zeiten, minuten < zeiten.oeffnet {
-            termine.append(.init(zeit: uhrzeit(zeiten.oeffnet), text: "Öffnet · \(venue.shortName)"))
+            termine.append(.init(zeit: uhrzeit(zeiten.oeffnet), text: String(localized: "Öffnet · \(venue.shortName)", table: "Shared")))
         }
-        termine.append(.init(zeit: uhrzeit(schliesst), text: "Schließt · \(venue.shortName)"))
+        termine.append(.init(zeit: uhrzeit(schliesst), text: String(localized: "Schließt · \(venue.shortName)", table: "Shared")))
         if let ort = abendessenOrt {
-            termine.append(.init(zeit: uhrzeit(P.abendessenBeginn), text: "Abendessen · \(Self.kurz(ort))"))
+            termine.append(.init(zeit: uhrzeit(P.abendessenBeginn), text: String(localized: "Abendessen · \(Self.kurz(ort))", table: "Shared")))
         }
 
         let gerichte = mittag(tag: heuteTag)
         let filterung = filterzustand(gerichte)
         return Anzeige(
             phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName,
-            unterzeile: mitFilter(phase == .morgen ? "Vorschau aufs Mittagsangebot" : "Mittagsangebot", filterung),
+            unterzeile: mitFilter(phase == .morgen ? String(localized: "Vorschau aufs Mittagsangebot", table: "Shared") : String(localized: "Mittagsangebot", table: "Shared"), filterung),
             zeilen: zeilen(gerichte, tag: heuteTag),
             termine: Array(termine.prefix(2)),
             planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag),
@@ -370,7 +370,7 @@ private nonisolated struct Rechner {
             let filterung = filterzustand(gerichte)
             return Anzeige(
                 phase: phase, mensaID: venue.rawValue, kicker: "Heute geschlossen", titel: venue.displayName,
-                unterzeile: mitFilter("Mittagsangebot", filterung), zeilen: zeilen(gerichte, tag: heuteTag),
+                unterzeile: mitFilter(String(localized: "Mittagsangebot", table: "Shared"), filterung), zeilen: zeilen(gerichte, tag: heuteTag),
                 termine: folgetagTermine(), planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag), kopfLink: kopf,
                 filterung: filterung, gesamt: gesamt(gerichte)
             )
@@ -384,25 +384,25 @@ private nonisolated struct Rechner {
 
         switch (phase, eigene) {
         case (.nachmittag, true):
-            kicker = "Abendessen ab \(beginn)"
+            kicker = String(localized: "Abendessen ab \(beginn)", table: "Shared")
             titel = Self.haus(ort)
-            unterzeile = "Abendangebot in der \(Self.ortKurz(ort))"
-            termine = [.init(zeit: beginn, text: "Abendessen öffnet"), .init(zeit: ende, text: "Schließt")]
+            unterzeile = String(localized: "Abendangebot in der \(Self.ortKurz(ort))", table: "Shared")
+            termine = [.init(zeit: beginn, text: String(localized: "Abendessen öffnet", table: "Shared")), .init(zeit: ende, text: String(localized: "Schließt", table: "Shared"))]
         case (.nachmittag, false):
-            kicker = "\(venue.shortName) hat geschlossen"
-            titel = "Abendessen \(Self.kurz(ort))"
-            unterzeile = "Tipp · ab \(beginn) in der \(Self.ortKurz(ort))"
-            termine = [.init(zeit: beginn, text: "Abendessen · \(Self.kurz(ort))")] + liste(mittagFolgetag())
+            kicker = String(localized: "\(venue.shortName) hat geschlossen", table: "Shared")
+            titel = String(localized: "Abendessen \(Self.kurz(ort))", table: "Shared")
+            unterzeile = String(localized: "Tipp · ab \(beginn) in der \(Self.ortKurz(ort))", table: "Shared")
+            termine = [.init(zeit: beginn, text: String(localized: "Abendessen · \(Self.kurz(ort))", table: "Shared"))] + liste(mittagFolgetag())
         case (_, true):
-            kicker = "Geöffnet bis \(ende)"
+            kicker = String(localized: "Geöffnet bis \(ende)", table: "Shared")
             titel = Self.haus(ort)
-            unterzeile = "Abendessen in der \(Self.ortKurz(ort))"
-            termine = [.init(zeit: ende, text: "Schließt")] + liste(folgetagMittagKurz())
+            unterzeile = String(localized: "Abendessen in der \(Self.ortKurz(ort))", table: "Shared")
+            termine = [.init(zeit: ende, text: String(localized: "Schließt", table: "Shared"))] + liste(folgetagMittagKurz())
         default:
-            kicker = "\(venue.shortName) hat geschlossen"
-            titel = "Abendessen \(Self.kurz(ort))"
-            unterzeile = "Tipp · jetzt geöffnet bis \(ende)"
-            termine = [.init(zeit: ende, text: "Abendessen schließt")] + liste(mittagFolgetag())
+            kicker = String(localized: "\(venue.shortName) hat geschlossen", table: "Shared")
+            titel = String(localized: "Abendessen \(Self.kurz(ort))", table: "Shared")
+            unterzeile = String(localized: "Tipp · jetzt geöffnet bis \(ende)", table: "Shared")
+            termine = [.init(zeit: ende, text: String(localized: "Abendessen schließt", table: "Shared"))] + liste(mittagFolgetag())
         }
 
         let filterung = filterzustand(gerichte)
@@ -423,24 +423,24 @@ private nonisolated struct Rechner {
     private func naechsterTagAnzeige(phase: Anzeige.Phase, kopf: URL) -> Anzeige {
         let (tag, datum) = naechsterTag
         let morgen = tag == EventKalender.berlinDatum(EventKalender.tag(jetzt, plus: 1))
-        let wochentag = EventKalender.format(datum, "EEEE")
+        let wochentag = EventKalender.lokal(datum) { $0.weekday(.wide) }
         let oeffnet = oeffnetAm(datum).map(uhrzeit)
         let ab = oeffnet.map { " · ab \($0)" } ?? ""
 
         let kicker: String, unterzeile: String
         if phase == .geschlossen {
-            kicker = "Heute geschlossen"
-            unterzeile = oeffnet.map { "\(wochentag) ab \($0)" } ?? wochentag
+            kicker = String(localized: "Heute geschlossen", table: "Shared")
+            unterzeile = oeffnet.map { String(localized: "\(wochentag) ab \($0)", table: "Shared") } ?? wochentag
         } else {
-            kicker = (morgen ? "Mittag morgen" : "Mittag \(wochentag)") + ab
-            unterzeile = EventKalender.format(datum, "EEEE, d. MMMM")
+            kicker = (morgen ? String(localized: "Mittag morgen", table: "Shared") : String(localized: "Mittag \(wochentag)", table: "Shared")) + ab
+            unterzeile = EventKalender.lokal(datum) { $0.weekday(.wide).day().month(.wide) }
         }
 
         let kurzTag = HeuteUhr.wochentagKurz(datum)
         var termine: [Anzeige.Termin] = []
-        if let oeffnet { termine.append(.init(zeit: kurzTag, text: "Öffnet \(oeffnet) · \(venue.shortName)")) }
+        if let oeffnet { termine.append(.init(zeit: kurzTag, text: String(localized: "Öffnet \(oeffnet) · \(venue.shortName)", table: "Shared"))) }
         if let ort = abendessenOrtAm(tag) {
-            termine.append(.init(zeit: kurzTag, text: "Abendessen \(uhrzeit(P.abendessenBeginn)) · \(Self.kurz(ort))"))
+            termine.append(.init(zeit: kurzTag, text: String(localized: "Abendessen \(uhrzeit(P.abendessenBeginn)) · \(Self.kurz(ort))", table: "Shared")))
         }
 
         let plan = P.plan(venue, tag: tag, in: snapshot)
@@ -465,15 +465,15 @@ private nonisolated struct Rechner {
     /// „Fr · Mittag · Nanoteria ab 8:00“
     private func mittagFolgetag() -> Anzeige.Termin? {
         let (_, datum) = naechsterTag
-        let ab = oeffnetAm(datum).map { " ab \(uhrzeit($0))" } ?? ""
-        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: "Mittag · \(venue.shortName)\(ab)")
+        let ab = oeffnetAm(datum).map { String(localized: " ab \(uhrzeit($0))", table: "Shared") } ?? ""
+        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: String(localized: "Mittag · \(venue.shortName)\(ab)", table: "Shared"))
     }
 
     /// „Fr · Mittag ab 11:00“
     private func folgetagMittagKurz() -> Anzeige.Termin? {
         let (_, datum) = naechsterTag
-        let ab = oeffnetAm(datum).map { " ab \(uhrzeit($0))" } ?? ""
-        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: "Mittag\(ab)")
+        let ab = oeffnetAm(datum).map { String(localized: " ab \(uhrzeit($0))", table: "Shared") } ?? ""
+        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: String(localized: "Mittag\(ab)", table: "Shared"))
     }
 
     private func folgetagTermine() -> [Anzeige.Termin] {

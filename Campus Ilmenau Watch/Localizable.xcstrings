@@ -1,0 +1,510 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "" : {
+      "shouldTranslate" : false
+    },
+    ", %@" : {
+      "shouldTranslate" : false
+    },
+    "%@ ›" : {
+      "shouldTranslate" : false
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "%@, %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "%@. Zur %@ wechseln" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Switch to %@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "shouldTranslate" : false
+    },
+    "Abendessen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinner"
+          }
+        }
+      }
+    },
+    "Allergene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allergens"
+          }
+        }
+      }
+    },
+    "Andere Mensa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other canteen"
+          }
+        }
+      }
+    },
+    "Angaben des Studierendenwerks. Alles Weitere in der App auf dem iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details from the student services. Everything else in the app on your iPhone."
+          }
+        }
+      }
+    },
+    "Auf dem iPhone: Campus Ilmenau im App-Wechsler antippen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On your iPhone: tap Campus Ilmenau in the app switcher."
+          }
+        }
+      }
+    },
+    "Auf iPhone öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open on iPhone"
+          }
+        }
+      }
+    },
+    "Beschreibung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
+        }
+      }
+    },
+    "Bio" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organic"
+          }
+        }
+      }
+    },
+    "Campus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Campus"
+          }
+        }
+      }
+    },
+    "Das Gericht ist nicht mehr da." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The dish is no longer available."
+          }
+        }
+      }
+    },
+    "Die Veranstaltung ist nicht mehr da." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The event is no longer available."
+          }
+        }
+      }
+    },
+    "Fällt aus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "Gefiltert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtered"
+          }
+        }
+      }
+    },
+    "gemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "saved"
+          }
+        }
+      }
+    },
+    "Gericht %lld von %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Gericht %1$lld von %2$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dish %lld of %lld"
+          }
+        }
+      }
+    },
+    "Gilt nur auf der Uhr und bis Mitternacht." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies on the watch only and until midnight."
+          }
+        }
+      }
+    },
+    "Hat ${mensa} offen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Is ${mensa} open?"
+          }
+        }
+      }
+    },
+    "Hat die Mensa offen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Is the canteen open?"
+          }
+        }
+      }
+    },
+    "Heute Abend" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tonight"
+          }
+        }
+      }
+    },
+    "Heute Abend nichts eingetragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing listed for tonight"
+          }
+        }
+      }
+    },
+    "Im Katalog suchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the catalogue"
+          }
+        }
+      }
+    },
+    "In der App öffnen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in app"
+          }
+        }
+      }
+    },
+    "iPhone nicht erreichbar · Haken werden später übertragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone not reachable · ticks will be sent later"
+          }
+        }
+      }
+    },
+    "Läuft gerade" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Happening now"
+          }
+        }
+      }
+    },
+    "Mensa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen"
+          }
+        }
+      }
+    },
+    "Mensa heute" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen today"
+          }
+        }
+      }
+    },
+    "Mensa heute in ${mensa}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen today in ${mensa}"
+          }
+        }
+      }
+    },
+    "Mensa, Preise und Filter wie in der App auf dem iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canteen, prices and filter as in the app on your iPhone."
+          }
+        }
+      }
+    },
+    "Merkliste" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
+          }
+        }
+      }
+    },
+    "Morgen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow: %@"
+          }
+        }
+      }
+    },
+    "Nanoteria, Röntgenbau …" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nanoteria, Röntgenbau …"
+          }
+        }
+      }
+    },
+    "Neu laden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        }
+      }
+    },
+    "Noch nichts gemerkt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing saved yet"
+          }
+        }
+      }
+    },
+    "Öffnet Campus Ilmenau und liest deine Thoska." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Campus Ilmenau and reads your Thoska."
+          }
+        }
+      }
+    },
+    "Ort" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place"
+          }
+        }
+      }
+    },
+    "Regional" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regional"
+          }
+        }
+      }
+    },
+    "Sucht im Katalog der UB Ilmenau." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searches the UB Ilmenau catalogue."
+          }
+        }
+      }
+    },
+    "Thoska auslesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Thoska"
+          }
+        }
+      }
+    },
+    "Tippen hakt ab. Entfernen geht auf dem iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to tick off. Removing works on your iPhone."
+          }
+        }
+      }
+    },
+    "Tippen zeigt Ort, Veranstalter und Beschreibung." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to see place, organiser and description."
+          }
+        }
+      }
+    },
+    "Titel merkst du im Katalog auf dem iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You save titles in the catalogue on your iPhone."
+          }
+        }
+      }
+    },
+    "Vegan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegan"
+          }
+        }
+      }
+    },
+    "Vegetarisch" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vegetarian"
+          }
+        }
+      }
+    },
+    "Veranstalter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organiser"
+          }
+        }
+      }
+    },
+    "Zusatzstoffe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Additives"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

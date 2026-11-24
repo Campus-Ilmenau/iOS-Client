@@ -166,16 +166,16 @@ nonisolated struct UhrAbendWidgetAnzeige: Equatable, Sendable {
             let danach = kommend.first
             let wo = ort(laufend)
             var bis = ""
-            if let event = events[laufend.id], event.ende != nil { bis = "bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))" }
+            if let event = events[laufend.id], event.ende != nil { bis = String(localized: "bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared") }
             return UhrAbendWidgetAnzeige(
-                kicker: wo.isEmpty ? "Läuft gerade" : "Läuft gerade · \(wo)", titel: laufend.titel,
-                links: danach.map { "Dann \($0.zeit)" } ?? bis, rechts: danach?.titel ?? "",
+                kicker: wo.isEmpty ? String(localized: "Läuft gerade", table: "Shared") : String(localized: "Läuft gerade · \(wo)", table: "Shared"), titel: laufend.titel,
+                links: danach.map { String(localized: "Dann \($0.zeit)", table: "Shared") } ?? bis, rechts: danach?.titel ?? "",
                 gemerkt: laufend.gemerkt,
                 zeile: danach.map { "\($0.zeit) \($0.titel)" } ?? a.sperre.zeile,
                 kreisZeit: danach?.zeit ?? nilWennLeer(a.sperre.kreis.gross),
                 kreisWort: danach?.titel ?? a.sperre.kreis.klein,
-                kreisBeschriftung: danach.map { "Heute Abend, läuft gerade, als Nächstes \($0.zeit) \($0.titel)" }
-                    ?? "Heute Abend, \(laufend.titel) läuft gerade",
+                kreisBeschriftung: danach.map { String(localized: "Heute Abend, läuft gerade, als Nächstes \($0.zeit) \($0.titel)", table: "Shared") }
+                    ?? String(localized: "Heute Abend, \(laufend.titel) läuft gerade", table: "Shared"),
                 link: link
             )
         }
@@ -183,12 +183,12 @@ nonisolated struct UhrAbendWidgetAnzeige: Equatable, Sendable {
             let weitere = kommend.count - 1
             let morgen = a.zeigtMorgen
             return UhrAbendWidgetAnzeige(
-                kicker: morgen ? "Morgen Abend" : "Heute Abend", titel: "\(erste.zeit) \(erste.titel)",
-                links: ort(erste), rechts: weitere > 0 ? "+\(weitere) weitere" : "",
+                kicker: morgen ? String(localized: "Morgen Abend", table: "Shared") : String(localized: "Heute Abend", table: "Shared"), titel: "\(erste.zeit) \(erste.titel)",
+                links: ort(erste), rechts: weitere > 0 ? String(localized: "+\(weitere) weitere", table: "Shared") : "",
                 gemerkt: erste.gemerkt,
                 zeile: morgen ? a.sperre.zeile : "\(erste.zeit) \(erste.titel)",
                 kreisZeit: erste.zeit, kreisWort: erste.titel,
-                kreisBeschriftung: "\(morgen ? "Morgen Abend" : "Heute Abend"), als Nächstes \(erste.zeit) \(erste.titel)",
+                kreisBeschriftung: String(localized: "\(morgen ? String(localized: "Morgen Abend", table: "Shared") : String(localized: "Heute Abend", table: "Shared")), als Nächstes \(erste.zeit) \(erste.titel)", table: "Shared"),
                 link: link
             )
         }
@@ -196,8 +196,8 @@ nonisolated struct UhrAbendWidgetAnzeige: Equatable, Sendable {
         let r = a.sperre.rechteck
         guard !a.leer || r.abgesagt else {
             return UhrAbendWidgetAnzeige(
-                kicker: "Heute Abend", titel: "", links: "", rechts: "", zeile: a.sperre.zeile,
-                kreisZeit: nil, kreisWort: "", kreisBeschriftung: "Heute Abend nichts eingetragen", link: leerLink
+                kicker: String(localized: "Heute Abend", table: "Shared"), titel: "", links: "", rechts: "", zeile: a.sperre.zeile,
+                kreisZeit: nil, kreisWort: "", kreisBeschriftung: String(localized: "Heute Abend nichts eingetragen", table: "Shared"), link: leerLink
             )
         }
         return UhrAbendWidgetAnzeige(
@@ -243,10 +243,10 @@ nonisolated struct UhrMerklisteWidgetAnzeige: Equatable, Sendable {
     var beschriftung: String
 
     static func erstelle(eintraege: [UhrMerklisteEintrag], staende: [String: UhrRegalStand]) -> UhrMerklisteWidgetAnzeige {
-        guard !eintraege.isEmpty else { return UhrMerklisteWidgetAnzeige(imRegal: nil, beschriftung: "Merkliste, leer") }
+        guard !eintraege.isEmpty else { return UhrMerklisteWidgetAnzeige(imRegal: nil, beschriftung: String(localized: "Merkliste, leer", table: "Shared")) }
         let anzeige = UhrMerklisteAnzeige.erstelle(eintraege: eintraege, staende: staende)
         let imRegal = anzeige.abschnitte.first { $0.art == .imRegal }?.zeilen.count ?? 0
-        return UhrMerklisteWidgetAnzeige(imRegal: imRegal, beschriftung: "Merkliste, \(imRegal) im Regal")
+        return UhrMerklisteWidgetAnzeige(imRegal: imRegal, beschriftung: String(localized: "Merkliste, \(imRegal) im Regal", table: "Shared"))
     }
 
     /// Aus dem Stand in der Watch-App-Group.

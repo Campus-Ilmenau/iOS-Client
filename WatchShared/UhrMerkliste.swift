@@ -213,8 +213,8 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
 
         /// VoiceOver wie im Artboard: „Titel, 60 ELT, Signatur ELT ZQ 5200“, „…, gefunden“, „…, Ausgeliehen bis 17. Nov.“.
         var beschriftung: String {
-            if gefunden { return "\(titel), gefunden" }
-            if let standort { return "\(titel), \(standort)" + (signatur.map { $0.isEmpty ? "" : ", Signatur \($0)" } ?? "") }
+            if gefunden { return String(localized: "\(titel), gefunden", table: "Shared") }
+            if let standort { return "\(titel), \(standort)" + (signatur.map { $0.isEmpty ? "" : String(localized: ", Signatur \($0)", table: "Shared") } ?? "") }
             if let chip { return "\(titel), \(chip)" }
             return titel
         }
@@ -254,16 +254,16 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
                 regal.append((
                     Zeile(
                         id: eintrag.id, titel: eintrag.titel, gefunden: false, standort: standort, signatur: signatur,
-                        chip: nurVorOrt ? "Nur vor Ort" : nil, chipArt: nurVorOrt ? .blau : .neutral
+                        chip: nurVorOrt ? String(localized: "Nur vor Ort", table: "Shared") : nil, chipArt: nurVorOrt ? .blau : .neutral
                     ),
                     standort, signatur
                 ))
             case .ausgeliehen(let bis)?:
-                anderswo.append(ohneStandort(bis.map { "Ausgeliehen bis \(kurzesDatum($0))" } ?? "Ausgeliehen"))
+                anderswo.append(ohneStandort(bis.map { String(localized: "Ausgeliehen bis \(kurzesDatum($0))", table: "Shared") } ?? String(localized: "Ausgeliehen", table: "Shared")))
             case .online?:
-                anderswo.append(ohneStandort("Online"))
+                anderswo.append(ohneStandort(String(localized: "Online", table: "Shared")))
             case .unbekannt?:
-                anderswo.append(ohneStandort("Standort unbekannt"))
+                anderswo.append(ohneStandort(String(localized: "Standort unbekannt", table: "Shared")))
             case nil:
                 // Der Stand lädt noch.
                 anderswo.append(ohneStandort("…"))
@@ -283,21 +283,21 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
 
         var abschnitte: [Abschnitt] = []
         if !regal.isEmpty {
-            abschnitte.append(Abschnitt(art: .imRegal, titel: "Im Regal · \(regal.count)", zeilen: regal.map(\.zeile)))
+            abschnitte.append(Abschnitt(art: .imRegal, titel: String(localized: "Im Regal · \(regal.count)", table: "Shared"), zeilen: regal.map(\.zeile)))
         }
         if !anderswo.isEmpty {
-            abschnitte.append(Abschnitt(art: .nichtImRegal, titel: "Nicht im Regal", zeilen: anderswo))
+            abschnitte.append(Abschnitt(art: .nichtImRegal, titel: String(localized: "Nicht im Regal", table: "Shared"), zeilen: anderswo))
         }
         if !gefunden.isEmpty {
-            abschnitte.append(Abschnitt(art: .gefunden, titel: "Gefunden · \(gefunden.count)", zeilen: gefunden.map(\.zeile)))
+            abschnitte.append(Abschnitt(art: .gefunden, titel: String(localized: "Gefunden · \(gefunden.count)", table: "Shared"), zeilen: gefunden.map(\.zeile)))
         }
         return UhrMerklisteAnzeige(
-            abschnitte: abschnitte, zusammenfassung: "\(regal.count) im Regal · \(gefunden.count) gefunden"
+            abschnitte: abschnitte, zusammenfassung: String(localized: "\(regal.count) im Regal · \(gefunden.count) gefunden", table: "Shared")
         )
     }
 
     /// „17. Nov.“
     static func kurzesDatum(_ datum: Date) -> String {
-        EventKalender.format(datum, "d. MMM")
+        EventKalender.lokal(datum) { $0.day().month(.abbreviated) }
     }
 }

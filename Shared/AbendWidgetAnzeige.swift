@@ -137,9 +137,11 @@ nonisolated struct AbendWidgetAnzeige: Equatable, Sendable {
         let weitere = zeilen.count - heute.count
         let fuss: String
         if weitere > 0 {
-            fuss = "+\(weitere) weitere " + (zeigtMorgen ? "morgen" : "heute")
+            fuss = zeigtMorgen
+                ? String(localized: "+\(weitere) weitere morgen", table: "Shared")
+                : String(localized: "+\(weitere) weitere heute", table: "Shared")
         } else {
-            fuss = woche.map { "Diese Woche: \($0) Veranstaltungen" } ?? ""
+            fuss = woche.map { String(localized: "Diese Woche: \($0) Veranstaltungen", table: "Shared") } ?? ""
         }
         return Gross(zeilen: heute, morgenZeilen: morgen, fuss: fuss)
     }
@@ -190,7 +192,7 @@ nonisolated enum AbendWidgetPhasen {
 
     /// „Do 29. Okt.“
     static func datumText(_ tag: Date) -> String {
-        "\(HeuteUhr.wochentagKurz(tag)) \(EventKalender.format(tag, "d. MMM"))"
+        "\(HeuteUhr.wochentagKurz(tag)) \(EventKalender.lokal(tag) { $0.day().month(.abbreviated) })"
     }
 }
 
@@ -229,7 +231,7 @@ private nonisolated struct Rechner {
         let live = laeuft(event)
         var ort = ort(event)
         if live, event.ende != nil {
-            ort = ort.isEmpty ? "bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))" : "\(ort) · bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))"
+            ort = ort.isEmpty ? String(localized: "bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared") : String(localized: "\(ort) · bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared")
         }
         return Anzeige.Zeile(
             id: event.id, zeit: HeuteUhr.uhrzeit(event.beginn), titel: event.titel, ort: ort,
@@ -258,23 +260,23 @@ private nonisolated struct Rechner {
         let leer = heuteOffen.isEmpty && (heuteAlle.isEmpty || morgenAlle.isEmpty)
         let hauptEvents = zeigtMorgen ? morgenAlle : heuteOffen
 
-        let morgenText = morgenErstes.map { "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)" }
+        let morgenText = morgenErstes.map { String(localized: "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") }
         let leerHinweis = morgenErstes.map { event -> String in
             let wo = event.ort?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
                 ?? event.veranstalter?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
-            return "Morgen · \(HeuteUhr.uhrzeit(event.beginn)) \(event.titel)" + (wo.map { ", \($0)" } ?? "")
-        } ?? "Schau, was in den nächsten Tagen los ist."
+            return String(localized: "Morgen · \(HeuteUhr.uhrzeit(event.beginn)) \(event.titel)", table: "Shared") + (wo.map { ", \($0)" } ?? "")
+        } ?? String(localized: "Schau, was in den nächsten Tagen los ist.", table: "Shared")
 
         return Anzeige(
             klein: klein(heuteOffen: heuteOffen, morgenErstes: morgenErstes, morgenText: morgenText),
             sperre: sperre(heuteOffen: heuteOffen, morgenErstes: morgenErstes),
-            titel: zeigtMorgen ? "Morgen Abend" : "Heute Abend",
+            titel: zeigtMorgen ? String(localized: "Morgen Abend", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
             datum: AbendWidgetPhasen.datumText(zeigtMorgen ? morgen : bezug),
             zeilen: hauptEvents.map(zeile),
             zeigtMorgen: zeigtMorgen,
             leer: leer,
             leerHinweis: leerHinweis,
-            morgenKopf: "Morgen Abend",
+            morgenKopf: String(localized: "Morgen Abend", table: "Shared"),
             morgenDatum: AbendWidgetPhasen.datumText(morgen),
             morgenZeilen: zeigtMorgen ? [] : morgenAlle.map(zeile),
             morgenTail: morgenText,
@@ -308,31 +310,31 @@ private nonisolated struct Rechner {
 
             let unterzeile: String
             if live {
-                unterzeile = [ortNur(erstes), erstes.ende != nil ? "bis \(uhr(AbendBezug.ende(erstes)))" : nil]
+                unterzeile = [ortNur(erstes), erstes.ende != nil ? String(localized: "bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared") : nil]
                     .compactMap { $0 }.joined(separator: " · ")
             } else {
-                unterzeile = [ortNur(erstes), danach.map { "dann \($0.titel)" }].compactMap { $0 }.joined(separator: " · ")
+                unterzeile = [ortNur(erstes), danach.map { String(localized: "dann \($0.titel)", table: "Shared") }].compactMap { $0 }.joined(separator: " · ")
             }
 
             let kreis: Anzeige.Sperrbildschirm.Kreis
             if live {
                 if let danach {
-                    kreis = .init(gross: uhr(danach.beginn), klein: "danach", beschriftung: "Danach \(uhr(danach.beginn)) \(danach.titel)")
+                    kreis = .init(gross: uhr(danach.beginn), klein: String(localized: "danach", table: "Shared"), beschriftung: String(localized: "Danach \(uhr(danach.beginn)) \(danach.titel)", table: "Shared"))
                 } else if erstes.ende != nil {
-                    kreis = .init(gross: uhr(AbendBezug.ende(erstes)), klein: "bis", beschriftung: "Läuft bis \(uhr(AbendBezug.ende(erstes)))")
+                    kreis = .init(gross: uhr(AbendBezug.ende(erstes)), klein: String(localized: "bis", table: "Shared"), beschriftung: String(localized: "Läuft bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared"))
                 } else {
-                    kreis = .init(gross: uhr(erstes.beginn), klein: "läuft", beschriftung: "Läuft seit \(uhr(erstes.beginn))")
+                    kreis = .init(gross: uhr(erstes.beginn), klein: String(localized: "läuft", table: "Shared"), beschriftung: String(localized: "Läuft seit \(uhr(erstes.beginn))", table: "Shared"))
                 }
             } else {
                 kreis = .init(
                     gross: uhr(erstes.beginn), klein: rest > 0 ? "+\(rest)" : "",
-                    beschriftung: "Nächste Veranstaltung \(uhr(erstes.beginn))" + (rest > 0 ? ", \(rest) weitere" : "")
+                    beschriftung: String(localized: "Nächste Veranstaltung \(uhr(erstes.beginn))", table: "Shared") + (rest > 0 ? String(localized: ", \(rest) weitere", table: "Shared") : "")
                 )
             }
             return Anzeige.Sperrbildschirm(
-                zeile: live ? mitOrt("Läuft · \(erstes.titel)", erstes) : mitOrt("\(uhr(erstes.beginn)) \(erstes.titel)", erstes),
+                zeile: live ? mitOrt(String(localized: "Läuft · \(erstes.titel)", table: "Shared"), erstes) : mitOrt("\(uhr(erstes.beginn)) \(erstes.titel)", erstes),
                 rechteck: .init(
-                    kicker: live ? "Läuft gerade" : "Heute Abend",
+                    kicker: live ? String(localized: "Läuft gerade", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
                     zeit: live ? nil : uhr(erstes.beginn), name: erstes.titel,
                     unterzeile: unterzeile, abgesagt: false, gemerkt: gemerkt.contains(erstes.id)
                 ),
@@ -346,16 +348,16 @@ private nonisolated struct Rechner {
         let morgenKreis: Anzeige.Sperrbildschirm.Kreis = morgenErstes.map {
             .init(
                 gross: HeuteUhr.wochentagKurz($0.beginn), klein: uhr($0.beginn),
-                beschriftung: "Nächste Veranstaltung \(HeuteUhr.wochentagKurz($0.beginn)) \(uhr($0.beginn))"
+                beschriftung: String(localized: "Nächste Veranstaltung \(HeuteUhr.wochentagKurz($0.beginn)) \(uhr($0.beginn))", table: "Shared")
             )
-        } ?? .init(gross: "", klein: "", beschriftung: "Heute Abend nichts eingetragen")
+        } ?? .init(gross: "", klein: "", beschriftung: String(localized: "Heute Abend nichts eingetragen", table: "Shared"))
 
         if let abgesagt {
             return Anzeige.Sperrbildschirm(
-                zeile: morgenErstes.map { "Morgen \(uhr($0.beginn)) \($0.titel)" } ?? "Heute Abend nichts eingetragen",
+                zeile: morgenErstes.map { String(localized: "Morgen \(uhr($0.beginn)) \($0.titel)", table: "Shared") } ?? String(localized: "Heute Abend nichts eingetragen", table: "Shared"),
                 rechteck: .init(
-                    kicker: "Heute Abend", zeit: uhr(abgesagt.beginn), name: abgesagt.titel,
-                    unterzeile: [ortNur(abgesagt), "fällt aus"].compactMap { $0 }.joined(separator: " · "),
+                    kicker: String(localized: "Heute Abend", table: "Shared"), zeit: uhr(abgesagt.beginn), name: abgesagt.titel,
+                    unterzeile: [ortNur(abgesagt), String(localized: "fällt aus", table: "Shared")].compactMap { $0 }.joined(separator: " · "),
                     abgesagt: true, gemerkt: gemerkt.contains(abgesagt.id)
                 ),
                 kreis: morgenKreis, leer: morgenErstes == nil,
@@ -366,9 +368,9 @@ private nonisolated struct Rechner {
 
         if let morgen = morgenErstes {
             return Anzeige.Sperrbildschirm(
-                zeile: "Morgen \(uhr(morgen.beginn)) \(morgen.titel)",
+                zeile: String(localized: "Morgen \(uhr(morgen.beginn)) \(morgen.titel)", table: "Shared"),
                 rechteck: .init(
-                    kicker: "Morgen Abend", zeit: uhr(morgen.beginn), name: morgen.titel,
+                    kicker: String(localized: "Morgen Abend", table: "Shared"), zeit: uhr(morgen.beginn), name: morgen.titel,
                     unterzeile: ortNur(morgen) ?? "", abgesagt: false, gemerkt: gemerkt.contains(morgen.id)
                 ),
                 kreis: morgenKreis, leer: false,
@@ -377,9 +379,9 @@ private nonisolated struct Rechner {
         }
 
         return Anzeige.Sperrbildschirm(
-            zeile: "Heute Abend nichts eingetragen",
+            zeile: String(localized: "Heute Abend nichts eingetragen", table: "Shared"),
             rechteck: .init(
-                kicker: "Heute Abend", zeit: nil, name: "Nichts eingetragen", unterzeile: "Schau in die Veranstaltungen",
+                kicker: String(localized: "Heute Abend", table: "Shared"), zeit: nil, name: String(localized: "Nichts eingetragen", table: "Shared"), unterzeile: String(localized: "Schau in die Veranstaltungen", table: "Shared"),
                 abgesagt: false, gemerkt: false
             ),
             kreis: morgenKreis, leer: true, link: liste, kreisLink: liste
@@ -391,8 +393,8 @@ private nonisolated struct Rechner {
         let zeigbar = heuteOffen.filter { !$0.abgesagt }
         guard let erstes = zeigbar.first else {
             return Anzeige.Klein(
-                kicker: "Heute Abend", laeuft: false, zeit: nil, titel: "", ort: "", fuss: "",
-                leerText: morgenErstes.map { "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)" } ?? "Mehr in den Veranstaltungen",
+                kicker: String(localized: "Heute Abend", table: "Shared"), laeuft: false, zeit: nil, titel: "", ort: "", fuss: "",
+                leerText: morgenErstes.map { String(localized: "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") } ?? String(localized: "Mehr in den Veranstaltungen", table: "Shared"),
                 link: DeepLink.events.url
             )
         }
@@ -400,12 +402,12 @@ private nonisolated struct Rechner {
         let rest = zeigbar.count - 1
         let fuss: String
         if rest > 0 {
-            fuss = "+\(rest) weitere heute"
+            fuss = String(localized: "+\(rest) weitere heute", table: "Shared")
         } else {
-            fuss = morgenErstes.map { "Morgen: \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)" } ?? ""
+            fuss = morgenErstes.map { String(localized: "Morgen: \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") } ?? ""
         }
         return Anzeige.Klein(
-            kicker: live ? "Läuft gerade" : "Heute Abend",
+            kicker: live ? String(localized: "Läuft gerade", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
             laeuft: live,
             zeit: HeuteUhr.uhrzeit(live && erstes.ende != nil ? AbendBezug.ende(erstes) : erstes.beginn),
             titel: erstes.titel,

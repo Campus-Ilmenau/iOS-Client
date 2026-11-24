@@ -186,7 +186,7 @@ class MensaService: ObservableObject {
     fileprivate nonisolated static func meal(from apiMeal: APIMeal) -> MensaMeal {
         MensaMeal(
             id: apiMeal.id,
-            category: apiMeal.mealGroup ?? String(localized: "Gericht"),
+            category: apiMeal.mealGroup ?? String(localized: "Gericht", table: "Shared"),
             name: apiMeal.title,
             description: Self.formatComponents(apiMeal.components),
             price: MensaMealPrice(
@@ -410,17 +410,17 @@ enum MensaAPIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return String(localized: "Ungültige API-URL")
+            return String(localized: "Ungültige API-URL", table: "Shared")
         case .invalidResponse:
-            return String(localized: "Ungültige Server-Antwort")
+            return String(localized: "Ungültige Server-Antwort", table: "Shared")
         case .httpError(let statusCode):
-            return String(localized: "HTTP-Fehler: \(statusCode)")
+            return String(localized: "HTTP-Fehler: \(statusCode)", table: "Shared")
         case .apiError(let code, let message):
-            return String(localized: "API-Fehler (\(code)): \(message)")
+            return String(localized: "API-Fehler (\(code)): \(message)", table: "Shared")
         case .decodingError(let error):
-            return String(localized: "Fehler beim Dekodieren: \(error.localizedDescription)")
+            return String(localized: "Fehler beim Dekodieren: \(error.localizedDescription)", table: "Shared")
         case .networkError(let error):
-            return String(localized: "Netzwerk-Fehler: \(error.localizedDescription)")
+            return String(localized: "Netzwerk-Fehler: \(error.localizedDescription)", table: "Shared")
         }
     }
 }
