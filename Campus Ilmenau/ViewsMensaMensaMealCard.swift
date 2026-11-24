@@ -18,7 +18,7 @@ struct MensaMealCard: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 0) {
-                Text(meal.category.isEmpty ? "Gericht" : meal.category)
+                Text(meal.category.isEmpty ? String(localized: "Gericht") : meal.category)
                     .font(breit ? .system(size: 12, weight: .bold) : .caption.weight(.bold))
                     .textCase(.uppercase)
                     .tracking(0.6)

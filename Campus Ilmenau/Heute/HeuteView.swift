@@ -53,7 +53,7 @@ struct HeuteView: View {
             .background(Color(.background))
             .toolbar(.hidden, for: .navigationBar)
             .refreshable { await model.laden() }
-            .navigationDestination(isPresented: $zeigtMehr) { MehrView(zurueckTitel: "Heute") }
+            .navigationDestination(isPresented: $zeigtMehr) { MehrView(zurueckTitel: String(localized: "Heute")) }
             .navigationDestination(item: $geoeffnetesEvent) { event in
                 EventDetailView(id: event.id, event: event)
             }

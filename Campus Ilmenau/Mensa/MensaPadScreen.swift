@@ -246,7 +246,7 @@ struct MensaPadScreen: View {
             withAnimation(.snappy(duration: 0.2)) { selectedDayIndex = index }
         } label: {
             VStack(spacing: 2) {
-                Text(isToday ? "Heute" : MensaFormatting.weekdayShort(day))
+                Text(isToday ? String(localized: "Heute") : MensaFormatting.weekdayShort(day))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(isSelected ? Color(.onButtonPrimary) : (startsWeek ? Color(.textTertiary) : Color(.textPrimary)))
                 Text(day.formatted(.dateTime.day()))
@@ -261,7 +261,7 @@ struct MensaPadScreen: View {
         }
         .buttonStyle(.plain)
         .hoverEffect()
-        .accessibilityLabel((isToday ? "Heute, " : "") + MensaFormatting.spokenDay(day))
+        .accessibilityLabel((isToday ? String(localized: "Heute, ") : "") + MensaFormatting.spokenDay(day))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
@@ -357,7 +357,9 @@ struct MensaPadScreen: View {
                 // Der Filter blendet in dieser Spalte alles aus; die anderen Spalten bleiben gefüllt.
                 meldung(
                     title: "Nichts passt zu deinem Filter",
-                    text: "\(istHeute ? "Heute" : "An diesem Tag") gibt es hier nichts, was zu \(filter.activeDescription) passt.",
+                    text: istHeute
+                        ? LocalizedStringKey("Heute gibt es hier nichts, was zu \(filter.activeDescription) passt.")
+                        : LocalizedStringKey("An diesem Tag gibt es hier nichts, was zu \(filter.activeDescription) passt."),
                     buttonTitle: "Filter zurücksetzen",
                     action: { filter = MensaFilter() }
                 )

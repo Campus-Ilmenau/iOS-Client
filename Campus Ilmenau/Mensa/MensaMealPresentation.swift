@@ -49,11 +49,25 @@ extension MensaMeal {
 
     /// Wie in der Liste, dazu weitere Kategorien der API (z. B. „Kinderessen“) als neutrale Chips.
     var detailChips: [MensaChipItem] {
-        let covered: Set<String> = ["vegan", "vegetarisch", "bio", "regional"]
+        // Vegan, Vegetarisch, Bio und Regional zeigt `listChips` schon. Die Symbole werden am Kürzel erkannt,
+        // nicht am Namen, denn der wechselt mit der Sprache („Vegetarisch“ / „Vegetarian“).
+        let coveredCodes: Set<String> = ["V", "V*"]
+        func covered(_ symbol: MensaCodeRef) -> Bool {
+            coveredCodes.contains(symbol.code)
+                || symbol.code.lowercased().contains("bio")
+                || (symbol.name ?? "").localizedCaseInsensitiveContains("regional")
+        }
         var seen = Set<String>()
-        let others = categories
-            .filter { !covered.contains($0.lowercased()) && seen.insert($0).inserted }
-            .map { MensaChipItem(title: $0, variant: .neutral) }
+        let others: [MensaChipItem]
+        if symbolCodes.isEmpty {
+            // Ohne Kürzel (Vorschauen, ältere Daten): nach den bekannten deutschen Namen.
+            let names: Set<String> = ["vegan", "vegetarisch", "bio", "regional"]
+            others = categories.filter { !names.contains($0.lowercased()) && seen.insert($0).inserted }
+                .map { MensaChipItem(title: $0, variant: .neutral) }
+        } else {
+            others = symbolCodes.filter { !covered($0) }.compactMap(\.name)
+                .filter { seen.insert($0).inserted }.map { MensaChipItem(title: $0, variant: .neutral) }
+        }
         return listChips + others
     }
 

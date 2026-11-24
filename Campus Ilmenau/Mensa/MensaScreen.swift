@@ -207,7 +207,7 @@ struct MensaScreen: View {
                 )
             }
         )
-        .accessibilityLabel(venue.displayName + (count.map { $0 == 0 ? ", keins passend" : ", \($0) passend" } ?? ""))
+        .accessibilityLabel(venue.displayName + (count.map { $0 == 0 ? String(localized: ", keins passend") : String(localized: ", \($0) passend") } ?? ""))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
@@ -253,7 +253,7 @@ struct MensaScreen: View {
             withAnimation(.snappy(duration: 0.2)) { selectedDayIndex = index }
         } label: {
             VStack(spacing: 2) {
-                Text(isToday ? "Heute" : MensaFormatting.weekdayShort(day))
+                Text(isToday ? String(localized: "Heute") : MensaFormatting.weekdayShort(day))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(isSelected ? Color(.onButtonPrimary) : (startsWeek ? Color(.textTertiary) : Color(.textPrimary)))
                 Text(day.formatted(.dateTime.day()))
@@ -268,7 +268,7 @@ struct MensaScreen: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel((isToday ? "Heute, " : "") + MensaFormatting.spokenDay(day))
+        .accessibilityLabel((isToday ? String(localized: "Heute, ") : "") + MensaFormatting.spokenDay(day))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
@@ -560,7 +560,9 @@ private struct MensaVenuePage: View {
             } else if hasMealsBeforeFilter {
                 messageCard(
                     title: "Nichts passt zu deinem Filter",
-                    text: "\(isToday ? "Heute" : "An diesem Tag") gibt es hier nichts, was zu \(filterDescription) passt.",
+                    text: isToday
+                        ? LocalizedStringKey("Heute gibt es hier nichts, was zu \(filterDescription) passt.")
+                        : LocalizedStringKey("An diesem Tag gibt es hier nichts, was zu \(filterDescription) passt."),
                     buttonTitle: "Filter zurücksetzen",
                     action: onResetFilter
                 )

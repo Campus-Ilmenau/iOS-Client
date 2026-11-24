@@ -185,8 +185,8 @@ struct EventsChipleiste: View {
 
     @ViewBuilder
     private var pillen: some View {
-        pille("Heute Abend", systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
-        pille("Gemerkt", systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
+        pille(String(localized: "Heute Abend"), systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
+        pille(String(localized: "Gemerkt"), systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
         if !veranstalter.isEmpty, !umbrechend {
             Rectangle()
                 .fill(Color(.separator))
