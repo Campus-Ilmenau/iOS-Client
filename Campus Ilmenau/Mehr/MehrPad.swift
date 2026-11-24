@@ -40,6 +40,7 @@ struct MehrPad: View {
     var filterVorgabe: MensaFilter?
 
     @AppStorage(AppDarstellung.schluessel) private var darstellung = AppDarstellung.system
+    private let appSprache = AppSprache.gemeinsam
     @AppStorage(HeuteMensaSpeicher.schluessel, store: AppGroup.defaults) private var heuteMensa = MensaVenue.mensaEhrenberg
     @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var preisgruppe = MensaPriceGroup.studierende
 
@@ -270,7 +271,7 @@ struct MehrPad: View {
         switch eintrag {
         case .darstellung: Text(darstellung.titel)
         case .mensa: Text(verbatim: "\(heuteMensa.shortName) · \(preisgruppe.title)")
-        case .sprache: Text(verbatim: MehrSprache.name)
+        case .sprache: Text(verbatim: appSprache.aktuell == .de ? "Deutsch" : "English")
         case .ueber: Text("Version \(MehrAppVersion.text)")
         case .konto: EmptyView()
         }
@@ -496,17 +497,14 @@ struct MehrPad: View {
         VStack(alignment: .leading, spacing: 0) {
             ueberschrift("Sprache der App")
             MehrBox {
-                ForEach(MehrSprache.alle, id: \.code) { sprache in
+                ForEach(SpracheWahl.allCases) { wahl in
                     option(
-                        Text(verbatim: sprache.name),
-                        info: sprache.code == MehrSprache.geraetecode
-                            ? Text("Sprache des iPad: \(sprache.name)") : nil,
-                        gewaehlt: sprache.code == MehrSprache.appCode
+                        wahl.titel,
+                        info: wahl == .automatisch
+                            ? Text("Sprache des iPad: \(Text(verbatim: appSprache.geraet == .de ? "Deutsch" : "English"))") : nil,
+                        gewaehlt: wahl == appSprache.auswahl
                     ) {
-                        // Die Sprache einer App stellt iOS pro App ein: Die Einstellungen der App öffnen sich dort.
-                        guard sprache.code != MehrSprache.appCode,
-                              let url = URL(string: UIApplication.openSettingsURLString) else { return }
-                        openURL(url)
+                        appSprache.waehle(wahl)
                     }
                 }
             }
@@ -693,29 +691,5 @@ private struct MehrVorschauHaelfte: View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
             .fill(farbe)
             .frame(width: max(breite, 0), height: 8)
-    }
-}
-
-/// Sprache der App und des Geräts. Die App kennt Deutsch und Englisch; eingestellt wird die Sprache pro App in den
-/// Systemeinstellungen von iOS.
-enum MehrSprache {
-    struct Eintrag { let code: String; let name: String }
-
-    static let alle = [Eintrag(code: "de", name: "Deutsch"), Eintrag(code: "en", name: "English")]
-
-    /// Sprache, in der die App gerade läuft (die beste der Sprachen, die sie kennt).
-    static var appCode: String {
-        Bundle.main.preferredLocalizations.first.map { String($0.prefix(2)) } ?? "de"
-    }
-
-    /// Erste Sprache der Geräteeinstellung.
-    static var geraetecode: String {
-        Locale.preferredLanguages.first.flatMap { Locale(identifier: $0).language.languageCode?.identifier } ?? "de"
-    }
-
-    /// Name der App-Sprache („Deutsch“) für die Zeile links.
-    static var name: String {
-        alle.first { $0.code == appCode }?.name
-            ?? Locale.current.localizedString(forLanguageCode: appCode)?.localizedCapitalized ?? appCode
     }
 }

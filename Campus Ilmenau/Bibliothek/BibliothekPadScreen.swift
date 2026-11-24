@@ -132,8 +132,8 @@ struct BibliothekPadScreen: View {
 
     private var zusammenfassung: String {
         switch session {
-        case .signedOut(let expired): expired ? String(localized: "Sitzung abgelaufen") : String(localized: "Nicht angemeldet")
-        case .signedIn: isLoading && items.isEmpty ? String(localized: "Wird geladen …") : lists.summary(now: now)
+        case .signedOut(let expired): expired ? LocalizedStringResource("Sitzung abgelaufen").inAppSprache : LocalizedStringResource("Nicht angemeldet").inAppSprache
+        case .signedIn: isLoading && items.isEmpty ? LocalizedStringResource("Wird geladen …").inAppSprache : lists.summary(now: now)
         }
     }
 

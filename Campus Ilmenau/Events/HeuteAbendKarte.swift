@@ -65,7 +65,7 @@ struct HeuteAbendKarte: View {
     private func zeile(_ event: CampusEvent) -> some View {
         let laeuft = event.beginn <= jetzt
         let uhrzeit = HeuteUhr.uhrzeit(event.beginn)
-        let zeit = laeuft ? String(localized: "Läuft seit \(uhrzeit)") : String(localized: "Heute · \(uhrzeit)")
+        let zeit = laeuft ? LocalizedStringResource("Läuft seit \(uhrzeit)").inAppSprache : LocalizedStringResource("Heute · \(uhrzeit)").inAppSprache
         let veranstalter = event.veranstalterAnzeigen ?? event.ort?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
         return Button {
             onOeffne(event)
@@ -121,7 +121,7 @@ struct HeuteAbendKarte: View {
     private func karte(_ event: CampusEvent) -> some View {
         let laeuft = event.beginn <= jetzt
         let uhrzeit = HeuteUhr.uhrzeit(event.beginn)
-        let zeit = laeuft ? String(localized: "Läuft seit \(uhrzeit)") : String(localized: "Heute · \(uhrzeit)")
+        let zeit = laeuft ? LocalizedStringResource("Läuft seit \(uhrzeit)").inAppSprache : LocalizedStringResource("Heute · \(uhrzeit)").inAppSprache
         let veranstalter = event.veranstalterAnzeigen ?? event.ort?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
         return Button {
             onOeffne(event)

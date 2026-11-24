@@ -49,7 +49,7 @@ struct MensaOpeningHoursContent: View {
                     .accessibilityAddTraits(.isHeader)
                     .padding(.top, 4)
 
-                Text("Heute, \(now.formatted(.dateTime.weekday(.wide).locale(.current)))")
+                Text("Heute, \(now.formatted(.dateTime.weekday(.wide).locale(AppLanguage.current.locale)))")
                     .font(.footnote)
                     .foregroundStyle(Color(.textSecondary))
                     .padding(.horizontal, 2)

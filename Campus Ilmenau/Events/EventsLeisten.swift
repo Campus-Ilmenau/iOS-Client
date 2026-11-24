@@ -140,16 +140,16 @@ struct EventsTagesleiste: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
-            tag.map { formatter.abschnittstitel(fuer: $0) + (hatEvents ? String(localized: ", mit Veranstaltungen") : "") }
-                ?? String(localized: "Alles ab heute")
+            tag.map { formatter.abschnittstitel(fuer: $0) + (hatEvents ? LocalizedStringResource(", mit Veranstaltungen").inAppSprache : "") }
+                ?? LocalizedStringResource("Alles ab heute").inAppSprache
         )
         .accessibilityAddTraits(gewaehlt ? .isSelected : [])
     }
 
     private func oben(tag: Date?, heute: Date) -> String {
-        guard let tag else { return String(localized: "Ab heute") }
-        if tag == heute { return String(localized: "Heute") }
-        if tag == EventKalender.tag(heute, plus: 1) { return String(localized: "Morgen") }
+        guard let tag else { return LocalizedStringResource("Ab heute").inAppSprache }
+        if tag == heute { return LocalizedStringResource("Heute").inAppSprache }
+        if tag == EventKalender.tag(heute, plus: 1) { return LocalizedStringResource("Morgen").inAppSprache }
         return EventKalender.lokal(tag) { $0.weekday(.abbreviated) }.replacingOccurrences(of: ".", with: "")
     }
 }
@@ -185,8 +185,8 @@ struct EventsChipleiste: View {
 
     @ViewBuilder
     private var pillen: some View {
-        pille(String(localized: "Heute Abend"), systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
-        pille(String(localized: "Gemerkt"), systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
+        pille(LocalizedStringResource("Heute Abend").inAppSprache, systemImage: "moon", aktiv: auswahl.heuteAbend, action: onHeuteAbend)
+        pille(LocalizedStringResource("Gemerkt").inAppSprache, systemImage: "star.fill", aktiv: auswahl.nurGemerkt, action: onGemerkt)
         if !veranstalter.isEmpty, !umbrechend {
             Rectangle()
                 .fill(Color(.separator))

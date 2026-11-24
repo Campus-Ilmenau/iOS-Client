@@ -4,11 +4,11 @@ extension LibraryAvailabilityStatus {
     /// Kurzer Text im Status-Chip der Listen: Ausleihbar, Online, Ausgeliehen, Nur vor Ort, Unbekannt.
     var chipText: String {
         switch self {
-        case .available: String(localized: "Ausleihbar")
-        case .onLoan: String(localized: "Ausgeliehen")
-        case .referenceOnly: String(localized: "Nur vor Ort")
-        case .online: String(localized: "Online")
-        case .unknown: String(localized: "Unbekannt")
+        case .available: LocalizedStringResource("Ausleihbar").inAppSprache
+        case .onLoan: LocalizedStringResource("Ausgeliehen").inAppSprache
+        case .referenceOnly: LocalizedStringResource("Nur vor Ort").inAppSprache
+        case .online: LocalizedStringResource("Online").inAppSprache
+        case .unknown: LocalizedStringResource("Unbekannt").inAppSprache
         }
     }
 }
@@ -140,13 +140,13 @@ struct BibMerklisteZeile: View {
         var parts: [String] = [
             eintrag.anzeigeTitel,
             eintrag.untertitel,
-            gefunden ? String(localized: "gefunden") : (status?.chipText ?? String(localized: "Verfügbarkeit wird geladen")),
+            gefunden ? LocalizedStringResource("gefunden").inAppSprache : (status?.chipText ?? LocalizedStringResource("Verfügbarkeit wird geladen").inAppSprache),
             eintrag.mediaType.displayName
         ]
-        if !pad, let signatur = exemplar?.signatur { parts.append(String(localized: "Signatur \(signatur)")) }
+        if !pad, let signatur = exemplar?.signatur { parts.append(LocalizedStringResource("Signatur \(signatur)").inAppSprache) }
         if !pad, let standort = exemplar?.standort {
             let weitere = exemplar?.weitere ?? 0
-            parts.append(weitere > 0 ? String(localized: "Standort \(standort), und \(weitere) weitere Exemplare") : String(localized: "Standort \(standort)"))
+            parts.append(weitere > 0 ? LocalizedStringResource("Standort \(standort), und \(weitere) weitere Exemplare").inAppSprache : LocalizedStringResource("Standort \(standort)").inAppSprache)
         }
         return parts.filter { !$0.isEmpty }.joined(separator: ", ")
     }

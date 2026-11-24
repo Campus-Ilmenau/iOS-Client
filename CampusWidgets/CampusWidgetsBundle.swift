@@ -10,6 +10,11 @@ import SwiftUI
 
 @main
 struct CampusWidgetsBundle: WidgetBundle {
+    init() {
+        // Texte in der Sprache, die in der App unter „Mehr“ gewählt ist (die Wahl liegt in der App Group).
+        AppLanguage.installieren()
+    }
+
     var body: some Widget {
         MensaWidget()
         AbendWidget()

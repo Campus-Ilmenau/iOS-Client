@@ -121,19 +121,19 @@ struct LibrarySearchQuery: Equatable {
         var issues: [LibraryQueryIssue] = []
 
         if !hasSearchTerm {
-            issues.append(LibraryQueryIssue(field: .text, message: String(localized: "Bitte gib einen Suchbegriff ein.")))
+            issues.append(LibraryQueryIssue(field: .text, message: LocalizedStringResource("Bitte gib einen Suchbegriff ein.").inAppSprache))
         } else if usesOnlyText, text.trimmed.isEmpty {
-            issues.append(LibraryQueryIssue(field: .text, message: String(localized: "Bitte gib einen Suchbegriff ein.")))
+            issues.append(LibraryQueryIssue(field: .text, message: LocalizedStringResource("Bitte gib einen Suchbegriff ein.").inAppSprache))
         }
         if text.trimmed.count > Self.maxTextLength {
             issues.append(LibraryQueryIssue(
                 field: .text,
-                message: String(localized: "Der Suchbegriff darf höchstens \(Self.maxTextLength) Zeichen lang sein.")
+                message: LocalizedStringResource("Der Suchbegriff darf höchstens \(Self.maxTextLength) Zeichen lang sein.").inAppSprache
             ))
         }
         issues.append(contentsOf: Self.validateYears(from: yearFrom, to: yearTo))
         if page < 1 {
-            issues.append(LibraryQueryIssue(field: .text, message: String(localized: "Die Seitenzahl muss mindestens 1 sein.")))
+            issues.append(LibraryQueryIssue(field: .text, message: LocalizedStringResource("Die Seitenzahl muss mindestens 1 sein.").inAppSprache))
         }
         return issues
     }
@@ -149,18 +149,18 @@ struct LibrarySearchQuery: Equatable {
         let toYear = parseYear(toText)
 
         if !fromText.isEmpty, fromYear == nil {
-            issues.append(LibraryQueryIssue(field: .yearFrom, message: String(localized: "Bitte das Jahr vierstellig eingeben.")))
+            issues.append(LibraryQueryIssue(field: .yearFrom, message: LocalizedStringResource("Bitte das Jahr vierstellig eingeben.").inAppSprache))
         }
         if !toText.isEmpty, toYear == nil {
-            issues.append(LibraryQueryIssue(field: .yearTo, message: String(localized: "Bitte das Jahr vierstellig eingeben.")))
+            issues.append(LibraryQueryIssue(field: .yearTo, message: LocalizedStringResource("Bitte das Jahr vierstellig eingeben.").inAppSprache))
         }
         if let fromYear, let toYear {
             if fromYear > toYear {
-                issues.append(LibraryQueryIssue(field: .yearFrom, message: String(localized: "„von“ darf nicht nach „bis“ liegen.")))
+                issues.append(LibraryQueryIssue(field: .yearFrom, message: LocalizedStringResource("„von“ darf nicht nach „bis“ liegen.").inAppSprache))
             } else if toYear - fromYear > maxYearSpan {
                 issues.append(LibraryQueryIssue(
                     field: .yearTo,
-                    message: String(localized: "Höchstens \(maxYearSpan) Jahre auf einmal.")
+                    message: LocalizedStringResource("Höchstens \(maxYearSpan) Jahre auf einmal.").inAppSprache
                 ))
             }
         }

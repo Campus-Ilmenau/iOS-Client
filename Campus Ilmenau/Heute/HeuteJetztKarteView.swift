@@ -169,7 +169,7 @@ private struct HeuteZeileView: View {
     }
 
     private var beschriftung: String {
-        ([zeile.name] + zeile.chips.map { String(localized: String.LocalizationValue($0.title)) } + [zeile.rechts].compactMap { $0 }).joined(separator: ", ")
+        ([zeile.name] + zeile.chips.map { LocalizedStringResource(String.LocalizationValue($0.title)).inAppSprache } + [zeile.rechts].compactMap { $0 }).joined(separator: ", ")
     }
 }
 

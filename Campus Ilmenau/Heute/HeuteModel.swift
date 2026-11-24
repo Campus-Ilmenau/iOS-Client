@@ -266,12 +266,12 @@ final class HeuteModel {
     var jetztKarte: HeuteJetztKarte? {
         switch phase {
         case .morgen:
-            return mensaKarte(anzahl: 2, unterzeile: String(localized: "Vorschau auf das Mittagsangebot"))
+            return mensaKarte(anzahl: 2, unterzeile: LocalizedStringResource("Vorschau auf das Mittagsangebot").inAppSprache)
         case .mittag:
-            return mensaKarte(anzahl: 3, unterzeile: String(localized: "Mittagsangebot"))
+            return mensaKarte(anzahl: 3, unterzeile: LocalizedStringResource("Mittagsangebot").inAppSprache)
         case .nachmittag, .abend:
             // Ohne Abendessen-Daten heute (z. B. Wochenende) bleibt die gewählte Mensa.
-            return abendessenKarte() ?? mensaKarte(anzahl: 3, unterzeile: String(localized: "Mittagsangebot"))
+            return abendessenKarte() ?? mensaKarte(anzahl: 3, unterzeile: LocalizedStringResource("Mittagsangebot").inAppSprache)
         case .nacht:
             return eventKarte() ?? mittagMorgenKarte()
         }
@@ -321,12 +321,12 @@ final class HeuteModel {
         MensaVenue.allCases.map { venue in
             var info: String?
             if mensen != nil {
-                let geschlossen = String(localized: "Heute geschlossen")
+                let geschlossen = LocalizedStringResource("Heute geschlossen").inAppSprache
                 info = oeffnung(venue, am: jetzt).map {
-                    String(localized: "\(HeuteUhr.uhrzeit(minuten: $0.opens))–\(HeuteUhr.uhrzeit(minuten: $0.closes)) Uhr")
+                    LocalizedStringResource("\(HeuteUhr.uhrzeit(minuten: $0.opens))–\(HeuteUhr.uhrzeit(minuten: $0.closes)) Uhr").inAppSprache
                 } ?? geschlossen
                 if abendessenOrte?.contains(venue) == true, let text = info, text != geschlossen {
-                    info = String(localized: "\(text) · Abendessen ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))")
+                    info = LocalizedStringResource("\(text) · Abendessen ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))").inAppSprache
                 }
             }
             return MensaOption(venue: venue, info: info)
@@ -339,9 +339,9 @@ final class HeuteModel {
             ueberschrift: phase.ueberschrift,
             kicker: "",
             titel: mensa.displayName,
-            unterzeile: String(localized: "Speiseplan gerade nicht verfügbar"),
+            unterzeile: LocalizedStringResource("Speiseplan gerade nicht verfügbar").inAppSprache,
             zeilen: [],
-            linkText: String(localized: "Zum Mensa-Tab"),
+            linkText: LocalizedStringResource("Zum Mensa-Tab").inAppSprache,
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: phase != .nacht,
             stil: .mensa
@@ -396,11 +396,11 @@ final class HeuteModel {
         if let zeiten = oeffnung(mensa, am: jetzt), minuten < zeiten.closes {
             geschlossen = false
             kicker = minuten >= zeiten.opens
-                ? String(localized: "Jetzt geöffnet · bis \(HeuteUhr.uhrzeit(minuten: zeiten.closes))")
-                : String(localized: "Heute · ab \(HeuteUhr.uhrzeit(minuten: zeiten.opens))")
+                ? LocalizedStringResource("Jetzt geöffnet · bis \(HeuteUhr.uhrzeit(minuten: zeiten.closes))").inAppSprache
+                : LocalizedStringResource("Heute · ab \(HeuteUhr.uhrzeit(minuten: zeiten.opens))").inAppSprache
         } else {
             geschlossen = true
-            kicker = String(localized: "Heute geschlossen")
+            kicker = LocalizedStringResource("Heute geschlossen").inAppSprache
         }
         // Ohne Angebot (z. B. sonntags) sagt die Kachel das ausdrücklich
         let keinAngebot = mittagGerichte(mensa, in: speiseplanHeute).isEmpty
@@ -409,10 +409,10 @@ final class HeuteModel {
             kicker: kicker,
             titel: mensa.displayName,
             unterzeile: keinAngebot
-                ? (geschlossen ? String(localized: "Mensa heute geschlossen") : String(localized: "Heute keine Angebote"))
+                ? (geschlossen ? LocalizedStringResource("Mensa heute geschlossen").inAppSprache : LocalizedStringResource("Heute keine Angebote").inAppSprache)
                 : unterzeile,
             zeilen: passend(mittagGerichte(mensa, in: speiseplanHeute)).prefix(anzahl).map { zeile($0) },
-            linkText: String(localized: "Ganzer Speiseplan"),
+            linkText: LocalizedStringResource("Ganzer Speiseplan").inAppSprache,
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -454,7 +454,7 @@ final class HeuteModel {
     /// „Cafeteria“ bzw. „Mensa“: wo im Gebäude.
     private func ortKurz(_ venue: MensaVenue) -> String {
         switch venue {
-        case .cafeteriaEhrenberg: String(localized: "Cafeteria")
+        case .cafeteriaEhrenberg: LocalizedStringResource("Cafeteria").inAppSprache
         case .mensaEhrenberg: "Mensa"
         default: venue.shortName
         }
@@ -470,21 +470,21 @@ final class HeuteModel {
 
         switch phase {
         case .abend where eigeneMensaHatAbendessen:
-            kicker = String(localized: "Jetzt geöffnet · Abendessen")
+            kicker = LocalizedStringResource("Jetzt geöffnet · Abendessen").inAppSprache
             titel = gebaeudeName(ort)
             unterzeile = ortKurz(ort)
         case .abend:
-            kicker = String(localized: "\(mensa.displayName) hat geschlossen")
-            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
-            unterzeile = String(localized: "Tipp · jetzt geöffnet")
+            kicker = LocalizedStringResource("\(mensa.displayName) hat geschlossen").inAppSprache
+            titel = LocalizedStringResource("Abendessen in der \(gebaeudeName(ort))").inAppSprache
+            unterzeile = LocalizedStringResource("Tipp · jetzt geöffnet").inAppSprache
         case _ where eigeneMensaHatAbendessen:
-            kicker = String(localized: "Heute ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))")
-            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
+            kicker = LocalizedStringResource("Heute ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn))").inAppSprache
+            titel = LocalizedStringResource("Abendessen in der \(gebaeudeName(ort))").inAppSprache
             unterzeile = ortKurz(ort)
         default:
-            kicker = String(localized: "\(mensa.displayName) hat geschlossen")
-            titel = String(localized: "Abendessen in der \(gebaeudeName(ort))")
-            unterzeile = String(localized: "Tipp · ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn)) in der \(ortKurz(ort))")
+            kicker = LocalizedStringResource("\(mensa.displayName) hat geschlossen").inAppSprache
+            titel = LocalizedStringResource("Abendessen in der \(gebaeudeName(ort))").inAppSprache
+            unterzeile = LocalizedStringResource("Tipp · ab \(HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn)) in der \(ortKurz(ort))").inAppSprache
         }
 
         return HeuteJetztKarte(
@@ -493,7 +493,7 @@ final class HeuteModel {
             titel: titel,
             unterzeile: unterzeile,
             zeilen: passend(gerichte).prefix(3).map { zeile($0) },
-            linkText: String(localized: "Zum Abendangebot"),
+            linkText: LocalizedStringResource("Zum Abendangebot").inAppSprache,
             ziel: .speiseplan(ort),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -506,7 +506,7 @@ final class HeuteModel {
             id: "abendessen",
             zeit: HeuteUhr.uhrzeit(minuten: Self.abendessenBeginn),
             farbe: .brandOrange,
-            titel: String(localized: "Abendessen"),
+            titel: LocalizedStringResource("Abendessen").inAppSprache,
             unterzeile: "\(gebaeudeName(ort)) · \(ortKurz(ort))",
             ziel: .speiseplan(ort)
         )
@@ -520,13 +520,13 @@ final class HeuteModel {
         if zeiten.opens > minuten {
             termine.append(HeuteTermin(
                 id: "mensa-oeffnet", zeit: HeuteUhr.uhrzeit(minuten: zeiten.opens), farbe: .brandOrange,
-                titel: String(localized: "Öffnet"), unterzeile: mensa.displayName, ziel: .speiseplan(mensa)
+                titel: LocalizedStringResource("Öffnet").inAppSprache, unterzeile: mensa.displayName, ziel: .speiseplan(mensa)
             ))
         }
         if zeiten.closes > minuten {
             termine.append(HeuteTermin(
                 id: "mensa-schliesst", zeit: HeuteUhr.uhrzeit(minuten: zeiten.closes), farbe: .brandOrange,
-                titel: String(localized: "Schließt"), unterzeile: mensa.displayName, ziel: .oeffnungszeiten(mensa)
+                titel: LocalizedStringResource("Schließt").inAppSprache, unterzeile: mensa.displayName, ziel: .oeffnungszeiten(mensa)
             ))
         }
         return termine
@@ -545,14 +545,14 @@ final class HeuteModel {
         let gerichte = morgenGerichte
         guard !gerichte.isEmpty else { return nil }
         let kicker = oeffnung(mensa, am: morgenTag)
-            .map { String(localized: "Morgen · ab \(HeuteUhr.uhrzeit(minuten: $0.opens))") } ?? String(localized: "Morgen")
+            .map { LocalizedStringResource("Morgen · ab \(HeuteUhr.uhrzeit(minuten: $0.opens))").inAppSprache } ?? LocalizedStringResource("Morgen").inAppSprache
         return HeuteJetztKarte(
             ueberschrift: phase.ueberschrift,
             kicker: kicker,
             titel: mensa.displayName,
-            unterzeile: String(localized: "Mittagsangebot morgen"),
+            unterzeile: LocalizedStringResource("Mittagsangebot morgen").inAppSprache,
             zeilen: passend(gerichte).prefix(3).map { zeile($0, tag: morgenTag) },
-            linkText: String(localized: "Ganzer Speiseplan"),
+            linkText: LocalizedStringResource("Ganzer Speiseplan").inAppSprache,
             ziel: .speiseplan(mensa),
             mensaAendernSichtbar: true,
             stil: .mensa
@@ -561,13 +561,13 @@ final class HeuteModel {
 
     private var mittagMorgenTermin: HeuteTermin? {
         guard let erstes = morgenGerichte.first else { return nil }
-        let ab = oeffnung(mensa, am: morgenTag).map { String(localized: "morgen ab \(HeuteUhr.uhrzeit(minuten: $0.opens))") }
-            ?? String(localized: "morgen")
+        let ab = oeffnung(mensa, am: morgenTag).map { LocalizedStringResource("morgen ab \(HeuteUhr.uhrzeit(minuten: $0.opens))").inAppSprache }
+            ?? LocalizedStringResource("morgen").inAppSprache
         return HeuteTermin(
             id: "mittag-morgen",
             zeit: HeuteUhr.wochentagKurz(morgenTag),
             farbe: .brandOrange,
-            titel: String(localized: "Mittag: \(erstes.name)"),
+            titel: LocalizedStringResource("Mittag: \(erstes.name)").inAppSprache,
             unterzeile: "\(mensa.displayName) · \(ab)",
             ziel: .speiseplan(mensa)
         )
@@ -614,13 +614,13 @@ final class HeuteModel {
         let laeuft = laufendesEvent
 
         let kicker = laeuft != nil
-            ? String(localized: "Läuft gerade · seit \(HeuteUhr.uhrzeit(hauptEvent.beginn))")
-            : String(localized: "Heute · ab \(HeuteUhr.uhrzeit(hauptEvent.beginn))")
+            ? LocalizedStringResource("Läuft gerade · seit \(HeuteUhr.uhrzeit(hauptEvent.beginn))").inAppSprache
+            : LocalizedStringResource("Heute · ab \(HeuteUhr.uhrzeit(hauptEvent.beginn))").inAppSprache
         let danach = kommendeEvents.first { $0.id != hauptEvent.id && $0.beginn > hauptEvent.beginn }
         let zeilen = danach.map { event in
             [HeuteZeile(
                 id: event.id,
-                name: String(localized: "Danach: \(event.titel)"),
+                name: LocalizedStringResource("Danach: \(event.titel)").inAppSprache,
                 chips: [],
                 rechts: HeuteUhr.istGleicherTag(event.beginn, jetzt)
                     ? HeuteUhr.uhrzeit(event.beginn)
@@ -634,7 +634,7 @@ final class HeuteModel {
             titel: hauptEvent.titel,
             unterzeile: ortUndVeranstalter(hauptEvent),
             zeilen: zeilen,
-            linkText: String(localized: "Alle Veranstaltungen"),
+            linkText: LocalizedStringResource("Alle Veranstaltungen").inAppSprache,
             ziel: .alleEvents,
             mensaAendernSichtbar: false,
             stil: .event

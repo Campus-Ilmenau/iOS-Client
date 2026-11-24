@@ -29,9 +29,9 @@ enum Tagesphase: String, CaseIterable, Sendable {
     /// Überschrift der Jetzt-Karte.
     var ueberschrift: String {
         switch self {
-        case .morgen: String(localized: "Heute")
-        case .mittag, .abend, .nacht: String(localized: "Jetzt")
-        case .nachmittag: String(localized: "Gleich")
+        case .morgen: LocalizedStringResource("Heute").inAppSprache
+        case .mittag, .abend, .nacht: LocalizedStringResource("Jetzt").inAppSprache
+        case .nachmittag: LocalizedStringResource("Gleich").inAppSprache
         }
     }
 
@@ -67,10 +67,10 @@ enum Begruessung: Equatable, Sendable {
 
     var text: String {
         switch self {
-        case .gutenMorgen: String(localized: "Guten Morgen")
-        case .mahlzeit: String(localized: "Mahlzeit!")
-        case .hallo: String(localized: "Hallo!")
-        case .gutenAbend: String(localized: "Guten Abend")
+        case .gutenMorgen: LocalizedStringResource("Guten Morgen").inAppSprache
+        case .mahlzeit: LocalizedStringResource("Mahlzeit!").inAppSprache
+        case .hallo: LocalizedStringResource("Hallo!").inAppSprache
+        case .gutenAbend: LocalizedStringResource("Guten Abend").inAppSprache
         }
     }
 }

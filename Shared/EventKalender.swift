@@ -33,7 +33,7 @@ nonisolated enum EventKalender {
     /// Datum oder Uhrzeit für die Anzeige: Berliner Zeit, Schreibweise und Wochentagsnamen der App-Sprache.
     /// `EventKalender.lokal(datum) { $0.weekday(.wide).day().month(.wide) }` → „Dienstag, 24. November“ / „Tuesday, 24 November“.
     static func lokal(_ datum: Date, _ stil: (Date.FormatStyle) -> Date.FormatStyle) -> String {
-        datum.formatted(stil(Date.FormatStyle(locale: .current, calendar: kalender, timeZone: zeitzone)))
+        datum.formatted(stil(Date.FormatStyle(locale: AppLanguage.current.locale, calendar: kalender, timeZone: zeitzone)))
     }
 
     static func format(_ datum: Date, _ muster: String, zeitzone: TimeZone = EventKalender.zeitzone) -> String {

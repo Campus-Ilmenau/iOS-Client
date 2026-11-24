@@ -60,20 +60,20 @@ nonisolated struct MensaSperreAnzeige: Equatable, Sendable {
     var rechteckLink: URL { gericht?.link ?? speiseplanLink }
 
     /// Ohne Gericht: was an dessen Stelle steht.
-    var leerTitel: String { nichtsPasst ? String(localized: "Nichts passt zu deinem Filter", table: "Shared") : String(localized: "Noch kein Plan", table: "Shared") }
+    var leerTitel: String { nichtsPasst ? LocalizedStringResource("Nichts passt zu deinem Filter", table: "Shared").inAppSprache : LocalizedStringResource("Noch kein Plan", table: "Shared").inAppSprache }
     var leerDetail: String {
-        guard let filterung else { return String(localized: "Tippen zum Laden", table: "Shared") }
-        return nichtsPasst ? filterung.kurztext : String(localized: "Tippen zum Laden", table: "Shared")
+        guard let filterung else { return LocalizedStringResource("Tippen zum Laden", table: "Shared").inAppSprache }
+        return nichtsPasst ? filterung.kurztext : LocalizedStringResource("Tippen zum Laden", table: "Shared").inAppSprache
     }
 
     /// Die Zeile über der Uhr: „bis 14:00 · Linsen-Dal mit Basmatireis“.
     var zeile: String {
-        "\(zeitText) · \(gericht?.name ?? (nichtsPasst ? String(localized: "Nichts passt", table: "Shared") : String(localized: "Noch kein Plan", table: "Shared")))"
+        "\(zeitText) · \(gericht?.name ?? (nichtsPasst ? LocalizedStringResource("Nichts passt", table: "Shared").inAppSprache : LocalizedStringResource("Noch kein Plan", table: "Shared").inAppSprache))"
     }
 
     /// VoiceOver für den Kreis: „Mensa, bis 14:00“.
     var kreisBeschriftung: String {
-        String(localized: "Mensa, \(kreisKlein) \(kreisGross)", table: "Shared")
+        LocalizedStringResource("Mensa, \(kreisKlein) \(kreisGross)", table: "Shared").inAppSprache
     }
 }
 
@@ -166,34 +166,34 @@ nonisolated enum MensaSperrePhasen {
 
             let schliesst = zeiten?.schliesst ?? P.ersatzSchliesst
             if minuten < P.morgenEnde {
-                let ab = zeiten.map { String(localized: "ab \(uhrzeit($0.oeffnet))", table: "Shared") } ?? String(localized: "heute", table: "Shared")
+                let ab = zeiten.map { LocalizedStringResource("ab \(uhrzeit($0.oeffnet))", table: "Shared").inAppSprache } ?? LocalizedStringResource("heute", table: "Shared").inAppSprache
                 return inhalt(
                     .vorschau, venue, mittag(venue, tag: heuteTag), tag: heuteTag,
                     kicker: "\(kurz(venue)) · \(ab)", zeit: ab,
-                    kreis: zeiten.map { (uhrzeit($0.oeffnet), String(localized: "öffnet", table: "Shared")) } ?? (String(localized: "heute", table: "Shared"), "")
+                    kreis: zeiten.map { (uhrzeit($0.oeffnet), LocalizedStringResource("öffnet", table: "Shared").inAppSprache) } ?? (LocalizedStringResource("heute", table: "Shared").inAppSprache, "")
                 )
             }
             if minuten < schliesst {
                 return inhalt(
                     .mittag, venue, mittag(venue, tag: heuteTag), tag: heuteTag,
-                    kicker: String(localized: "\(kurz(venue)) · bis \(uhrzeit(schliesst))", table: "Shared"), zeit: String(localized: "bis \(uhrzeit(schliesst))", table: "Shared"),
+                    kicker: LocalizedStringResource("\(kurz(venue)) · bis \(uhrzeit(schliesst))", table: "Shared").inAppSprache, zeit: LocalizedStringResource("bis \(uhrzeit(schliesst))", table: "Shared").inAppSprache,
                     kreis: (uhrzeit(schliesst), "bis")
                 )
             }
             if let (ort, ende) = nochOffen {
                 return inhalt(
                     .nochOffen, ort, mittag(ort, tag: heuteTag), tag: heuteTag,
-                    kicker: String(localized: "Noch offen · \(kurz(ort))", table: "Shared"), zeit: String(localized: "\(kurz(ort)) bis \(uhrzeit(ende))", table: "Shared"),
+                    kicker: LocalizedStringResource("Noch offen · \(kurz(ort))", table: "Shared").inAppSprache, zeit: LocalizedStringResource("\(kurz(ort)) bis \(uhrzeit(ende))", table: "Shared").inAppSprache,
                     kreis: (uhrzeit(ende), kurz(ort))
                 )
             }
             if minuten < P.abendessenEnde, let ort = abendessenOrt {
                 let gerichte = P.plan(ort, tag: heuteTag, in: snapshot)?.gerichte.filter(\.abendessen) ?? []
                 let beginnt = minuten < P.abendessenBeginn
-                let zeit = beginnt ? String(localized: "ab \(uhrzeit(P.abendessenBeginn))", table: "Shared") : String(localized: "bis \(uhrzeit(P.abendessenEnde))", table: "Shared")
+                let zeit = beginnt ? LocalizedStringResource("ab \(uhrzeit(P.abendessenBeginn))", table: "Shared").inAppSprache : LocalizedStringResource("bis \(uhrzeit(P.abendessenEnde))", table: "Shared").inAppSprache
                 return inhalt(
                     .abend, ort, gerichte, tag: heuteTag,
-                    kicker: String(localized: "Abendessen · \(zeit)", table: "Shared"), zeit: String(localized: "Abendessen \(zeit)", table: "Shared"),
+                    kicker: LocalizedStringResource("Abendessen · \(zeit)", table: "Shared").inAppSprache, zeit: LocalizedStringResource("Abendessen \(zeit)", table: "Shared").inAppSprache,
                     kreis: beginnt ? (uhrzeit(P.abendessenBeginn), "Abend") : (uhrzeit(P.abendessenEnde), "bis")
                 )
             }
@@ -236,12 +236,12 @@ nonisolated enum MensaSperrePhasen {
             let istMorgen = tag == EventKalender.berlinDatum(EventKalender.tag(jetzt, plus: 1))
             let oeffnet = P.zeiten(venue, am: datum, in: snapshot).map { uhrzeit($0.oeffnet) }
             let kurzTag = HeuteUhr.wochentagKurz(datum)
-            let wann = istMorgen ? String(localized: "morgen", table: "Shared") : kurzTag
+            let wann = istMorgen ? LocalizedStringResource("morgen", table: "Shared").inAppSprache : kurzTag
             return inhalt(
                 .naechsterTag, venue, mittag(venue, tag: tag), tag: tag,
-                kicker: String(localized: "Mittag \(istMorgen ? String(localized: "morgen", table: "Shared") : EventKalender.lokal(datum) { $0.weekday(.wide) }) · \(kurz(venue))", table: "Shared"),
-                zeit: oeffnet.map { String(localized: "\(wann) ab \($0)", table: "Shared") } ?? wann,
-                kreis: (kurzTag, oeffnet ?? String(localized: "Mittag", table: "Shared"))
+                kicker: LocalizedStringResource("Mittag \(istMorgen ? LocalizedStringResource("morgen", table: "Shared").inAppSprache : EventKalender.lokal(datum) { $0.weekday(.wide) }) · \(kurz(venue))", table: "Shared").inAppSprache,
+                zeit: oeffnet.map { LocalizedStringResource("\(wann) ab \($0)", table: "Shared").inAppSprache } ?? wann,
+                kreis: (kurzTag, oeffnet ?? LocalizedStringResource("Mittag", table: "Shared").inAppSprache)
             )
         }
 

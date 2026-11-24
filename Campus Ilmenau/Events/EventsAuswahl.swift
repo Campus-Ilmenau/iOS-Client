@@ -96,14 +96,14 @@ struct EventsAuswahl: Equatable, Hashable, Sendable {
         let zusatz = veranstalter.map { " · \($0)" } ?? ""
         if heuteAbend {
             let abend = EventKalender.tagesbeginn(tag ?? heute)
-            let wann = abend == heute ? String(localized: "Heute") : EventZeitFormatter.kurz(abend)
-            return String(localized: "\(wann) ab 17 Uhr") + zusatz
+            let wann = abend == heute ? LocalizedStringResource("Heute").inAppSprache : EventZeitFormatter.kurz(abend)
+            return LocalizedStringResource("\(wann) ab 17 Uhr").inAppSprache + zusatz
         }
         if let tag {
             return EventZeitFormatter(jetzt: jetzt).abschnittstitel(fuer: tag) + zusatz
         }
-        if let veranstalter { return String(localized: "Alles von \(veranstalter)") }
-        return String(localized: "Was in Ilmenau ansteht")
+        if let veranstalter { return LocalizedStringResource("Alles von \(veranstalter)").inAppSprache }
+        return LocalizedStringResource("Was in Ilmenau ansteht").inAppSprache
     }
 
     /// Welcher Leer-Zustand passt, wenn nichts gefunden wurde. „Gemerkt“ geht vor „Heute Abend“.
@@ -131,7 +131,7 @@ struct EventAbschnitt: Identifiable, Equatable {
 
     /// „1 Veranstaltung“, „3 Veranstaltungen“.
     var zaehler: String {
-        String(localized: "\(events.count) Veranstaltungen")
+        LocalizedStringResource("\(events.count) Veranstaltungen").inAppSprache
     }
 }
 

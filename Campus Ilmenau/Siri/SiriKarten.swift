@@ -182,7 +182,7 @@ private struct SiriOffenZeileView: View {
 
     /// Für VoiceOver: „Cafeteria Nanoteria, offen, bis 15:00, noch 25 Min.“
     private var sprechtext: String {
-        let zustand = zeile.offen ? String(localized: "offen", table: "Siri") : String(localized: "zu", table: "Siri")
+        let zustand = zeile.offen ? LocalizedStringResource("offen", table: "Siri").inAppSprache : LocalizedStringResource("zu", table: "Siri").inAppSprache
         return ([zeile.name, zustand, zeile.stat] + (zeile.chip.map { [$0] } ?? [])).joined(separator: ", ")
     }
 
@@ -346,9 +346,9 @@ private struct SiriAbendZeileView: View {
             }
             Spacer(minLength: 8)
             if zeile.abgesagt {
-                Chip(LocalizedStringKey(String(localized: "Fällt aus", table: "Siri")), variant: .dangerSoft)
+                Chip(LocalizedStringKey(LocalizedStringResource("Fällt aus", table: "Siri").inAppSprache), variant: .dangerSoft)
             } else if zeile.laeuft {
-                Chip(LocalizedStringKey(String(localized: "Läuft gerade", table: "Siri")), variant: .green)
+                Chip(LocalizedStringKey(LocalizedStringResource("Läuft gerade", table: "Siri").inAppSprache), variant: .green)
             }
         }
         .padding(.vertical, 9)

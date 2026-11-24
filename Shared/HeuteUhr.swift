@@ -18,7 +18,7 @@ nonisolated enum HeuteUhr {
     static func uhrzeit(minuten: Int) -> String {
         let beginn = Date(timeIntervalSinceReferenceDate: 0)
         let datum = beginn.addingTimeInterval(TimeInterval(minuten * 60))
-        let stil = Date.FormatStyle(locale: .current, calendar: Calendar(identifier: .gregorian), timeZone: .gmt)
+        let stil = Date.FormatStyle(locale: AppLanguage.current.locale, calendar: Calendar(identifier: .gregorian), timeZone: .gmt)
             .hour(.twoDigits(amPM: .abbreviated)).minute(.twoDigits)
         return datum.formatted(stil)
     }

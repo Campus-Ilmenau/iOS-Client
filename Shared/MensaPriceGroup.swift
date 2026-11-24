@@ -14,9 +14,9 @@ nonisolated enum MensaPriceGroup: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .studierende: String(localized: "Studierende", table: "Shared")
-        case .bedienstete: String(localized: "Bedienstete", table: "Shared")
-        case .gaeste: String(localized: "Gäste", table: "Shared")
+        case .studierende: LocalizedStringResource("Studierende", table: "Shared").inAppSprache
+        case .bedienstete: LocalizedStringResource("Bedienstete", table: "Shared").inAppSprache
+        case .gaeste: LocalizedStringResource("Gäste", table: "Shared").inAppSprache
         }
     }
 }

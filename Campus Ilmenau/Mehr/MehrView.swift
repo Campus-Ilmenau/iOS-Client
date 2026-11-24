@@ -122,11 +122,11 @@ struct MehrView: View {
             guard let mensa = mensaService.canteens.first(where: { venue.matches(canteenName: $0.name) }) else { continue }
             let heute = MensaOpeningHours.todayText(for: mensa.openingHours, now: .now)
             guard heute != "heute geschlossen" else {
-                ergebnis[venue] = String(localized: "Heute geschlossen")
+                ergebnis[venue] = LocalizedStringResource("Heute geschlossen").inAppSprache
                 continue
             }
             ergebnis[venue] = venue.hasMealtimes
-                ? heute + " · " + String(localized: "Abendessen ab \(HeuteUhr.uhrzeit(minuten: HeuteModel.abendessenBeginn))")
+                ? heute + " · " + LocalizedStringResource("Abendessen ab \(HeuteUhr.uhrzeit(minuten: HeuteModel.abendessenBeginn))").inAppSprache
                 : heute
         }
         return ergebnis
@@ -168,6 +168,7 @@ struct MehrScreen: View {
     let onAbmelden: () -> Void
 
     @AppStorage(AppDarstellung.schluessel) private var darstellung = AppDarstellung.system
+    private let sprache = AppSprache.gemeinsam
     @AppStorage(HeuteMensaSpeicher.schluessel, store: AppGroup.defaults) private var heuteMensa = MensaVenue.mensaEhrenberg
     @AppStorage(MensaPriceGroup.storageKey, store: AppGroup.defaults) private var preisgruppe = MensaPriceGroup.studierende
 
@@ -302,13 +303,35 @@ struct MehrScreen: View {
 
     private var allgemeinAbschnitt: some View {
         Section {
-            // Die Sprache stellt man in den Einstellungen des Systems ein, dort pro App
-            Button {
-                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            // Sprache: Automatisch folgt dem Gerät (Deutsch oder Englisch, sonst Deutsch); sonst gilt die Wahl, sofort.
+            Menu {
+                ForEach(SpracheWahl.allCases) { wahl in
+                    Button {
+                        sprache.waehle(wahl)
+                    } label: {
+                        if wahl == sprache.auswahl {
+                            Label { wahl.titel } icon: { Image(systemName: "checkmark") }
+                        } else {
+                            wahl.titel
+                        }
+                    }
+                }
             } label: {
-                zeile("Sprache", wert: sprachname, symbol: "arrow.up.forward")
+                HStack(spacing: 6) {
+                    Text("Sprache")
+                        .foregroundStyle(Color(.textPrimary))
+                    Spacer(minLength: 12)
+                    sprachwert.foregroundStyle(Color(.textSecondary))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color(.textTertiary))
+                        .accessibilityHidden(true)
+                }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
-            .accessibilityHint("Öffnet die Einstellungen")
+            .accessibilityLabel("Sprache")
+            .accessibilityValue(sprachwert)
 
             // App-Icon: Tippen öffnet ein Menü mit Automatisch, Hell und Dunkel; rechts steht das aktuelle Icon.
             if AlternativeAppIcons.istVerfuegbar {
@@ -414,11 +437,10 @@ struct MehrScreen: View {
 
     // MARK: - Werte
 
-    /// Bevorzugte Sprache des Geräts („Deutsch“). Solange die App nur deutsche Texte hat und keine Übersetzungen
-    /// eingetragen sind, sagt `Bundle.main.preferredLocalizations` nichts Brauchbares (Entwicklungssprache ist `en`).
-    private var sprachname: String {
-        let code = Locale.preferredLanguages.first.flatMap { Locale(identifier: $0).language.languageCode?.identifier } ?? "de"
-        return Locale.current.localizedString(forLanguageCode: code)?.localizedCapitalized ?? code
+    /// Rechts in der Zeile: „Automatisch · Deutsch“ oder der Name der gewählten Sprache.
+    private var sprachwert: Text {
+        let name = Text(verbatim: sprache.aktuell == .de ? "Deutsch" : "English")
+        return sprache.auswahl == .automatisch ? Text("Automatisch · \(name)") : name
     }
 
     private static var version: String {

@@ -24,9 +24,9 @@ enum ThoskaCardReaderError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .nfcNotAvailable:
-            return String(localized: "Dieses Gerät unterstützt kein NFC.")
+            return LocalizedStringResource("Dieses Gerät unterstützt kein NFC.").inAppSprache
         case .unsupportedCardType:
-            return String(localized: "Dieser Kartentyp wird nicht unterstützt.")
+            return LocalizedStringResource("Dieser Kartentyp wird nicht unterstützt.").inAppSprache
         }
     }
 }
@@ -65,7 +65,7 @@ final class ThoskaCardReader: NSObject, ObservableObject {
         isScanning = true
         activeSession = session
 
-        session.alertMessage = String(localized: "Halte deine Thoska an dein iPhone.")
+        session.alertMessage = LocalizedStringResource("Halte deine Thoska an dein iPhone.").inAppSprache
         session.begin()
     }
 }

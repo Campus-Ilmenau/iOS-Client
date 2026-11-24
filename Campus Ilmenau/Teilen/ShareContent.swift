@@ -28,7 +28,7 @@ struct ShareStrings {
 
     /// Sprache, in der die App gerade läuft (Deutsch oder Englisch).
     static var appLocale: Locale {
-        Locale(identifier: Bundle.main.preferredLocalizations.first ?? "de")
+        AppLanguage.current.locale
     }
 
     func callAsFunction(_ key: String, _ arguments: CVarArg...) -> String {

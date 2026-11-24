@@ -246,7 +246,7 @@ struct MensaPadScreen: View {
             withAnimation(.snappy(duration: 0.2)) { selectedDayIndex = index }
         } label: {
             VStack(spacing: 2) {
-                Text(isToday ? String(localized: "Heute") : MensaFormatting.weekdayShort(day))
+                Text(isToday ? LocalizedStringResource("Heute").inAppSprache : MensaFormatting.weekdayShort(day))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(isSelected ? Color(.onButtonPrimary) : (startsWeek ? Color(.textTertiary) : Color(.textPrimary)))
                 Text(day.formatted(.dateTime.day()))
@@ -261,7 +261,7 @@ struct MensaPadScreen: View {
         }
         .buttonStyle(.plain)
         .hoverEffect()
-        .accessibilityLabel((isToday ? String(localized: "Heute, ") : "") + MensaFormatting.spokenDay(day))
+        .accessibilityLabel((isToday ? LocalizedStringResource("Heute, ").inAppSprache : "") + MensaFormatting.spokenDay(day))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

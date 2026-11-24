@@ -72,7 +72,7 @@ nonisolated struct MensaWidgetAnzeige: Equatable, Sendable {
 
         /// „3 Gerichte ohne Filter“
         var ohneFilterText: String {
-            String(localized: "\(ohneFilterAnzahl) Gerichte ohne Filter", table: "Shared")
+            LocalizedStringResource("\(ohneFilterAnzahl) Gerichte ohne Filter", table: "Shared").inAppSprache
         }
     }
 }
@@ -191,7 +191,7 @@ nonisolated enum MensaWidgetPhasen {
         }
         guard let wert else { return "–" }
         let code = gericht.waehrung.count == 3 ? gericht.waehrung.uppercased() : "EUR"
-        return wert.formatted(.currency(code: code).locale(.current))
+        return wert.formatted(.currency(code: code).locale(AppLanguage.current.locale))
     }
 }
 
@@ -252,7 +252,7 @@ private nonisolated struct Rechner {
     }
 
     private static func ortKurz(_ venue: MensaVenue) -> String {
-        venue == .cafeteriaEhrenberg ? String(localized: "Cafeteria", table: "Shared") : venue == .mensaEhrenberg ? "Mensa" : venue.shortName
+        venue == .cafeteriaEhrenberg ? LocalizedStringResource("Cafeteria", table: "Shared").inAppSprache : venue == .mensaEhrenberg ? "Mensa" : venue.shortName
     }
 
     // MARK: Zeilen
@@ -332,26 +332,26 @@ private nonisolated struct Rechner {
         let kicker: String
         if let zeiten {
             kicker = minuten >= zeiten.oeffnet || phase == .mittag
-                ? String(localized: "Geöffnet bis \(uhrzeit(zeiten.schliesst))", table: "Shared")
-                : String(localized: "Heute ab \(uhrzeit(zeiten.oeffnet))", table: "Shared")
+                ? LocalizedStringResource("Geöffnet bis \(uhrzeit(zeiten.schliesst))", table: "Shared").inAppSprache
+                : LocalizedStringResource("Heute ab \(uhrzeit(zeiten.oeffnet))", table: "Shared").inAppSprache
         } else {
-            kicker = String(localized: "Heute", table: "Shared")
+            kicker = LocalizedStringResource("Heute", table: "Shared").inAppSprache
         }
 
         var termine: [Anzeige.Termin] = []
         if let zeiten, minuten < zeiten.oeffnet {
-            termine.append(.init(zeit: uhrzeit(zeiten.oeffnet), text: String(localized: "Öffnet · \(venue.shortName)", table: "Shared")))
+            termine.append(.init(zeit: uhrzeit(zeiten.oeffnet), text: LocalizedStringResource("Öffnet · \(venue.shortName)", table: "Shared").inAppSprache))
         }
-        termine.append(.init(zeit: uhrzeit(schliesst), text: String(localized: "Schließt · \(venue.shortName)", table: "Shared")))
+        termine.append(.init(zeit: uhrzeit(schliesst), text: LocalizedStringResource("Schließt · \(venue.shortName)", table: "Shared").inAppSprache))
         if let ort = abendessenOrt {
-            termine.append(.init(zeit: uhrzeit(P.abendessenBeginn), text: String(localized: "Abendessen · \(Self.kurz(ort))", table: "Shared")))
+            termine.append(.init(zeit: uhrzeit(P.abendessenBeginn), text: LocalizedStringResource("Abendessen · \(Self.kurz(ort))", table: "Shared").inAppSprache))
         }
 
         let gerichte = mittag(tag: heuteTag)
         let filterung = filterzustand(gerichte)
         return Anzeige(
             phase: phase, mensaID: venue.rawValue, kicker: kicker, titel: venue.displayName,
-            unterzeile: mitFilter(phase == .morgen ? String(localized: "Vorschau aufs Mittagsangebot", table: "Shared") : String(localized: "Mittagsangebot", table: "Shared"), filterung),
+            unterzeile: mitFilter(phase == .morgen ? LocalizedStringResource("Vorschau aufs Mittagsangebot", table: "Shared").inAppSprache : LocalizedStringResource("Mittagsangebot", table: "Shared").inAppSprache, filterung),
             zeilen: zeilen(gerichte, tag: heuteTag),
             termine: Array(termine.prefix(2)),
             planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag),
@@ -370,7 +370,7 @@ private nonisolated struct Rechner {
             let filterung = filterzustand(gerichte)
             return Anzeige(
                 phase: phase, mensaID: venue.rawValue, kicker: "Heute geschlossen", titel: venue.displayName,
-                unterzeile: mitFilter(String(localized: "Mittagsangebot", table: "Shared"), filterung), zeilen: zeilen(gerichte, tag: heuteTag),
+                unterzeile: mitFilter(LocalizedStringResource("Mittagsangebot", table: "Shared").inAppSprache, filterung), zeilen: zeilen(gerichte, tag: heuteTag),
                 termine: folgetagTermine(), planTag: P.plan(venue, tag: heuteTag, in: snapshot).map(\.tag), kopfLink: kopf,
                 filterung: filterung, gesamt: gesamt(gerichte)
             )
@@ -384,25 +384,25 @@ private nonisolated struct Rechner {
 
         switch (phase, eigene) {
         case (.nachmittag, true):
-            kicker = String(localized: "Abendessen ab \(beginn)", table: "Shared")
+            kicker = LocalizedStringResource("Abendessen ab \(beginn)", table: "Shared").inAppSprache
             titel = Self.haus(ort)
-            unterzeile = String(localized: "Abendangebot in der \(Self.ortKurz(ort))", table: "Shared")
-            termine = [.init(zeit: beginn, text: String(localized: "Abendessen öffnet", table: "Shared")), .init(zeit: ende, text: String(localized: "Schließt", table: "Shared"))]
+            unterzeile = LocalizedStringResource("Abendangebot in der \(Self.ortKurz(ort))", table: "Shared").inAppSprache
+            termine = [.init(zeit: beginn, text: LocalizedStringResource("Abendessen öffnet", table: "Shared").inAppSprache), .init(zeit: ende, text: LocalizedStringResource("Schließt", table: "Shared").inAppSprache)]
         case (.nachmittag, false):
-            kicker = String(localized: "\(venue.shortName) hat geschlossen", table: "Shared")
-            titel = String(localized: "Abendessen \(Self.kurz(ort))", table: "Shared")
-            unterzeile = String(localized: "Tipp · ab \(beginn) in der \(Self.ortKurz(ort))", table: "Shared")
-            termine = [.init(zeit: beginn, text: String(localized: "Abendessen · \(Self.kurz(ort))", table: "Shared"))] + liste(mittagFolgetag())
+            kicker = LocalizedStringResource("\(venue.shortName) hat geschlossen", table: "Shared").inAppSprache
+            titel = LocalizedStringResource("Abendessen \(Self.kurz(ort))", table: "Shared").inAppSprache
+            unterzeile = LocalizedStringResource("Tipp · ab \(beginn) in der \(Self.ortKurz(ort))", table: "Shared").inAppSprache
+            termine = [.init(zeit: beginn, text: LocalizedStringResource("Abendessen · \(Self.kurz(ort))", table: "Shared").inAppSprache)] + liste(mittagFolgetag())
         case (_, true):
-            kicker = String(localized: "Geöffnet bis \(ende)", table: "Shared")
+            kicker = LocalizedStringResource("Geöffnet bis \(ende)", table: "Shared").inAppSprache
             titel = Self.haus(ort)
-            unterzeile = String(localized: "Abendessen in der \(Self.ortKurz(ort))", table: "Shared")
-            termine = [.init(zeit: ende, text: String(localized: "Schließt", table: "Shared"))] + liste(folgetagMittagKurz())
+            unterzeile = LocalizedStringResource("Abendessen in der \(Self.ortKurz(ort))", table: "Shared").inAppSprache
+            termine = [.init(zeit: ende, text: LocalizedStringResource("Schließt", table: "Shared").inAppSprache)] + liste(folgetagMittagKurz())
         default:
-            kicker = String(localized: "\(venue.shortName) hat geschlossen", table: "Shared")
-            titel = String(localized: "Abendessen \(Self.kurz(ort))", table: "Shared")
-            unterzeile = String(localized: "Tipp · jetzt geöffnet bis \(ende)", table: "Shared")
-            termine = [.init(zeit: ende, text: String(localized: "Abendessen schließt", table: "Shared"))] + liste(mittagFolgetag())
+            kicker = LocalizedStringResource("\(venue.shortName) hat geschlossen", table: "Shared").inAppSprache
+            titel = LocalizedStringResource("Abendessen \(Self.kurz(ort))", table: "Shared").inAppSprache
+            unterzeile = LocalizedStringResource("Tipp · jetzt geöffnet bis \(ende)", table: "Shared").inAppSprache
+            termine = [.init(zeit: ende, text: LocalizedStringResource("Abendessen schließt", table: "Shared").inAppSprache)] + liste(mittagFolgetag())
         }
 
         let filterung = filterzustand(gerichte)
@@ -429,18 +429,18 @@ private nonisolated struct Rechner {
 
         let kicker: String, unterzeile: String
         if phase == .geschlossen {
-            kicker = String(localized: "Heute geschlossen", table: "Shared")
-            unterzeile = oeffnet.map { String(localized: "\(wochentag) ab \($0)", table: "Shared") } ?? wochentag
+            kicker = LocalizedStringResource("Heute geschlossen", table: "Shared").inAppSprache
+            unterzeile = oeffnet.map { LocalizedStringResource("\(wochentag) ab \($0)", table: "Shared").inAppSprache } ?? wochentag
         } else {
-            kicker = (morgen ? String(localized: "Mittag morgen", table: "Shared") : String(localized: "Mittag \(wochentag)", table: "Shared")) + ab
+            kicker = (morgen ? LocalizedStringResource("Mittag morgen", table: "Shared").inAppSprache : LocalizedStringResource("Mittag \(wochentag)", table: "Shared").inAppSprache) + ab
             unterzeile = EventKalender.lokal(datum) { $0.weekday(.wide).day().month(.wide) }
         }
 
         let kurzTag = HeuteUhr.wochentagKurz(datum)
         var termine: [Anzeige.Termin] = []
-        if let oeffnet { termine.append(.init(zeit: kurzTag, text: String(localized: "Öffnet \(oeffnet) · \(venue.shortName)", table: "Shared"))) }
+        if let oeffnet { termine.append(.init(zeit: kurzTag, text: LocalizedStringResource("Öffnet \(oeffnet) · \(venue.shortName)", table: "Shared").inAppSprache)) }
         if let ort = abendessenOrtAm(tag) {
-            termine.append(.init(zeit: kurzTag, text: String(localized: "Abendessen \(uhrzeit(P.abendessenBeginn)) · \(Self.kurz(ort))", table: "Shared")))
+            termine.append(.init(zeit: kurzTag, text: LocalizedStringResource("Abendessen \(uhrzeit(P.abendessenBeginn)) · \(Self.kurz(ort))", table: "Shared").inAppSprache))
         }
 
         let plan = P.plan(venue, tag: tag, in: snapshot)
@@ -465,15 +465,15 @@ private nonisolated struct Rechner {
     /// „Fr · Mittag · Nanoteria ab 8:00“
     private func mittagFolgetag() -> Anzeige.Termin? {
         let (_, datum) = naechsterTag
-        let ab = oeffnetAm(datum).map { String(localized: " ab \(uhrzeit($0))", table: "Shared") } ?? ""
-        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: String(localized: "Mittag · \(venue.shortName)\(ab)", table: "Shared"))
+        let ab = oeffnetAm(datum).map { LocalizedStringResource(" ab \(uhrzeit($0))", table: "Shared").inAppSprache } ?? ""
+        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: LocalizedStringResource("Mittag · \(venue.shortName)\(ab)", table: "Shared").inAppSprache)
     }
 
     /// „Fr · Mittag ab 11:00“
     private func folgetagMittagKurz() -> Anzeige.Termin? {
         let (_, datum) = naechsterTag
-        let ab = oeffnetAm(datum).map { String(localized: " ab \(uhrzeit($0))", table: "Shared") } ?? ""
-        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: String(localized: "Mittag\(ab)", table: "Shared"))
+        let ab = oeffnetAm(datum).map { LocalizedStringResource(" ab \(uhrzeit($0))", table: "Shared").inAppSprache } ?? ""
+        return .init(zeit: HeuteUhr.wochentagKurz(datum), text: LocalizedStringResource("Mittag\(ab)", table: "Shared").inAppSprache)
     }
 
     private func folgetagTermine() -> [Anzeige.Termin] {

@@ -299,7 +299,7 @@ struct BibliothekView: View {
             get: { showCatalog && wurzel != .katalog },
             set: { showCatalog = $0 }
         )) {
-            katalogOberflaeche(zurueckTitel: String(localized: "Bibliothek"))
+            katalogOberflaeche(zurueckTitel: LocalizedStringResource("Bibliothek").inAppSprache)
         }
         .sheet(isPresented: $showNotificationsSheet) {
             PAIANotificationsView(service: service)

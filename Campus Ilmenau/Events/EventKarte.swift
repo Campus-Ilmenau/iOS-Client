@@ -110,12 +110,12 @@ struct EventKarte: View {
         var teile = [event.titel, formatter.zeitzeile(event, bezugstag: bezugstag)]
         if let ortZeile { teile.append(ortZeile) }
         switch event.status {
-        case .abgesagt: teile.append(String(localized: "fällt aus"))
-        case .unbestaetigt: teile.append(String(localized: "noch nicht bestätigt"))
+        case .abgesagt: teile.append(LocalizedStringResource("fällt aus").inAppSprache)
+        case .unbestaetigt: teile.append(LocalizedStringResource("noch nicht bestätigt").inAppSprache)
         case .findetStatt: break
         }
-        if event.istFrist { teile.append(String(localized: "Frist")) }
-        if gemerkt { teile.append(String(localized: "gemerkt")) }
+        if event.istFrist { teile.append(LocalizedStringResource("Frist").inAppSprache) }
+        if gemerkt { teile.append(LocalizedStringResource("gemerkt").inAppSprache) }
         return teile.joined(separator: ", ")
     }
 

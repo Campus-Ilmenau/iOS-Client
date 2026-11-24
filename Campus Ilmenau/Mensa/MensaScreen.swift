@@ -207,7 +207,7 @@ struct MensaScreen: View {
                 )
             }
         )
-        .accessibilityLabel(venue.displayName + (count.map { $0 == 0 ? String(localized: ", keins passend") : String(localized: ", \($0) passend") } ?? ""))
+        .accessibilityLabel(venue.displayName + (count.map { $0 == 0 ? LocalizedStringResource(", keins passend").inAppSprache : LocalizedStringResource(", \($0) passend").inAppSprache } ?? ""))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
@@ -253,7 +253,7 @@ struct MensaScreen: View {
             withAnimation(.snappy(duration: 0.2)) { selectedDayIndex = index }
         } label: {
             VStack(spacing: 2) {
-                Text(isToday ? String(localized: "Heute") : MensaFormatting.weekdayShort(day))
+                Text(isToday ? LocalizedStringResource("Heute").inAppSprache : MensaFormatting.weekdayShort(day))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(isSelected ? Color(.onButtonPrimary) : (startsWeek ? Color(.textTertiary) : Color(.textPrimary)))
                 Text(day.formatted(.dateTime.day()))
@@ -268,7 +268,7 @@ struct MensaScreen: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel((isToday ? String(localized: "Heute, ") : "") + MensaFormatting.spokenDay(day))
+        .accessibilityLabel((isToday ? LocalizedStringResource("Heute, ").inAppSprache : "") + MensaFormatting.spokenDay(day))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

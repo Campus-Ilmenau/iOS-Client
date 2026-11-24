@@ -27,9 +27,9 @@ struct MensaComponentInfo: Identifiable {
     /// „Allergene: Sellerie · Zusatzstoffe: Antioxidationsmittel“ oder „Keine weiteren Angaben“.
     var infoText: String {
         var parts: [String] = []
-        if !allergens.isEmpty { parts.append(String(localized: "Allergene: \(allergens.joined(separator: ", "))")) }
-        if !additives.isEmpty { parts.append(String(localized: "Zusatzstoffe: \(additives.joined(separator: ", "))")) }
-        return parts.isEmpty ? String(localized: "Keine weiteren Angaben") : parts.joined(separator: " · ")
+        if !allergens.isEmpty { parts.append(LocalizedStringResource("Allergene: \(allergens.joined(separator: ", "))").inAppSprache) }
+        if !additives.isEmpty { parts.append(LocalizedStringResource("Zusatzstoffe: \(additives.joined(separator: ", "))").inAppSprache) }
+        return parts.isEmpty ? LocalizedStringResource("Keine weiteren Angaben").inAppSprache : parts.joined(separator: " · ")
     }
 }
 

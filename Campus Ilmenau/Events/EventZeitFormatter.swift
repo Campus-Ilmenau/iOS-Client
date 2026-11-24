@@ -17,18 +17,18 @@ struct EventZeitFormatter {
         if event.istMehrtaegig {
             let bis = Self.kurz(event.letzterTag)
             if event.ersterTag < tag {
-                return String(localized: "Läuft seit \(Self.kurz(event.ersterTag)) · bis \(bis)")
+                return LocalizedStringResource("Läuft seit \(Self.kurz(event.ersterTag)) · bis \(bis)").inAppSprache
             }
             if event.ganztaegig {
                 return "\(Self.kurz(event.ersterTag)) – \(bis)"
             }
-            return String(localized: "Ab \(Self.uhrzeit(event.beginn)) Uhr · bis \(bis)")
+            return LocalizedStringResource("Ab \(Self.uhrzeit(event.beginn)) Uhr · bis \(bis)").inAppSprache
         }
-        if event.ganztaegig { return String(localized: "Ganztägig") }
+        if event.ganztaegig { return LocalizedStringResource("Ganztägig").inAppSprache }
         if let ende = event.ende, ende > event.beginn {
-            return String(localized: "\(Self.uhrzeit(event.beginn))–\(Self.uhrzeit(ende)) Uhr")
+            return LocalizedStringResource("\(Self.uhrzeit(event.beginn))–\(Self.uhrzeit(ende)) Uhr").inAppSprache
         }
-        return String(localized: "Ab \(Self.uhrzeit(event.beginn)) Uhr")
+        return LocalizedStringResource("Ab \(Self.uhrzeit(event.beginn)) Uhr").inAppSprache
     }
 
     /// Titel eines Tagesabschnitts: „Heute · Donnerstag“, „Morgen · Freitag“, sonst „Sonntag, 1. Nov.“.
@@ -36,8 +36,8 @@ struct EventZeitFormatter {
         let tagesbeginn = EventKalender.tagesbeginn(tag)
         let heute = EventKalender.tagesbeginn(jetzt)
         let wochentag = Self.wochentag(tagesbeginn)
-        if tagesbeginn == heute { return String(localized: "Heute · \(wochentag)") }
-        if tagesbeginn == EventKalender.tag(heute, plus: 1) { return String(localized: "Morgen · \(wochentag)") }
+        if tagesbeginn == heute { return LocalizedStringResource("Heute · \(wochentag)").inAppSprache }
+        if tagesbeginn == EventKalender.tag(heute, plus: 1) { return LocalizedStringResource("Morgen · \(wochentag)").inAppSprache }
         return "\(wochentag), \(Self.tagMonat(tagesbeginn))"
     }
 
@@ -46,7 +46,7 @@ struct EventZeitFormatter {
         let tagesbeginn = EventKalender.tagesbeginn(tag)
         let gestern = EventKalender.tag(EventKalender.tagesbeginn(jetzt), plus: -1)
         guard tagesbeginn == gestern else { return abschnittstitel(fuer: tagesbeginn) }
-        return String(localized: "Gestern · \(Self.wochentag(tagesbeginn))")
+        return LocalizedStringResource("Gestern · \(Self.wochentag(tagesbeginn))").inAppSprache
     }
 
     // MARK: - Detail
@@ -57,21 +57,21 @@ struct EventZeitFormatter {
         if event.istMehrtaegig {
             let datum = "\(Self.kurz(event.ersterTag)) – \(Self.kurz(event.letzterTag))"
             if event.ganztaegig {
-                return (datum, läuftGerade(event) ? String(localized: "Ganztägig · läuft gerade") : String(localized: "Ganztägig"))
+                return (datum, läuftGerade(event) ? LocalizedStringResource("Ganztägig · läuft gerade").inAppSprache : LocalizedStringResource("Ganztägig").inAppSprache)
             }
-            let beginn = String(localized: "Ab \(Self.uhrzeit(event.beginn)) Uhr")
+            let beginn = LocalizedStringResource("Ab \(Self.uhrzeit(event.beginn)) Uhr").inAppSprache
             if let ende = event.ende, ende > event.beginn {
-                return (datum, String(localized: "\(beginn) · bis \(Self.uhrzeit(ende)) Uhr"))
+                return (datum, LocalizedStringResource("\(beginn) · bis \(Self.uhrzeit(ende)) Uhr").inAppSprache)
             }
             return (datum, beginn)
         }
 
         let datum = EventKalender.lokal(event.beginn) { $0.weekday(.wide).day().month(.wide) }
-        if event.ganztaegig { return (datum, String(localized: "Ganztägig")) }
+        if event.ganztaegig { return (datum, LocalizedStringResource("Ganztägig").inAppSprache) }
         if let ende = event.ende, ende > event.beginn {
-            return (datum, String(localized: "\(Self.uhrzeit(event.beginn)) – \(Self.uhrzeit(ende)) Uhr"))
+            return (datum, LocalizedStringResource("\(Self.uhrzeit(event.beginn)) – \(Self.uhrzeit(ende)) Uhr").inAppSprache)
         }
-        return (datum, String(localized: "Ab \(Self.uhrzeit(event.beginn)) Uhr"))
+        return (datum, LocalizedStringResource("Ab \(Self.uhrzeit(event.beginn)) Uhr").inAppSprache)
     }
 
     private func läuftGerade(_ event: CampusEvent) -> Bool {

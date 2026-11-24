@@ -44,7 +44,7 @@ struct PadRootView: View {
                     // Eintrag der Seitenleiste: ohne Zurück. Bei geschlossener Seitenleiste führt „‹ Heute“ zurück.
                     NavigationStack {
                         MehrView(
-                            zurueckTitel: router.seitenleisteSichtbar ? nil : String(localized: "Heute"),
+                            zurueckTitel: router.seitenleisteSichtbar ? nil : LocalizedStringResource("Heute").inAppSprache,
                             onZurueck: { router.waehle(.heute) }
                         )
                     }

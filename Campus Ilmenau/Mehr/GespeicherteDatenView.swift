@@ -137,7 +137,7 @@ struct GespeicherteDatenView: View {
             zeile("Preisgruppe", wert: Text(preisgruppe.title))
             zeile(
                 "Mensa-Filter",
-                wert: Text(mensaFilter.isActive ? filterText : String(localized: "Aus"))
+                wert: Text(mensaFilter.isActive ? filterText : LocalizedStringResource("Aus").inAppSprache)
             )
             zeile("Ausgeblendete Hinweise", wert: Text("\(ausgeblendeteHinweise)"))
         } header: {
@@ -198,7 +198,7 @@ struct GespeicherteDatenView: View {
     }
 
     private var filterText: String {
-        mensaFilter.activeDescription.isEmpty ? String(localized: "Aus") : mensaFilter.activeDescription
+        mensaFilter.activeDescription.isEmpty ? LocalizedStringResource("Aus").inAppSprache : mensaFilter.activeDescription
     }
 
     private func lesen() {

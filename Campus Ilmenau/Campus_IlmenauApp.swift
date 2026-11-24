@@ -11,7 +11,11 @@ import WidgetKit
 
 @main
 struct Campus_IlmenauApp: App {
+    private let sprache = AppSprache.gemeinsam
+
     init() {
+        // Texte in der gewählten Sprache (Mehr → Sprache), auch wenn sie vom Gerät abweicht.
+        AppLanguage.installieren()
         // „Mensa auf der Startseite“ und Preisgruppe liegen in der App Group. Bisherige Werte kommen einmalig mit.
         AppGroup.uebernimmEinstellungenEinmalig()
         // Intents (Steuerelemente) erreichen die Navigation über denselben Router wie die Deeplinks.
@@ -49,6 +53,8 @@ struct Campus_IlmenauApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                // Datum, Zeit und Zahlen in der Sprache der App, in den Schreibweisen Deutschlands.
+                .environment(\.locale, sprache.aktuell.locale)
         }
         .modelContainer(for: [ThoskaBalanceRecord.self, ThoskaCardName.self])
         .commands {

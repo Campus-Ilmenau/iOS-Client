@@ -360,21 +360,21 @@ enum PAIAError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return String(localized: "Ungültige PAIA-Server-URL")
+            return LocalizedStringResource("Ungültige PAIA-Server-URL").inAppSprache
         case .invalidResponse:
-            return String(localized: "Ungültige Server-Antwort")
+            return LocalizedStringResource("Ungültige Server-Antwort").inAppSprache
         case .httpError(let statusCode):
-            return String(localized: "HTTP-Fehler: \(statusCode)")
+            return LocalizedStringResource("HTTP-Fehler: \(statusCode)").inAppSprache
         case .authenticationFailed(let message):
             return message
         case .notAuthenticated:
-            return String(localized: "Nicht angemeldet")
+            return LocalizedStringResource("Nicht angemeldet").inAppSprache
         case .sessionExpired:
-            return String(localized: "Sitzung abgelaufen, bitte erneut anmelden")
+            return LocalizedStringResource("Sitzung abgelaufen, bitte erneut anmelden").inAppSprache
         case .renewalFailed(let message):
-            return String(localized: "Verlängerung fehlgeschlagen: \(message)")
+            return LocalizedStringResource("Verlängerung fehlgeschlagen: \(message)").inAppSprache
         case .missingItemIdentifier:
-            return String(localized: "Dieses Medium kann nicht verlängert werden")
+            return LocalizedStringResource("Dieses Medium kann nicht verlängert werden").inAppSprache
         }
     }
 }

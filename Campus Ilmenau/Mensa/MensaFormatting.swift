@@ -2,13 +2,13 @@ import Foundation
 
 enum MensaFormatting {
     /// Datum und Wochentage folgen der App-Sprache.
-    private static var locale: Locale { .current }
+    private static var locale: Locale { AppLanguage.current.locale }
 
     /// „Heute“, „Morgen“, sonst „Do., 29. Okt.“ (englisch „Thu, Oct 29“)
     static func dayLabel(_ day: Date, now: Date = .now, calendar: Calendar = .current) -> String {
-        if calendar.isDate(day, inSameDayAs: now) { return String(localized: "Heute") }
+        if calendar.isDate(day, inSameDayAs: now) { return LocalizedStringResource("Heute").inAppSprache }
         if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now), calendar.isDate(day, inSameDayAs: tomorrow) {
-            return String(localized: "Morgen")
+            return LocalizedStringResource("Morgen").inAppSprache
         }
         return day.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).locale(locale))
     }

@@ -47,7 +47,7 @@ extension PAIANotification {
 
     /// Datum wie im Mockup: „28.10.2026“.
     var dateText: String {
-        date.formatted(.dateTime.day(.twoDigits).month(.twoDigits).year().locale(.current))
+        date.formatted(.dateTime.day(.twoDigits).month(.twoDigits).year().locale(AppLanguage.current.locale))
     }
 }
 

@@ -19,32 +19,32 @@ nonisolated enum MensaAllergen {
     /// Anzeigename in der App-Sprache. Unbekannte Kürzel zeigen sich selbst.
     static func displayName(code: String) -> String {
         switch code {
-        case "Wz": String(localized: "Weizen", table: "Shared")
-        case "Ro": String(localized: "Roggen", table: "Shared")
-        case "Gs": String(localized: "Gerste", table: "Shared")
-        case "Hf": String(localized: "Hafer", table: "Shared")
-        case "Di": String(localized: "Dinkel", table: "Shared")
-        case "Ka": String(localized: "Kamut", table: "Shared")
-        case "Kr": String(localized: "Krebstiere", table: "Shared")
-        case "Ei": String(localized: "Hühnerei", table: "Shared")
-        case "Fi": String(localized: "Fisch", table: "Shared")
-        case "Er": String(localized: "Erdnüsse", table: "Shared")
-        case "So": String(localized: "Soja", table: "Shared")
-        case "Mi": String(localized: "Milch und Milchzucker", table: "Shared")
-        case "Ma": String(localized: "Mandeln", table: "Shared")
-        case "Ha": String(localized: "Haselnüsse", table: "Shared")
-        case "Wa": String(localized: "Walnüsse", table: "Shared")
-        case "Ca": String(localized: "Cashewnüsse", table: "Shared")
-        case "Pe": String(localized: "Pekannüsse", table: "Shared")
-        case "Pa": String(localized: "Paranüsse", table: "Shared")
-        case "Pi": String(localized: "Pistazien", table: "Shared")
-        case "Mc": String(localized: "Macadamianüsse", table: "Shared")
-        case "Sel": String(localized: "Sellerie", table: "Shared")
-        case "Sen": String(localized: "Senf", table: "Shared")
-        case "Ses": String(localized: "Sesam", table: "Shared")
-        case "Su": String(localized: "Schwefeloxid/Sulfite", table: "Shared")
-        case "Lu": String(localized: "Lupine", table: "Shared")
-        case "We": String(localized: "Weichtiere", table: "Shared")
+        case "Wz": LocalizedStringResource("Weizen", table: "Shared").inAppSprache
+        case "Ro": LocalizedStringResource("Roggen", table: "Shared").inAppSprache
+        case "Gs": LocalizedStringResource("Gerste", table: "Shared").inAppSprache
+        case "Hf": LocalizedStringResource("Hafer", table: "Shared").inAppSprache
+        case "Di": LocalizedStringResource("Dinkel", table: "Shared").inAppSprache
+        case "Ka": LocalizedStringResource("Kamut", table: "Shared").inAppSprache
+        case "Kr": LocalizedStringResource("Krebstiere", table: "Shared").inAppSprache
+        case "Ei": LocalizedStringResource("Hühnerei", table: "Shared").inAppSprache
+        case "Fi": LocalizedStringResource("Fisch", table: "Shared").inAppSprache
+        case "Er": LocalizedStringResource("Erdnüsse", table: "Shared").inAppSprache
+        case "So": LocalizedStringResource("Soja", table: "Shared").inAppSprache
+        case "Mi": LocalizedStringResource("Milch und Milchzucker", table: "Shared").inAppSprache
+        case "Ma": LocalizedStringResource("Mandeln", table: "Shared").inAppSprache
+        case "Ha": LocalizedStringResource("Haselnüsse", table: "Shared").inAppSprache
+        case "Wa": LocalizedStringResource("Walnüsse", table: "Shared").inAppSprache
+        case "Ca": LocalizedStringResource("Cashewnüsse", table: "Shared").inAppSprache
+        case "Pe": LocalizedStringResource("Pekannüsse", table: "Shared").inAppSprache
+        case "Pa": LocalizedStringResource("Paranüsse", table: "Shared").inAppSprache
+        case "Pi": LocalizedStringResource("Pistazien", table: "Shared").inAppSprache
+        case "Mc": LocalizedStringResource("Macadamianüsse", table: "Shared").inAppSprache
+        case "Sel": LocalizedStringResource("Sellerie", table: "Shared").inAppSprache
+        case "Sen": LocalizedStringResource("Senf", table: "Shared").inAppSprache
+        case "Ses": LocalizedStringResource("Sesam", table: "Shared").inAppSprache
+        case "Su": LocalizedStringResource("Schwefeloxid/Sulfite", table: "Shared").inAppSprache
+        case "Lu": LocalizedStringResource("Lupine", table: "Shared").inAppSprache
+        case "We": LocalizedStringResource("Weichtiere", table: "Shared").inAppSprache
         default: code
         }
     }

@@ -54,8 +54,8 @@ struct UhrMensaAnzeige: Equatable {
     var titel: String { mensa.shortName }
     var fussnote: String {
         aufDerUhrGewaehlt
-            ? String(localized: "\(mensa.shortName) nur auf der Uhr gewählt, bis Mitternacht. Danach wieder die Mensa vom iPhone.", table: "Shared")
-            : String(localized: "Preise für \(preisgruppe.title). Mensa, Preisgruppe und Filter kommen vom iPhone.", table: "Shared")
+            ? LocalizedStringResource("\(mensa.shortName) nur auf der Uhr gewählt, bis Mitternacht. Danach wieder die Mensa vom iPhone.", table: "Shared").inAppSprache
+            : LocalizedStringResource("Preise für \(preisgruppe.title). Mensa, Preisgruppe und Filter kommen vom iPhone.", table: "Shared").inAppSprache
     }
 
     /// - Parameters:
@@ -82,8 +82,8 @@ struct UhrMensaAnzeige: Equatable {
             var text = SiriMensa.keineDaten
             if case .antwort(let a) = siri { text = a.sagt }
             anzeige.zustand = .hinweis(text)
-            anzeige.kicker = String(localized: "Heute", table: "Shared")
-            anzeige.startzeile = String(localized: "\(mensa.shortName) · Heute", table: "Shared")
+            anzeige.kicker = LocalizedStringResource("Heute", table: "Shared").inAppSprache
+            anzeige.startzeile = LocalizedStringResource("\(mensa.shortName) · Heute", table: "Shared").inAppSprache
             return anzeige
         }
 
@@ -96,10 +96,10 @@ struct UhrMensaAnzeige: Equatable {
         anzeige.mensa = gezeigt
         anzeige.hinweis = offeneAndere(snapshot: snapshot, gewaehlt: mensa, jetzt: jetzt)
         anzeige.kicker = kicker
-        let wortOffen = String(localized: "Geöffnet", table: "Shared")
-        let wortAbend = String(localized: "Abendessen", table: "Shared")
-        let wortBis = String(localized: "bis", table: "Shared")
-        let wortHeute = String(localized: "Heute", table: "Shared")
+        let wortOffen = LocalizedStringResource("Geöffnet", table: "Shared").inAppSprache
+        let wortAbend = LocalizedStringResource("Abendessen", table: "Shared").inAppSprache
+        let wortBis = LocalizedStringResource("bis", table: "Shared").inAppSprache
+        let wortHeute = LocalizedStringResource("Heute", table: "Shared").inAppSprache
         anzeige.offen = kicker.hasPrefix(wortOffen) || (kicker.hasPrefix(wortAbend) && kicker.contains(wortBis))
         anzeige.filterzeile = filter.map(\.activeDescription)
         anzeige.gerichte = gerichte
@@ -107,15 +107,15 @@ struct UhrMensaAnzeige: Equatable {
         // Ist eine andere Mensa noch offen, obwohl Ehrenberg schon zu hat, sagt es die Zeile unter dem Namen.
         if kicker.hasPrefix("\(wortOffen) \(wortBis)"), gezeigt != .mensaEhrenberg, gezeigt != .cafeteriaEhrenberg,
            let ehrenberg = P.zeiten(.mensaEhrenberg, am: jetzt, in: snapshot), HeuteUhr.minuten(jetzt) >= ehrenberg.schliesst {
-            anzeige.notiz = String(localized: "Ehrenberg hat seit \(HeuteUhr.uhrzeit(minuten: ehrenberg.schliesst)) zu", table: "Shared")
+            anzeige.notiz = LocalizedStringResource("Ehrenberg hat seit \(HeuteUhr.uhrzeit(minuten: ehrenberg.schliesst)) zu", table: "Shared").inAppSprache
         }
 
         if gerichte.isEmpty {
-            if filter != nil, karte.fuss.contains(String(localized: "ohne Filter", table: "Shared")) {
-                anzeige.leerText = String(localized: "Nichts passt zu deinem Filter.", table: "Shared")
+            if filter != nil, karte.fuss.contains(LocalizedStringResource("ohne Filter", table: "Shared").inAppSprache) {
+                anzeige.leerText = LocalizedStringResource("Nichts passt zu deinem Filter.", table: "Shared").inAppSprache
                 anzeige.leerFuss = karte.fuss
             } else {
-                anzeige.leerText = String(localized: "Keine Gerichte eingetragen.", table: "Shared")
+                anzeige.leerText = LocalizedStringResource("Keine Gerichte eingetragen.", table: "Shared").inAppSprache
             }
         }
 
@@ -142,7 +142,7 @@ extension UhrMensaAnzeige {
         for venue in MensaVenue.allCases where venue != gewaehlt {
             guard let zeiten = P.zeiten(venue, am: jetzt, in: snapshot), minuten >= zeiten.oeffnet, minuten < zeiten.schliesst,
                   P.plan(venue, tag: heute, in: snapshot)?.gerichte.contains(where: { !$0.abendessen }) == true else { continue }
-            return Hinweis(mensa: venue, text: String(localized: "\(venue.shortName) hat noch bis \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst)) offen", table: "Shared"))
+            return Hinweis(mensa: venue, text: LocalizedStringResource("\(venue.shortName) hat noch bis \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst)) offen", table: "Shared").inAppSprache)
         }
         return nil
     }
@@ -162,15 +162,15 @@ struct UhrMensaStatus: Identifiable, Equatable {
         let minuten = HeuteUhr.minuten(jetzt)
         return MensaVenue.allCases.map { mensa in
             guard let zeiten = MensaWidgetPhasen.zeiten(mensa, am: jetzt, in: snapshot) else {
-                return UhrMensaStatus(mensa: mensa, status: String(localized: "Heute geschlossen", table: "Shared"), offen: false)
+                return UhrMensaStatus(mensa: mensa, status: LocalizedStringResource("Heute geschlossen", table: "Shared").inAppSprache, offen: false)
             }
             if minuten < zeiten.oeffnet {
-                return UhrMensaStatus(mensa: mensa, status: String(localized: "Öffnet um \(HeuteUhr.uhrzeit(minuten: zeiten.oeffnet))", table: "Shared"), offen: false)
+                return UhrMensaStatus(mensa: mensa, status: LocalizedStringResource("Öffnet um \(HeuteUhr.uhrzeit(minuten: zeiten.oeffnet))", table: "Shared").inAppSprache, offen: false)
             }
             if minuten < zeiten.schliesst {
-                return UhrMensaStatus(mensa: mensa, status: String(localized: "Geöffnet bis \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst))", table: "Shared"), offen: true)
+                return UhrMensaStatus(mensa: mensa, status: LocalizedStringResource("Geöffnet bis \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst))", table: "Shared").inAppSprache, offen: true)
             }
-            return UhrMensaStatus(mensa: mensa, status: String(localized: "Geschlossen", table: "Shared"), offen: false)
+            return UhrMensaStatus(mensa: mensa, status: LocalizedStringResource("Geschlossen", table: "Shared").inAppSprache, offen: false)
         }
     }
 }

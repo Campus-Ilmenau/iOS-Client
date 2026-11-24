@@ -138,10 +138,10 @@ nonisolated struct AbendWidgetAnzeige: Equatable, Sendable {
         let fuss: String
         if weitere > 0 {
             fuss = zeigtMorgen
-                ? String(localized: "+\(weitere) weitere morgen", table: "Shared")
-                : String(localized: "+\(weitere) weitere heute", table: "Shared")
+                ? LocalizedStringResource("+\(weitere) weitere morgen", table: "Shared").inAppSprache
+                : LocalizedStringResource("+\(weitere) weitere heute", table: "Shared").inAppSprache
         } else {
-            fuss = woche.map { String(localized: "Diese Woche: \($0) Veranstaltungen", table: "Shared") } ?? ""
+            fuss = woche.map { LocalizedStringResource("Diese Woche: \($0) Veranstaltungen", table: "Shared").inAppSprache } ?? ""
         }
         return Gross(zeilen: heute, morgenZeilen: morgen, fuss: fuss)
     }
@@ -231,7 +231,7 @@ private nonisolated struct Rechner {
         let live = laeuft(event)
         var ort = ort(event)
         if live, event.ende != nil {
-            ort = ort.isEmpty ? String(localized: "bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared") : String(localized: "\(ort) · bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared")
+            ort = ort.isEmpty ? LocalizedStringResource("bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared").inAppSprache : LocalizedStringResource("\(ort) · bis \(HeuteUhr.uhrzeit(AbendBezug.ende(event)))", table: "Shared").inAppSprache
         }
         return Anzeige.Zeile(
             id: event.id, zeit: HeuteUhr.uhrzeit(event.beginn), titel: event.titel, ort: ort,
@@ -260,23 +260,23 @@ private nonisolated struct Rechner {
         let leer = heuteOffen.isEmpty && (heuteAlle.isEmpty || morgenAlle.isEmpty)
         let hauptEvents = zeigtMorgen ? morgenAlle : heuteOffen
 
-        let morgenText = morgenErstes.map { String(localized: "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") }
+        let morgenText = morgenErstes.map { LocalizedStringResource("Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared").inAppSprache }
         let leerHinweis = morgenErstes.map { event -> String in
             let wo = event.ort?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
                 ?? event.veranstalter?.trimmingCharacters(in: .whitespacesAndNewlines).nilWennLeer
-            return String(localized: "Morgen · \(HeuteUhr.uhrzeit(event.beginn)) \(event.titel)", table: "Shared") + (wo.map { ", \($0)" } ?? "")
-        } ?? String(localized: "Schau, was in den nächsten Tagen los ist.", table: "Shared")
+            return LocalizedStringResource("Morgen · \(HeuteUhr.uhrzeit(event.beginn)) \(event.titel)", table: "Shared").inAppSprache + (wo.map { ", \($0)" } ?? "")
+        } ?? LocalizedStringResource("Schau, was in den nächsten Tagen los ist.", table: "Shared").inAppSprache
 
         return Anzeige(
             klein: klein(heuteOffen: heuteOffen, morgenErstes: morgenErstes, morgenText: morgenText),
             sperre: sperre(heuteOffen: heuteOffen, morgenErstes: morgenErstes),
-            titel: zeigtMorgen ? String(localized: "Morgen Abend", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
+            titel: zeigtMorgen ? LocalizedStringResource("Morgen Abend", table: "Shared").inAppSprache : LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache,
             datum: AbendWidgetPhasen.datumText(zeigtMorgen ? morgen : bezug),
             zeilen: hauptEvents.map(zeile),
             zeigtMorgen: zeigtMorgen,
             leer: leer,
             leerHinweis: leerHinweis,
-            morgenKopf: String(localized: "Morgen Abend", table: "Shared"),
+            morgenKopf: LocalizedStringResource("Morgen Abend", table: "Shared").inAppSprache,
             morgenDatum: AbendWidgetPhasen.datumText(morgen),
             morgenZeilen: zeigtMorgen ? [] : morgenAlle.map(zeile),
             morgenTail: morgenText,
@@ -310,31 +310,31 @@ private nonisolated struct Rechner {
 
             let unterzeile: String
             if live {
-                unterzeile = [ortNur(erstes), erstes.ende != nil ? String(localized: "bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared") : nil]
+                unterzeile = [ortNur(erstes), erstes.ende != nil ? LocalizedStringResource("bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared").inAppSprache : nil]
                     .compactMap { $0 }.joined(separator: " · ")
             } else {
-                unterzeile = [ortNur(erstes), danach.map { String(localized: "dann \($0.titel)", table: "Shared") }].compactMap { $0 }.joined(separator: " · ")
+                unterzeile = [ortNur(erstes), danach.map { LocalizedStringResource("dann \($0.titel)", table: "Shared").inAppSprache }].compactMap { $0 }.joined(separator: " · ")
             }
 
             let kreis: Anzeige.Sperrbildschirm.Kreis
             if live {
                 if let danach {
-                    kreis = .init(gross: uhr(danach.beginn), klein: String(localized: "danach", table: "Shared"), beschriftung: String(localized: "Danach \(uhr(danach.beginn)) \(danach.titel)", table: "Shared"))
+                    kreis = .init(gross: uhr(danach.beginn), klein: LocalizedStringResource("danach", table: "Shared").inAppSprache, beschriftung: LocalizedStringResource("Danach \(uhr(danach.beginn)) \(danach.titel)", table: "Shared").inAppSprache)
                 } else if erstes.ende != nil {
-                    kreis = .init(gross: uhr(AbendBezug.ende(erstes)), klein: String(localized: "bis", table: "Shared"), beschriftung: String(localized: "Läuft bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared"))
+                    kreis = .init(gross: uhr(AbendBezug.ende(erstes)), klein: LocalizedStringResource("bis", table: "Shared").inAppSprache, beschriftung: LocalizedStringResource("Läuft bis \(uhr(AbendBezug.ende(erstes)))", table: "Shared").inAppSprache)
                 } else {
-                    kreis = .init(gross: uhr(erstes.beginn), klein: String(localized: "läuft", table: "Shared"), beschriftung: String(localized: "Läuft seit \(uhr(erstes.beginn))", table: "Shared"))
+                    kreis = .init(gross: uhr(erstes.beginn), klein: LocalizedStringResource("läuft", table: "Shared").inAppSprache, beschriftung: LocalizedStringResource("Läuft seit \(uhr(erstes.beginn))", table: "Shared").inAppSprache)
                 }
             } else {
                 kreis = .init(
                     gross: uhr(erstes.beginn), klein: rest > 0 ? "+\(rest)" : "",
-                    beschriftung: String(localized: "Nächste Veranstaltung \(uhr(erstes.beginn))", table: "Shared") + (rest > 0 ? String(localized: ", \(rest) weitere", table: "Shared") : "")
+                    beschriftung: LocalizedStringResource("Nächste Veranstaltung \(uhr(erstes.beginn))", table: "Shared").inAppSprache + (rest > 0 ? LocalizedStringResource(", \(rest) weitere", table: "Shared").inAppSprache : "")
                 )
             }
             return Anzeige.Sperrbildschirm(
-                zeile: live ? mitOrt(String(localized: "Läuft · \(erstes.titel)", table: "Shared"), erstes) : mitOrt("\(uhr(erstes.beginn)) \(erstes.titel)", erstes),
+                zeile: live ? mitOrt(LocalizedStringResource("Läuft · \(erstes.titel)", table: "Shared").inAppSprache, erstes) : mitOrt("\(uhr(erstes.beginn)) \(erstes.titel)", erstes),
                 rechteck: .init(
-                    kicker: live ? String(localized: "Läuft gerade", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
+                    kicker: live ? LocalizedStringResource("Läuft gerade", table: "Shared").inAppSprache : LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache,
                     zeit: live ? nil : uhr(erstes.beginn), name: erstes.titel,
                     unterzeile: unterzeile, abgesagt: false, gemerkt: gemerkt.contains(erstes.id)
                 ),
@@ -348,16 +348,16 @@ private nonisolated struct Rechner {
         let morgenKreis: Anzeige.Sperrbildschirm.Kreis = morgenErstes.map {
             .init(
                 gross: HeuteUhr.wochentagKurz($0.beginn), klein: uhr($0.beginn),
-                beschriftung: String(localized: "Nächste Veranstaltung \(HeuteUhr.wochentagKurz($0.beginn)) \(uhr($0.beginn))", table: "Shared")
+                beschriftung: LocalizedStringResource("Nächste Veranstaltung \(HeuteUhr.wochentagKurz($0.beginn)) \(uhr($0.beginn))", table: "Shared").inAppSprache
             )
-        } ?? .init(gross: "", klein: "", beschriftung: String(localized: "Heute Abend nichts eingetragen", table: "Shared"))
+        } ?? .init(gross: "", klein: "", beschriftung: LocalizedStringResource("Heute Abend nichts eingetragen", table: "Shared").inAppSprache)
 
         if let abgesagt {
             return Anzeige.Sperrbildschirm(
-                zeile: morgenErstes.map { String(localized: "Morgen \(uhr($0.beginn)) \($0.titel)", table: "Shared") } ?? String(localized: "Heute Abend nichts eingetragen", table: "Shared"),
+                zeile: morgenErstes.map { LocalizedStringResource("Morgen \(uhr($0.beginn)) \($0.titel)", table: "Shared").inAppSprache } ?? LocalizedStringResource("Heute Abend nichts eingetragen", table: "Shared").inAppSprache,
                 rechteck: .init(
-                    kicker: String(localized: "Heute Abend", table: "Shared"), zeit: uhr(abgesagt.beginn), name: abgesagt.titel,
-                    unterzeile: [ortNur(abgesagt), String(localized: "fällt aus", table: "Shared")].compactMap { $0 }.joined(separator: " · "),
+                    kicker: LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache, zeit: uhr(abgesagt.beginn), name: abgesagt.titel,
+                    unterzeile: [ortNur(abgesagt), LocalizedStringResource("fällt aus", table: "Shared").inAppSprache].compactMap { $0 }.joined(separator: " · "),
                     abgesagt: true, gemerkt: gemerkt.contains(abgesagt.id)
                 ),
                 kreis: morgenKreis, leer: morgenErstes == nil,
@@ -368,9 +368,9 @@ private nonisolated struct Rechner {
 
         if let morgen = morgenErstes {
             return Anzeige.Sperrbildschirm(
-                zeile: String(localized: "Morgen \(uhr(morgen.beginn)) \(morgen.titel)", table: "Shared"),
+                zeile: LocalizedStringResource("Morgen \(uhr(morgen.beginn)) \(morgen.titel)", table: "Shared").inAppSprache,
                 rechteck: .init(
-                    kicker: String(localized: "Morgen Abend", table: "Shared"), zeit: uhr(morgen.beginn), name: morgen.titel,
+                    kicker: LocalizedStringResource("Morgen Abend", table: "Shared").inAppSprache, zeit: uhr(morgen.beginn), name: morgen.titel,
                     unterzeile: ortNur(morgen) ?? "", abgesagt: false, gemerkt: gemerkt.contains(morgen.id)
                 ),
                 kreis: morgenKreis, leer: false,
@@ -379,9 +379,9 @@ private nonisolated struct Rechner {
         }
 
         return Anzeige.Sperrbildschirm(
-            zeile: String(localized: "Heute Abend nichts eingetragen", table: "Shared"),
+            zeile: LocalizedStringResource("Heute Abend nichts eingetragen", table: "Shared").inAppSprache,
             rechteck: .init(
-                kicker: String(localized: "Heute Abend", table: "Shared"), zeit: nil, name: String(localized: "Nichts eingetragen", table: "Shared"), unterzeile: String(localized: "Schau in die Veranstaltungen", table: "Shared"),
+                kicker: LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache, zeit: nil, name: LocalizedStringResource("Nichts eingetragen", table: "Shared").inAppSprache, unterzeile: LocalizedStringResource("Schau in die Veranstaltungen", table: "Shared").inAppSprache,
                 abgesagt: false, gemerkt: false
             ),
             kreis: morgenKreis, leer: true, link: liste, kreisLink: liste
@@ -393,8 +393,8 @@ private nonisolated struct Rechner {
         let zeigbar = heuteOffen.filter { !$0.abgesagt }
         guard let erstes = zeigbar.first else {
             return Anzeige.Klein(
-                kicker: String(localized: "Heute Abend", table: "Shared"), laeuft: false, zeit: nil, titel: "", ort: "", fuss: "",
-                leerText: morgenErstes.map { String(localized: "Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") } ?? String(localized: "Mehr in den Veranstaltungen", table: "Shared"),
+                kicker: LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache, laeuft: false, zeit: nil, titel: "", ort: "", fuss: "",
+                leerText: morgenErstes.map { LocalizedStringResource("Morgen · \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared").inAppSprache } ?? LocalizedStringResource("Mehr in den Veranstaltungen", table: "Shared").inAppSprache,
                 link: DeepLink.events.url
             )
         }
@@ -402,12 +402,12 @@ private nonisolated struct Rechner {
         let rest = zeigbar.count - 1
         let fuss: String
         if rest > 0 {
-            fuss = String(localized: "+\(rest) weitere heute", table: "Shared")
+            fuss = LocalizedStringResource("+\(rest) weitere heute", table: "Shared").inAppSprache
         } else {
-            fuss = morgenErstes.map { String(localized: "Morgen: \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared") } ?? ""
+            fuss = morgenErstes.map { LocalizedStringResource("Morgen: \(HeuteUhr.uhrzeit($0.beginn)) \($0.titel)", table: "Shared").inAppSprache } ?? ""
         }
         return Anzeige.Klein(
-            kicker: live ? String(localized: "Läuft gerade", table: "Shared") : String(localized: "Heute Abend", table: "Shared"),
+            kicker: live ? LocalizedStringResource("Läuft gerade", table: "Shared").inAppSprache : LocalizedStringResource("Heute Abend", table: "Shared").inAppSprache,
             laeuft: live,
             zeit: HeuteUhr.uhrzeit(live && erstes.ende != nil ? AbendBezug.ende(erstes) : erstes.beginn),
             titel: erstes.titel,

@@ -55,7 +55,7 @@ struct WatchMensaView: View {
     private func meldeAnSiri(_ anzeige: UhrMensaAnzeige) {
         guard anzeige.zustand == .plan else { return }
         UhrSiriMelder.melde(.mensaHeute(mensa: MensaOrt(anzeige.mensa), ernaehrung: nil), in: .mensa)
-        if anzeige.kicker.hasPrefix(String(localized: "Abendessen", table: "Shared")) {
+        if anzeige.kicker.hasPrefix(LocalizedStringResource("Abendessen", table: "Shared").inAppSprache) {
             UhrSiriMelder.melde(.abendessen, in: .mensaAbendessen)
         }
     }

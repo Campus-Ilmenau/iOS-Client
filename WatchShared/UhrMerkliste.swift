@@ -213,8 +213,8 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
 
         /// VoiceOver wie im Artboard: „Titel, 60 ELT, Signatur ELT ZQ 5200“, „…, gefunden“, „…, Ausgeliehen bis 17. Nov.“.
         var beschriftung: String {
-            if gefunden { return String(localized: "\(titel), gefunden", table: "Shared") }
-            if let standort { return "\(titel), \(standort)" + (signatur.map { $0.isEmpty ? "" : String(localized: ", Signatur \($0)", table: "Shared") } ?? "") }
+            if gefunden { return LocalizedStringResource("\(titel), gefunden", table: "Shared").inAppSprache }
+            if let standort { return "\(titel), \(standort)" + (signatur.map { $0.isEmpty ? "" : LocalizedStringResource(", Signatur \($0)", table: "Shared").inAppSprache } ?? "") }
             if let chip { return "\(titel), \(chip)" }
             return titel
         }
@@ -254,16 +254,16 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
                 regal.append((
                     Zeile(
                         id: eintrag.id, titel: eintrag.titel, gefunden: false, standort: standort, signatur: signatur,
-                        chip: nurVorOrt ? String(localized: "Nur vor Ort", table: "Shared") : nil, chipArt: nurVorOrt ? .blau : .neutral
+                        chip: nurVorOrt ? LocalizedStringResource("Nur vor Ort", table: "Shared").inAppSprache : nil, chipArt: nurVorOrt ? .blau : .neutral
                     ),
                     standort, signatur
                 ))
             case .ausgeliehen(let bis)?:
-                anderswo.append(ohneStandort(bis.map { String(localized: "Ausgeliehen bis \(kurzesDatum($0))", table: "Shared") } ?? String(localized: "Ausgeliehen", table: "Shared")))
+                anderswo.append(ohneStandort(bis.map { LocalizedStringResource("Ausgeliehen bis \(kurzesDatum($0))", table: "Shared").inAppSprache } ?? LocalizedStringResource("Ausgeliehen", table: "Shared").inAppSprache))
             case .online?:
-                anderswo.append(ohneStandort(String(localized: "Online", table: "Shared")))
+                anderswo.append(ohneStandort(LocalizedStringResource("Online", table: "Shared").inAppSprache))
             case .unbekannt?:
-                anderswo.append(ohneStandort(String(localized: "Standort unbekannt", table: "Shared")))
+                anderswo.append(ohneStandort(LocalizedStringResource("Standort unbekannt", table: "Shared").inAppSprache))
             case nil:
                 // Der Stand lädt noch.
                 anderswo.append(ohneStandort("…"))
@@ -283,16 +283,16 @@ nonisolated struct UhrMerklisteAnzeige: Equatable, Sendable {
 
         var abschnitte: [Abschnitt] = []
         if !regal.isEmpty {
-            abschnitte.append(Abschnitt(art: .imRegal, titel: String(localized: "Im Regal · \(regal.count)", table: "Shared"), zeilen: regal.map(\.zeile)))
+            abschnitte.append(Abschnitt(art: .imRegal, titel: LocalizedStringResource("Im Regal · \(regal.count)", table: "Shared").inAppSprache, zeilen: regal.map(\.zeile)))
         }
         if !anderswo.isEmpty {
-            abschnitte.append(Abschnitt(art: .nichtImRegal, titel: String(localized: "Nicht im Regal", table: "Shared"), zeilen: anderswo))
+            abschnitte.append(Abschnitt(art: .nichtImRegal, titel: LocalizedStringResource("Nicht im Regal", table: "Shared").inAppSprache, zeilen: anderswo))
         }
         if !gefunden.isEmpty {
-            abschnitte.append(Abschnitt(art: .gefunden, titel: String(localized: "Gefunden · \(gefunden.count)", table: "Shared"), zeilen: gefunden.map(\.zeile)))
+            abschnitte.append(Abschnitt(art: .gefunden, titel: LocalizedStringResource("Gefunden · \(gefunden.count)", table: "Shared").inAppSprache, zeilen: gefunden.map(\.zeile)))
         }
         return UhrMerklisteAnzeige(
-            abschnitte: abschnitte, zusammenfassung: String(localized: "\(regal.count) im Regal · \(gefunden.count) gefunden", table: "Shared")
+            abschnitte: abschnitte, zusammenfassung: LocalizedStringResource("\(regal.count) im Regal · \(gefunden.count) gefunden", table: "Shared").inAppSprache
         )
     }
 

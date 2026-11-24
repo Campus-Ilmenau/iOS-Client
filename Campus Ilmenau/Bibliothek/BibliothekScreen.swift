@@ -102,9 +102,9 @@ struct BibliothekScreen: View {
     private var summary: String {
         switch session {
         case .signedOut(let expired):
-            expired ? String(localized: "Sitzung abgelaufen") : String(localized: "Nicht angemeldet")
+            expired ? LocalizedStringResource("Sitzung abgelaufen").inAppSprache : LocalizedStringResource("Nicht angemeldet").inAppSprache
         case .signedIn:
-            isLoading && items.isEmpty ? String(localized: "Wird geladen …") : lists.summary(now: now)
+            isLoading && items.isEmpty ? LocalizedStringResource("Wird geladen …").inAppSprache : lists.summary(now: now)
         }
     }
 

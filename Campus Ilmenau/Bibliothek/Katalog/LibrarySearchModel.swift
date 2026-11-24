@@ -637,7 +637,7 @@ final class LibrarySearchModel {
     }
 
     static func timeText(_ date: Date) -> String {
-        date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).locale(.current))
+        date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).locale(AppLanguage.current.locale))
     }
 
     private static func unique(_ media: [LibraryMedia]) -> [LibraryMedia] {

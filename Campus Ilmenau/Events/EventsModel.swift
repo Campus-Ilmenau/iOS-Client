@@ -118,7 +118,7 @@ final class EventsModel {
     var unterzeile: String {
         switch modus {
         case .kommende: auswahl.unterzeile(jetzt: jetzt())
-        case .vergangene: String(localized: "Der letzte Monat, neueste zuerst")
+        case .vergangene: LocalizedStringResource("Der letzte Monat, neueste zuerst").inAppSprache
         }
     }
 

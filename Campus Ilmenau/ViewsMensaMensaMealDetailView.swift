@@ -59,7 +59,7 @@ struct MensaMealDetailContent: View {
     }
 
     private var kicker: String {
-        let category = meal.category.isEmpty ? String(localized: "Gericht") : meal.category
+        let category = meal.category.isEmpty ? LocalizedStringResource("Gericht").inAppSprache : meal.category
         return "\(venueName) · \(category) · \(MensaFormatting.dayLabel(meal.date))"
     }
 
