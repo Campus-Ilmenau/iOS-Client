@@ -34,7 +34,7 @@ nonisolated struct SiriOffenAntwort: Equatable, Sendable {
 nonisolated enum SiriOffen {
     typealias P = MensaWidgetPhasen
 
-    static let keineDaten = "Ich komme gerade nicht an die Öffnungszeiten. Versuch es gleich noch mal."
+    static var keineDaten: String { siriText("siri.offen.keineDaten") }
 
     /// So weit vor der Schließzeit steht „noch 25 Min.“.
     static let bald = 60
@@ -81,7 +81,7 @@ nonisolated enum SiriOffen {
     private static func abSatz(_ naechster: (venue: MensaVenue, datum: Date, oeffnet: Int?)?, jetzt: Date) -> String {
         guard let naechster else { return "" }
         let wort = SiriSprache.tagwort(naechster.datum, jetzt: jetzt)
-        return naechster.oeffnet.map { " \(wort) ab \(SiriSprache.uhr($0))." } ?? ""
+        return naechster.oeffnet.map { " " + siriText("siri.offen.abSatz \(wort) \(SiriSprache.uhr($0))") } ?? ""
     }
 
     // MARK: Karte
@@ -95,15 +95,15 @@ nonisolated enum SiriOffen {
 
         if stand.offen, let schliesst = stand.schliesst {
             let rest = schliesst - minuten
-            return zeile("bis " + HeuteUhr.uhrzeit(minuten: schliesst), chip: rest < bald ? "noch \(rest) Min." : nil)
+            return zeile(siriText("siri.offen.stat.bis \(HeuteUhr.uhrzeit(minuten: schliesst))"), chip: rest < bald ? siriText("siri.offen.chip.noch \(rest)") : nil)
         }
-        if stand.abendessenKommt { return zeile("Abendessen ab " + HeuteUhr.uhrzeit(minuten: P.abendessenBeginn)) }
-        if let zeiten = stand.zeiten, minuten < zeiten.oeffnet { return zeile("öffnet " + HeuteUhr.uhrzeit(minuten: zeiten.oeffnet)) }
+        if stand.abendessenKommt { return zeile(siriText("siri.offen.stat.abendAb \(HeuteUhr.uhrzeit(minuten: P.abendessenBeginn))")) }
+        if let zeiten = stand.zeiten, minuten < zeiten.oeffnet { return zeile(siriText("siri.offen.stat.oeffnet \(HeuteUhr.uhrzeit(minuten: zeiten.oeffnet))")) }
 
         let tag = P.naechsterOeffnungstag(snapshot: snapshot, mensaID: venue.rawValue, jetzt: jetzt)
-        guard let oeffnet = tag.oeffnet else { return zeile("zu") }
-        let wort = HeuteUhr.istGleicherTag(tag.datum, EventKalender.tag(jetzt, plus: 1)) ? "morgen" : HeuteUhr.wochentagKurz(tag.datum)
-        return zeile("zu · \(wort) \(HeuteUhr.uhrzeit(minuten: oeffnet))")
+        guard let oeffnet = tag.oeffnet else { return zeile(siriText("siri.offen.stat.zu")) }
+        let wort = HeuteUhr.istGleicherTag(tag.datum, EventKalender.tag(jetzt, plus: 1)) ? siriText("siri.tag.morgenKlein") : HeuteUhr.wochentagKurz(tag.datum)
+        return zeile(siriText("siri.offen.stat.zuAb \(wort) \(HeuteUhr.uhrzeit(minuten: oeffnet))"))
     }
 
     // MARK: Antwort
@@ -132,7 +132,7 @@ nonisolated enum SiriOffen {
         // Wochenende und Feiertage: keine Mensa hat heute Öffnungszeiten.
         if staende.allSatisfy({ $0.zeiten == nil && !$0.offen }) {
             let weiter = abSatz(naechster(ziel, snapshot: snapshot, jetzt: jetzt), jetzt: jetzt)
-            return antwort("Heute haben alle Mensen zu.\(weiter)", "Heute zu", "Alle Mensen haben heute zu.")
+            return antwort(siriText("siri.offen.alleZu \(weiter)"), siriText("siri.offen.gross.heuteZu"), siriText("siri.offen.klein.alleZu"))
         }
         return cafeteria
             ? cafeterienAntwort(staende, snapshot: snapshot, jetzt: jetzt, minuten: minuten, antwort: antwort)
@@ -162,19 +162,22 @@ nonisolated enum SiriOffen {
                 let rest = schliesst - minuten
                 let wer = SiriSprache.satzanfang(stand.venue.sprechSubjekt)
                 return rest < bald
-                    ? "\(wer) hat noch \(rest) Minuten offen, bis \(SiriSprache.uhr(schliesst))."
-                    : "\(wer) hat bis \(SiriSprache.uhr(schliesst)) offen."
+                    ? siriText("siri.offen.andere.bald \(wer) \(rest) \(SiriSprache.uhr(schliesst))")
+                    : siriText("siri.offen.andere.bis \(wer) \(SiriSprache.uhr(schliesst))")
             }
         } ?? ""
-        let andereKlein = andere.map { "\($0.venue.sprechSubjekt) hat noch offen." } ?? "keine andere Mensa hat offen."
+        let andereKlein = andere.map { siriText("siri.offen.andereKlein.offen \($0.venue.sprechSubjekt)") } ?? siriText("siri.offen.andereKlein.keine")
         let danach = { (leer: String) in andereSatz.isEmpty ? leer : " " + andereSatz }
 
         if ziel.offen, let schliesst = ziel.schliesst {
             let rest = schliesst - minuten
             let sagt = rest < bald
-                ? "Ja, \(venue.sprechSubjekt) hat noch \(rest) Minuten offen, bis \(SiriSprache.uhr(schliesst))."
-                : "Ja, \(venue.sprechSubjekt) hat bis \(SiriSprache.uhr(schliesst)) offen."
-            return antwort(sagt, "Ja, bis " + HeuteUhr.uhrzeit(minuten: schliesst), rest < bald ? "\(name) · schließt in \(rest) Min." : name)
+                ? siriText("siri.offen.ja.bald \(venue.sprechSubjekt) \(rest) \(SiriSprache.uhr(schliesst))")
+                : siriText("siri.offen.ja.bis \(venue.sprechSubjekt) \(SiriSprache.uhr(schliesst))")
+            return antwort(
+                sagt, siriText("siri.offen.gross.jaBis \(HeuteUhr.uhrzeit(minuten: schliesst))"),
+                rest < bald ? siriText("siri.offen.klein.schliesstIn \(name) \(rest)") : name
+            )
         }
 
         let zu = ziel.zeiten.map { minuten >= $0.schliesst } ?? false
@@ -183,28 +186,30 @@ nonisolated enum SiriOffen {
 
         if ziel.abendessenKommt {
             let beginn = HeuteUhr.uhrzeit(minuten: P.abendessenBeginn)
-            let mittag = vorOeffnung ? "\(subjekt) öffnet um \(SiriSprache.uhr(ziel.zeiten?.oeffnet ?? 0))." : "Zum Mittag hat \(venue.sprechSubjekt) zu."
+            let mittag = vorOeffnung
+                ? siriText("siri.offen.oeffnetUm \(subjekt) \(SiriSprache.uhr(ziel.zeiten?.oeffnet ?? 0))")
+                : siriText("siri.offen.mittagZu \(venue.sprechSubjekt)")
             return antwort(
-                "\(mittag) Das Abendessen gibt es ab \(SiriSprache.uhr(P.abendessenBeginn)).\(danach(""))",
-                "Abendessen ab \(beginn)", "\(name) · \(andereKlein)"
+                siriText("siri.offen.abendessenAb \(mittag) \(SiriSprache.uhr(P.abendessenBeginn)) \(danach(""))"),
+                siriText("siri.offen.gross.abendAb \(beginn)"), "\(name) · \(andereKlein)"
             )
         }
         if zu, let zeiten = ziel.zeiten {
-            let ohneAndere = "Heute hat keine Mensa mehr offen.\(abSatz(naechster, jetzt: jetzt))"
+            let ohneAndere = siriText("siri.offen.keineMehr \(abSatz(naechster, jetzt: jetzt))")
             return antwort(
-                "\(subjekt) hat seit \(SiriSprache.uhr(zeiten.schliesst)) zu. \(andereSatz.isEmpty ? ohneAndere : andereSatz)",
-                "Nein, seit \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst)) zu", "\(name) · \(andereKlein)"
+                siriText("siri.offen.seitZu \(subjekt) \(SiriSprache.uhr(zeiten.schliesst)) \(andereSatz.isEmpty ? ohneAndere : andereSatz)"),
+                siriText("siri.offen.gross.neinSeit \(HeuteUhr.uhrzeit(minuten: zeiten.schliesst))"), "\(name) · \(andereKlein)"
             )
         }
         if vorOeffnung, let zeiten = ziel.zeiten {
             return antwort(
-                "\(subjekt) öffnet um \(SiriSprache.uhr(zeiten.oeffnet)).\(danach(""))",
-                "Öffnet um \(HeuteUhr.uhrzeit(minuten: zeiten.oeffnet))", "\(name) · \(andereKlein)"
+                siriText("siri.offen.oeffnetUm \(subjekt) \(SiriSprache.uhr(zeiten.oeffnet))") + danach(""),
+                siriText("siri.offen.gross.oeffnetUm \(HeuteUhr.uhrzeit(minuten: zeiten.oeffnet))"), "\(name) · \(andereKlein)"
             )
         }
         return antwort(
-            "\(subjekt) hat heute zu.\(abSatz(naechster, jetzt: jetzt))\(danach(""))",
-            "Nein, heute zu", "\(name) · \(andereKlein)"
+            siriText("siri.mensa.hatHeuteZu \(subjekt)") + abSatz(naechster, jetzt: jetzt) + danach(""),
+            siriText("siri.offen.gross.neinHeuteZu"), "\(name) · \(andereKlein)"
         )
     }
 
@@ -223,38 +228,46 @@ nonisolated enum SiriOffen {
             let namen = { (stands: [Stand]) in SiriSprache.aufzaehlung(stands.map { $0.venue.sprechInGruppe }) }
             let sagt: String
             if gruppen.count == 1 {
-                let verb = offen.count == 1 ? "hat" : "haben"
-                sagt = "Ja, \(namen(offen)) \(verb) bis \(SiriSprache.uhr(spaetestens)) offen."
+                let uhr = SiriSprache.uhr(spaetestens)
+                sagt = offen.count == 1
+                    ? siriText("siri.offen.caf.jaEine \(namen(offen)) \(uhr)")
+                    : siriText("siri.offen.caf.jaMehrere \(namen(offen)) \(uhr)")
             } else {
                 let erste = gruppen[0]
-                let rest = gruppen.dropFirst().map { "\(namen($0.value)) bis \(SiriSprache.uhr($0.key))" }
-                let verb = erste.value.count == 1 ? "hat" : "haben"
-                sagt = "Ja, \(namen(erste.value)) \(verb) bis \(SiriSprache.uhr(erste.key)) offen, "
-                    + SiriSprache.aufzaehlung(rest) + "."
+                let rest = gruppen.dropFirst().map { siriText("siri.offen.caf.gruppeRest \(namen($0.value)) \(SiriSprache.uhr($0.key))") }
+                let uhr = SiriSprache.uhr(erste.key)
+                let kopf = erste.value.count == 1
+                    ? siriText("siri.offen.caf.gruppeErsteEine \(namen(erste.value)) \(uhr)")
+                    : siriText("siri.offen.caf.gruppeErsteMehrere \(namen(erste.value)) \(uhr)")
+                sagt = kopf + SiriSprache.aufzaehlung(rest) + "."
             }
-            return antwort(sagt, "Ja, bis " + HeuteUhr.uhrzeit(minuten: spaetestens), "Cafeterien · \(offen.count) von \(cafeterien.count) offen")
+            return antwort(
+                sagt, siriText("siri.offen.gross.jaBis \(HeuteUhr.uhrzeit(minuten: spaetestens))"),
+                siriText("siri.offen.caf.klein \(offen.count) \(cafeterien.count)")
+            )
         }
 
         let spaeter = cafeterien.compactMap { stand in stand.zeiten.flatMap { $0.oeffnet > minuten ? (stand.venue, $0.oeffnet) : nil } }
         if let (venue, oeffnet) = spaeter.min(by: { $0.1 < $1.1 }) {
             return antwort(
-                "Die Cafeterien haben noch zu. \(SiriSprache.satzanfang(venue.sprechSubjekt)) öffnet um \(SiriSprache.uhr(oeffnet)).",
-                "Öffnet um " + HeuteUhr.uhrzeit(minuten: oeffnet), "Cafeterien · noch zu"
+                siriText("siri.offen.caf.nochZu \(SiriSprache.satzanfang(venue.sprechSubjekt)) \(SiriSprache.uhr(oeffnet))"),
+                siriText("siri.offen.gross.oeffnetUm \(HeuteUhr.uhrzeit(minuten: oeffnet))"), siriText("siri.offen.caf.kleinNochZu")
             )
         }
         if let abend = cafeterien.first(where: \.abendessenKommt) {
             return antwort(
-                "Die Cafeterien haben zu. Das Abendessen gibt es ab \(SiriSprache.uhr(P.abendessenBeginn)) \(abend.venue.sprechOrt).",
-                "Abendessen ab " + HeuteUhr.uhrzeit(minuten: P.abendessenBeginn), "Cafeterien · Abendessen \(abend.venue.shortName)"
+                siriText("siri.offen.caf.abendessen \(SiriSprache.uhr(P.abendessenBeginn)) \(abend.venue.sprechOrt)"),
+                siriText("siri.offen.gross.abendAb \(HeuteUhr.uhrzeit(minuten: P.abendessenBeginn))"),
+                siriText("siri.offen.caf.kleinAbend \(abend.venue.shortName)")
             )
         }
         guard let naechster = naechster(SiriMensa.cafeterien, snapshot: snapshot, jetzt: jetzt), let oeffnet = naechster.oeffnet else {
-            return antwort("Die Cafeterien haben zu.", "Nein, zu", "Cafeterien · zu")
+            return antwort(siriText("siri.offen.caf.zu"), siriText("siri.offen.gross.neinZu"), siriText("siri.offen.caf.kleinZu"))
         }
         let wort = SiriSprache.tagwort(naechster.datum, jetzt: jetzt)
         return antwort(
-            "Die Cafeterien haben zu. \(wort) öffnet \(naechster.venue.sprechSubjekt) um \(SiriSprache.uhr(oeffnet)).",
-            "Nein, zu", "Cafeterien · zu"
+            siriText("siri.offen.caf.zuNaechster \(wort) \(naechster.venue.sprechSubjekt) \(SiriSprache.uhr(oeffnet))"),
+            siriText("siri.offen.gross.neinZu"), siriText("siri.offen.caf.kleinZu")
         )
     }
 }

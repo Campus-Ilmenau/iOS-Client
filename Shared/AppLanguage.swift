@@ -49,8 +49,12 @@ nonisolated enum AppLanguage: String, Sendable, Equatable, CaseIterable {
         return .de
     }
 
+    /// Nur für Tests: Die Sprache gilt für den laufenden Test, ohne die Wahl der App oder andere Tests zu berühren.
+    /// `AppLanguage.$test.withValue(.en) { … }`
+    @TaskLocal static var test: AppLanguage?
+
     /// Sprache der App: die eigene Wahl, sonst die des Geräts.
-    static var current: AppLanguage { bestimmen(wahl: wahl, preferred: Locale.preferredLanguages) }
+    static var current: AppLanguage { test ?? bestimmen(wahl: wahl, preferred: Locale.preferredLanguages) }
 
     /// Die Regel hinter `current`, ohne globalen Zustand (so lässt sie sich prüfen).
     static func bestimmen(wahl: AppLanguage?, preferred: [String]) -> AppLanguage {

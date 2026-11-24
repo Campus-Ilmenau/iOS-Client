@@ -541,3 +541,86 @@ struct SiriMensaIntentTests {
         #expect(MensaHeuteIntent().filterAnwenden)
     }
 }
+
+// MARK: - Englische Sätze
+
+/// Dieselben Daten, englische App-Sprache (nur für diesen Test, siehe `AppLanguage.test`). Geprüft werden die Sätze aus
+/// `Siri-Englisch-Entwurf.md`; vor allem darf nirgends ein Katalogschlüssel (`siri.`) stehen bleiben.
+struct SiriMensaEnglischTests {
+    private func englisch<T>(_ block: () throws -> T) rethrows -> T {
+        try AppLanguage.$test.withValue(.en, operation: block)
+    }
+
+    @Test func vorMittagIstEineVorschau() throws {
+        let a = try englisch { try antwort("08:15") }
+        #expect(a.sagt.hasPrefix("Lunch today starts at 11 am at Ehrenberg: Linsen-Dal for"))
+        #expect(a.sagt.contains("Hähnchenschnitzel and Pasta Arrabbiata."))
+        #expect(!a.sagt.contains("siri."))
+    }
+
+    @Test func mittagsMitSchlusszeit() throws {
+        let a = try englisch { try antwort("11:45") }
+        #expect(a.sagt.hasPrefix("For lunch, Ehrenberg has Linsen-Dal for"))
+        #expect(a.sagt.hasSuffix("Open until 2 pm."))
+    }
+
+    @Test func abendessenBeginntUmHalbFuenf() throws {
+        let a = try englisch { try antwort("15:00") }
+        #expect(a.sagt.hasPrefix("Dinner starts at 4:30 pm at Cafeteria Ehrenberg: Flammkuchen for"))
+        #expect(a.karte?.kicker == "Dinner · from 16:30")
+    }
+
+    @Test func abendessenLaeuftBis() throws {
+        let a = try englisch { try antwort("17:00") }
+        #expect(a.sagt.hasPrefix("Dinner is served until 7:30 pm at Cafeteria Ehrenberg:"))
+    }
+
+    @Test func nachDemAbendessenKommtDerNaechsteTag() throws {
+        let a = try englisch { try antwort("20:00") }
+        #expect(a.sagt.hasPrefix("Nothing more today. Tomorrow’s lunch starts at 11 am at Ehrenberg:"))
+        #expect(!a.sagt.contains("siri."))
+    }
+
+    @Test func ernaehrungAusDerFrage() throws {
+        let a = try englisch { try antwort("11:45", ernaehrung: .vegetarisch) }
+        #expect(a.sagt.contains("vegetarian dishes"))
+        #expect(a.sagt.contains(", for example") || a.sagt.contains(":"))
+        #expect(!a.sagt.contains("siri."))
+    }
+
+    @Test func offenFrage() throws {
+        let a = englisch {
+            SiriOffen.antwort(mensa: .mensaEhrenberg, snapshot: daten(), einstellungen: standard, jetzt: zeit("2026-10-29", "11:45"))
+        }
+        #expect(a.sagt == "Yes, Ehrenberg is open until 2 pm.")
+        #expect(a.karte?.gross == "Yes, until 14:00")
+    }
+
+    @Test func offenNachSchluss() throws {
+        let a = englisch {
+            SiriOffen.antwort(mensa: .mensaEhrenberg, snapshot: daten(), einstellungen: standard, jetzt: zeit("2026-10-29", "14:30"))
+        }
+        #expect(a.sagt.hasPrefix("Ehrenberg has been closed since 2 pm."))
+        #expect(!a.sagt.contains("siri."))
+    }
+
+    @Test func abendessenFrage() {
+        let a = englisch {
+            SiriAbendessen.antwort(snapshot: daten(), einstellungen: standard, jetzt: zeit("2026-10-29", "15:00"))
+        }
+        #expect(a.sagt.hasPrefix("Yes. Dinner starts at 4:30 pm at Cafeteria Ehrenberg:"))
+    }
+
+    @Test func keineDatenUndUhrzeiten() {
+        englisch {
+            #expect(SiriMensa.keineDaten == "I can’t reach the menu right now. Try again in a moment.")
+            #expect(SiriSprache.uhr(14 * 60) == "2 pm")
+            #expect(SiriSprache.uhr(16 * 60 + 30) == "4:30 pm")
+            #expect(SiriSprache.uhr(0) == "12 am")
+            #expect(SiriSprache.aufzaehlung(["a", "b", "c"]) == "a, b and c")
+            #expect(SiriSprache.gerichteAnzahl(1) == "1 dish")
+            #expect(SiriSprache.gerichteAnzahl(3) == "3 dishes")
+            #expect(MensaVenue.cafeteriaEhrenberg.sprechOrt == "at Cafeteria Ehrenberg")
+        }
+    }
+}

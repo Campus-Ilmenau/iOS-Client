@@ -65,9 +65,9 @@ nonisolated enum SiriMerkliste {
     /// Gesprochen werden höchstens so viele Standorte einzeln, der Rest heißt „an weiteren Standorten“.
     static let maxStandorte = 4
 
-    static let leer = SiriMerklisteAntwort(
-        sagt: "Deine Merkliste ist leer. Titel merkst du dir im Katalog.", karte: nil
-    )
+    static var leer: SiriMerklisteAntwort {
+        SiriMerklisteAntwort(sagt: siriText("siri.merkliste.leer"), karte: nil)
+    }
 
     static func antwort(_ eintraege: [SiriMerklisteEintrag]) -> SiriMerklisteAntwort {
         guard !eintraege.isEmpty else { return leer }
@@ -78,15 +78,16 @@ nonisolated enum SiriMerkliste {
         // Alles am Regal abgehakt: nichts mehr zu suchen.
         if offene.isEmpty {
             return SiriMerklisteAntwort(
-                sagt: gefunden == 1 ? "Dein Titel ist schon gefunden." : "Alle \(gefunden) Titel sind schon gefunden.", karte: nil
+                sagt: gefunden == 1 ? siriText("siri.merkliste.titelGefunden") : siriText("siri.merkliste.gefundenAlle \(gefunden)"), karte: nil
             )
         }
 
         // Ist nirgends etwas bekannt, kam `/availability` nicht an (offline, zu langsam).
         if offene.allSatisfy({ $0.stand == .unbekannt }) {
             return SiriMerklisteAntwort(
-                sagt: "Auf deiner Merkliste \(eintraege.count == 1 ? "steht ein Titel" : "stehen \(eintraege.count) Titel"). "
-                    + "Den Stand im Regal kenne ich gerade nicht.",
+                sagt: eintraege.count == 1
+                    ? siriText("siri.merkliste.unbekannt.eins")
+                    : siriText("siri.merkliste.unbekannt.mehr \(eintraege.count)"),
                 karte: nil
             )
         }
@@ -132,9 +133,9 @@ nonisolated enum SiriMerkliste {
     /// „einer“, „zwei“, „drei“, sonst die Ziffer.
     private static func wort(_ n: Int) -> String {
         switch n {
-        case 1: "einer"
-        case 2: "zwei"
-        case 3: "drei"
+        case 1: siriText("siri.merkliste.wort.1")
+        case 2: siriText("siri.merkliste.wort.2")
+        case 3: siriText("siri.merkliste.wort.3")
         default: String(n)
         }
     }
@@ -145,36 +146,47 @@ nonisolated enum SiriMerkliste {
         var saetze: [String] = []
 
         if imRegal == 0 {
-            saetze.append(gesamt == 1 ? "Dein Titel steht gerade nicht im Regal." : "Gerade steht keiner deiner \(gesamt) Titel im Regal.")
+            saetze.append(gesamt == 1 ? siriText("siri.merkliste.keinerEins") : siriText("siri.merkliste.keinerMehr \(gesamt)"))
         } else {
             // „Ein Titel steht“, „Zwei Titel stehen“, „5 Titel stehen“
             let zahl = imRegal <= 3 ? SiriSprache.satzanfang(SiriSprache.zahl(imRegal)) : String(imRegal)
-            let anzahl = imRegal == 1 ? "Ein Titel steht" : "\(zahl) Titel stehen"
             if imRegal == 1 {
-                saetze.append("\(anzahl) im Regal, im Bereich \(gruppen[0].name).")
+                saetze.append(siriText("siri.merkliste.regal.eins \(gruppen[0].name)"))
             } else if gruppen.count == 1 {
-                saetze.append("\(anzahl) im Regal, alle im Bereich \(gruppen[0].name).")
+                saetze.append(siriText("siri.merkliste.regal.alle \(zahl) \(gruppen[0].name)"))
             } else {
                 var teile = gruppen.prefix(maxStandorte).enumerated().map { index, gruppe in
-                    "\(wort(gruppe.eintraege.count)) \(index == 0 ? "im Bereich" : "in") \(gruppe.name)"
+                    index == 0
+                        ? siriText("siri.merkliste.teil.erster \(wort(gruppe.eintraege.count)) \(gruppe.name)")
+                        : siriText("siri.merkliste.teil.weiter \(wort(gruppe.eintraege.count)) \(gruppe.name)")
                 }
                 let uebrig = gruppen.dropFirst(maxStandorte).reduce(0) { $0 + $1.eintraege.count }
-                if uebrig > 0 { teile.append("\(wort(uebrig)) an weiteren Standorten") }
+                if uebrig > 0 { teile.append(siriText("siri.merkliste.teil.uebrig \(wort(uebrig))")) }
                 // Zwei Standorte stehen wie im Mockup nur mit Komma, ab drei mit „und“ vor dem letzten.
                 let liste = teile.count >= 3 ? SiriSprache.aufzaehlung(teile) : teile.joined(separator: ", ")
-                saetze.append("\(anzahl) im Regal: \(liste).")
+                saetze.append(siriText("siri.merkliste.regal.liste \(zahl) \(liste)"))
             }
         }
 
-        if ausgeliehen > 0 { saetze.append("\(SiriSprache.satzanfang(wort(ausgeliehen))) \(ausgeliehen == 1 ? "ist" : "sind") ausgeliehen.") }
-        if online > 0 { saetze.append("\(SiriSprache.satzanfang(wort(online))) \(online == 1 ? "ist" : "sind") online verfügbar.") }
+        if ausgeliehen > 0 {
+            let wer = SiriSprache.satzanfang(wort(ausgeliehen))
+            saetze.append(ausgeliehen == 1 ? siriText("siri.merkliste.ausgeliehen.eins \(wer)") : siriText("siri.merkliste.ausgeliehen.mehr \(wer)"))
+        }
+        if online > 0 {
+            let wer = SiriSprache.satzanfang(wort(online))
+            saetze.append(online == 1 ? siriText("siri.merkliste.online.eins \(wer)") : siriText("siri.merkliste.online.mehr \(wer)"))
+        }
         if unbekannt > 0 {
-            saetze.append("Bei \(unbekannt == 1 ? "einem Titel" : "\(unbekannt) Titeln") kenne ich den Standort nicht.")
+            saetze.append(unbekannt == 1 ? siriText("siri.merkliste.standortUnbekannt.eins") : siriText("siri.merkliste.standortUnbekannt.mehr \(unbekannt)"))
         }
         // Die Gefundenen kommen ans Ende, auch hinter den Standort-Satz: „Einen hast du schon gefunden.“, „Zwei hast du
         // schon gefunden.“ (Zahlwort bis drei, sonst die Ziffer).
         if gefunden > 0 {
-            saetze.append("\(gefunden == 1 ? "Einen" : SiriSprache.satzanfang(wort(gefunden))) hast du schon gefunden.")
+            saetze.append(
+                gefunden == 1
+                    ? siriText("siri.merkliste.gefunden.eins")
+                    : siriText("siri.merkliste.gefunden.mehr \(wort(gefunden)) \(SiriSprache.satzanfang(wort(gefunden)))")
+            )
         }
         return saetze.joined(separator: " ")
     }
@@ -194,13 +206,13 @@ nonisolated enum SiriMerkliste {
         }
         let weitere = imRegal - standorte.reduce(0) { $0 + $1.titel.count }
         let fussTeile = [
-            weitere > 0 ? "+\(weitere) weitere" : nil,
-            nichtImRegal > 0 ? "Nicht im Regal: \(nichtImRegal)" : nil,
-            gefunden > 0 ? "Gefunden: \(gefunden)" : nil
+            weitere > 0 ? siriText("siri.merkliste.fuss.weitere \(weitere)") : nil,
+            nichtImRegal > 0 ? siriText("siri.merkliste.fuss.nichtImRegal \(nichtImRegal)") : nil,
+            gefunden > 0 ? siriText("siri.merkliste.fuss.gefunden \(gefunden)") : nil
         ].compactMap { $0 }
         return SiriMerklisteKarte(
-            titel: imRegal == 0 ? "Nichts im Regal" : (imRegal == 1 ? "1 Titel im Regal" : "\(imRegal) Titel im Regal"),
-            untertitel: imRegal == 0 ? "Alles ausgeliehen oder online." : "Nach Standort, so läufst du einmal durch.",
+            titel: imRegal == 0 ? siriText("siri.merkliste.karte.nichts") : siriText("siri.merkliste.karte.titel \(imRegal)"),
+            untertitel: imRegal == 0 ? siriText("siri.merkliste.karte.alles") : siriText("siri.merkliste.karte.sortiert"),
             standorte: standorte, fuss: fussTeile.joined(separator: " · "), link: DeepLink.merkliste.url
         )
     }

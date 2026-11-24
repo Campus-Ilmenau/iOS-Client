@@ -33,7 +33,7 @@ nonisolated enum SiriAbend {
     /// So viele Veranstaltungen nennt Siri, und so viele Zeilen hat die Karte.
     static let maxGenannt = 3
 
-    static let keineDaten = "Ich komme gerade nicht an die Veranstaltungen. Versuch es gleich noch mal."
+    static var keineDaten: String { siriText("siri.abend.keineDaten") }
 
     static func antwort(snapshot: WidgetSnapshot, jetzt: Date) -> SiriAbendAntwort {
         // Der Speicher wurde nie geschrieben und enthält nichts: Es hat sich nichts laden lassen.
@@ -54,7 +54,9 @@ nonisolated enum SiriAbend {
         let weitere = anzeige.zeilen.count - zeilen.count
         return SiriAbendKarte(
             titel: anzeige.titel, datum: anzeige.datum, zeilen: zeilen,
-            fuss: weitere > 0 ? "+\(weitere) weitere \(anzeige.zeigtMorgen ? "morgen" : "heute")" : "",
+            fuss: weitere > 0
+                ? (anzeige.zeigtMorgen ? siriText("+\(weitere) weitere morgen") : siriText("+\(weitere) weitere heute"))
+                : "",
             leerText: anzeige.zeilen.isEmpty ? anzeige.leerHinweis : nil,
             kopfLink: anzeige.kopfLink
         )
@@ -69,40 +71,44 @@ nonisolated enum SiriAbend {
         if anzeige.leer {
             // Heute ist alles vorbei und morgen nichts da, oder heute war nichts eingetragen.
             return anzeige.zeigtMorgen
-                ? "Heute Abend ist alles vorbei. Für morgen Abend ist nichts eingetragen."
-                : "Heute Abend ist nichts eingetragen.\(naechster)"
+                ? siriText("siri.abend.vorbeiNichtsMorgen")
+                : siriText("siri.abend.nichtsHeute \(naechster)")
         }
 
-        let vorbei = anzeige.zeigtMorgen ? "Heute Abend ist alles vorbei. " : ""
+        let vorbei = anzeige.zeigtMorgen ? siriText("siri.abend.vorbei") : ""
         let aktiv = anzeige.zeilen.filter { !$0.abgesagt }
         let absagen = absagen(anzeige.zeilen.filter(\.abgesagt))
 
         // Nur noch Abgesagtes.
         guard !aktiv.isEmpty else {
-            return "\(vorbei)\(kopf) ist nichts los. \(absagen)" + (anzeige.zeigtMorgen ? "" : naechster)
+            return vorbei + siriText("siri.abend.nichtsLos \(kopf) \(absagen)") + (anzeige.zeigtMorgen ? "" : naechster)
         }
 
         let genannt = Array(aktiv.prefix(maxGenannt))
         func eintrag(_ zeile: Anzeige.Zeile) -> String { zeile.titel + SiriSprache.ortsangabe(orte[zeile.id] ?? nil) }
         func uhr(_ zeile: Anzeige.Zeile) -> String { SiriSprache.uhr(HeuteUhr.minuten(aus: zeile.zeit) ?? 0) }
         /// „um 21 Uhr Open Stage im BC-Club, um 22 Uhr Karaoke“
-        func folge(_ zeilen: [Anzeige.Zeile]) -> [String] {
-            zeilen.map { "um \(uhr($0)) \(eintrag($0))" }
+        func folge(_ zeilen: [Anzeige.Zeile], ersteMitIst: Bool = false) -> [String] {
+            zeilen.enumerated().map { index, zeile in
+                index == 0 && ersteMitIst
+                    ? siriText("siri.abend.umErste \(uhr(zeile)) \(eintrag(zeile))")
+                    : siriText("siri.abend.um \(uhr(zeile)) \(eintrag(zeile))")
+            }
         }
 
         var saetze: [String] = []
         if let laeuft = genannt.first, laeuft.laeuft {
-            saetze.append("Gerade läuft \(eintrag(laeuft)).")
+            saetze.append(siriText("siri.abend.gerade \(eintrag(laeuft))"))
             // „Um 21 Uhr ist Open Stage im BC-Club, um 22 Uhr Karaoke.“
             let weitere = Array(genannt.dropFirst())
             if let naechstes = weitere.first {
-                let teile = ["Um \(uhr(naechstes)) ist \(eintrag(naechstes))"] + folge(Array(weitere.dropFirst()))
+                let teile = [siriText("siri.abend.umIst \(uhr(naechstes)) \(eintrag(naechstes))")] + folge(Array(weitere.dropFirst()))
                 saetze.append(aufzaehlung(teile) + ".")
             }
         } else {
             // „Heute Abend ist um 19 Uhr Spieleabend im Studi-Club, um 21 Uhr …“
-            let liste = folge(genannt)
-            saetze.append("\(kopf) ist " + aufzaehlung(liste) + ".")
+            let liste = folge(genannt, ersteMitIst: true)
+            saetze.append(siriText("siri.abend.kopfIst \(kopf) \(aufzaehlung(liste))"))
         }
         if !absagen.isEmpty { saetze.append(absagen) }
         return vorbei + saetze.joined(separator: " ")
@@ -118,7 +124,7 @@ nonisolated enum SiriAbend {
     private static func absagen(_ zeilen: [Anzeige.Zeile]) -> String {
         guard !zeilen.isEmpty else { return "" }
         let namen = SiriSprache.aufzaehlung(zeilen.map(\.titel))
-        return "\(namen) \(zeilen.count == 1 ? "fällt" : "fallen") aus."
+        return zeilen.count == 1 ? siriText("siri.abend.faelltAus \(namen)") : siriText("siri.abend.fallenAus \(namen)")
     }
 
     /// „ Morgen um 21 Uhr: Halloween-Party im Studi-Club.“ (mit führendem Leerzeichen), das erste nicht abgesagte Event
@@ -126,7 +132,7 @@ nonisolated enum SiriAbend {
     private static func naechsterAbend(_ anzeige: Anzeige, orte: [String: String?]) -> String {
         guard !anzeige.zeigtMorgen, let erstes = anzeige.morgenZeilen.first(where: { !$0.abgesagt }) else { return "" }
         let uhr = SiriSprache.uhr(HeuteUhr.minuten(aus: erstes.zeit) ?? 0)
-        return " Morgen um \(uhr): \(erstes.titel)\(SiriSprache.ortsangabe(orte[erstes.id] ?? nil))."
+        return siriText("siri.abend.morgenUm \(uhr) \(erstes.titel) \(SiriSprache.ortsangabe(orte[erstes.id] ?? nil))")
     }
 }
 
@@ -141,8 +147,8 @@ extension SiriSprache {
             .map { $0.filter { !$0.isNumber } } ?? ""
         let maennlichOderSaechlich = ["club", "hörsaal", "haus", "keller", "raum", "saal", "zentrum", "gebäude", "theater", "kino", "café", "foyer", "stadion"]
         let weiblich = ["baracke", "mensa", "bar", "halle", "kneipe", "cafeteria", "bibliothek", "aula", "kirche", "disco", "diskothek", "turnhalle", "sporthalle"]
-        if maennlichOderSaechlich.contains(wort) { return " im \(ort)" }
-        if weiblich.contains(wort) { return " in der \(ort)" }
-        return " – \(ort)"
+        if maennlichOderSaechlich.contains(wort) { return siriText("siri.abend.ort.im \(ort)") }
+        if weiblich.contains(wort) { return siriText("siri.abend.ort.inDer \(ort)") }
+        return siriText("siri.abend.ort.strich \(ort)")
     }
 }

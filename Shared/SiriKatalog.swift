@@ -27,11 +27,12 @@ nonisolated struct SiriKatalogStatus: Equatable, Sendable {
     /// Gesprochen: „ausleihbar“, „ausgeliehen bis zum 17. November“.
     var sagt: String {
         switch art {
-        case .ausleihbar: "ausleihbar"
-        case .nurVorOrt: "nur vor Ort nutzbar"
-        case .online: "online lesbar"
+        case .ausleihbar: siriText("siri.katalog.status.ausleihbar")
+        case .nurVorOrt: siriText("siri.katalog.status.nurVorOrt")
+        case .online: siriText("siri.katalog.status.online")
         case .ausgeliehen:
-            rueckgabe.map { "ausgeliehen bis zum \(EventKalender.format($0, "d. MMMM"))" } ?? "ausgeliehen"
+            rueckgabe.map { siriText("siri.katalog.status.ausgeliehenBis \(EventKalender.lokal($0) { $0.day().month(.wide) })") }
+                ?? siriText("siri.katalog.status.ausgeliehen")
         }
     }
 }
@@ -83,27 +84,28 @@ nonisolated enum SiriKatalog {
     /// So viele Treffer nennt Siri, zeigt die Karte und lädt den Status.
     static let maxTreffer = 3
 
-    static let nichtErreichbar = SiriKatalogAntwort(
-        sagt: "Ich komme gerade nicht an den Katalog. Versuch es gleich noch mal.", karte: nil
-    )
+    static var nichtErreichbar: SiriKatalogAntwort {
+        SiriKatalogAntwort(sagt: siriText("siri.katalog.nichtErreichbar"), karte: nil)
+    }
 
     /// Leerer oder zu langer Begriff (mehr als 200 Zeichen).
-    static let ungueltig = SiriKatalogAntwort(
-        sagt: "Dein Suchbegriff passt nicht. Versuch es mit ein paar Stichworten.", karte: nil
-    )
+    static var ungueltig: SiriKatalogAntwort {
+        SiriKatalogAntwort(sagt: siriText("siri.katalog.ungueltig"), karte: nil)
+    }
 
     static func antwort(_ ergebnis: SiriKatalogErgebnis) -> SiriKatalogAntwort {
         let treffer = Array(ergebnis.treffer.prefix(maxTreffer))
-        let begriff = "„\(ergebnis.begriff)“"
-        let gesucht = ergebnis.korrigiert.map { "Ich habe nach „\($0)“ gesucht. " } ?? ""
+        let begriff = zitat(ergebnis.begriff)
+        let gesucht = ergebnis.korrigiert.map { siriText("siri.katalog.gesucht \(zitat($0))") } ?? ""
         let alleLink = DeepLink.katalogSuchen(begriff: ergebnis.begriff).url
 
         guard ergebnis.gesamt > 0, let erster = treffer.first else {
             return SiriKatalogAntwort(
-                sagt: "\(gesucht)Für \(begriff) habe ich nichts gefunden.",
+                sagt: siriText("siri.katalog.nichts \(gesucht) \(begriff)"),
                 karte: SiriKatalogKarte(
-                    kicker: "Katalog der UB", titel: "Keine Treffer", untertitel: untertitel(ergebnis), treffer: [],
-                    fuss: "Ohne Anmeldung", alleLink: alleLink
+                    kicker: siriText("siri.katalog.kicker"), titel: siriText("siri.katalog.keineTreffer"),
+                    untertitel: untertitel(ergebnis), treffer: [],
+                    fuss: siriText("siri.katalog.ohneAnmeldung"), alleLink: alleLink
                 )
             )
         }
@@ -111,36 +113,44 @@ nonisolated enum SiriKatalog {
         // Hat die API korrigiert, sagt Siri zuerst, wonach sie gesucht hat.
         let einleitung: String
         if ergebnis.korrigiert == nil {
-            einleitung = "Ich habe \(ergebnis.gesamt == 1 ? "einen Treffer" : "\(zahl(ergebnis.gesamt)) Treffer") für \(begriff)."
+            einleitung = ergebnis.gesamt == 1
+                ? siriText("siri.katalog.einl.eins \(begriff)")
+                : siriText("siri.katalog.einl.mehr \(zahl(ergebnis.gesamt)) \(begriff)")
         } else {
-            einleitung = "\(gesucht)Das \(ergebnis.gesamt == 1 ? "ist ein Treffer" : "sind \(zahl(ergebnis.gesamt)) Treffer")."
+            einleitung = ergebnis.gesamt == 1
+                ? siriText("siri.katalog.korr.eins \(gesucht)")
+                : siriText("siri.katalog.korr.mehr \(gesucht) \(zahl(ergebnis.gesamt))")
         }
-        let titel = "„\(erster.titel)“"
+        let titel = zitat(erster.titel)
         let satz: String
         if ergebnis.gesamt == 1 {
-            satz = einleitung.dropLast() + ": \(titel)." + (erster.status.map { " Er ist \($0.sagt)." } ?? "")
+            satz = einleitung.dropLast() + ": \(titel)." + (erster.status.map { siriText("siri.katalog.erIst \($0.sagt)") } ?? "")
         } else {
-            satz = einleitung + (erster.status.map { " Der erste, \(titel), ist \($0.sagt)." } ?? " Der erste ist \(titel).")
+            satz = einleitung + (erster.status.map { siriText("siri.katalog.derErsteIst \(titel) \($0.sagt)") }
+                ?? siriText("siri.katalog.derErste \(titel)"))
         }
 
         return SiriKatalogAntwort(
             sagt: satz,
             karte: SiriKatalogKarte(
-                kicker: "Katalog der UB",
-                titel: ergebnis.gesamt == 1 ? "1 Treffer" : "\(zahl(ergebnis.gesamt)) Treffer",
-                untertitel: untertitel(ergebnis), treffer: treffer, fuss: "Ohne Anmeldung", alleLink: alleLink
+                kicker: siriText("siri.katalog.kicker"),
+                titel: ergebnis.gesamt == 1 ? siriText("siri.katalog.karte.eins") : siriText("siri.katalog.karte.mehr \(zahl(ergebnis.gesamt))"),
+                untertitel: untertitel(ergebnis), treffer: treffer, fuss: siriText("siri.katalog.ohneAnmeldung"), alleLink: alleLink
             )
         )
     }
 
     /// „für „Regelungstechnik““, bei einer Korrektur „für „Regelungstechnik“ statt „Regelungstechnk““.
     private static func untertitel(_ ergebnis: SiriKatalogErgebnis) -> String {
-        guard let korrigiert = ergebnis.korrigiert else { return "für „\(ergebnis.begriff)“" }
-        return "für „\(korrigiert)“ statt „\(ergebnis.begriff)“"
+        guard let korrigiert = ergebnis.korrigiert else { return siriText("siri.katalog.fuer \(zitat(ergebnis.begriff))") }
+        return siriText("siri.katalog.fuerStatt \(zitat(korrigiert)) \(zitat(ergebnis.begriff))")
     }
+
+    /// „Regelungstechnik“ in den Anführungszeichen der Sprache.
+    private static func zitat(_ text: String) -> String { siriText("siri.zitat \(text)") }
 
     /// 1280 → „1.280“
     private static func zahl(_ n: Int) -> String {
-        n.formatted(.number.locale(Locale(identifier: "de_DE")))
+        n.formatted(.number.locale(AppLanguage.current.locale))
     }
 }

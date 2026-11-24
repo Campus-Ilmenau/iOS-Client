@@ -68,7 +68,7 @@ nonisolated enum SiriMensa {
     typealias P = MensaWidgetPhasen
     typealias Anzeige = MensaWidgetAnzeige
 
-    static let keineDaten = "Ich komme gerade nicht an den Speiseplan. Versuch es gleich noch mal."
+    static var keineDaten: String { siriText("siri.mensa.keineDaten") }
 
     /// Die Cafeterien, die „Cafeteria“ ohne Ort meint.
     static let cafeterien: [MensaVenue] = [.cafeteriaEhrenberg, .nanoteria, .roentgenbau]
@@ -99,7 +99,7 @@ nonisolated enum SiriMensa {
                 }
             }
         }
-        return .antwort(antwort(venue: venue, kontext: kontext, vorsatz: cafeteriaZu ? "Heute haben die Cafeterien zu." : nil))
+        return .antwort(antwort(venue: venue, kontext: kontext, vorsatz: cafeteriaZu ? siriText("siri.mensa.cafeterienZu") : nil))
     }
 
     // MARK: „Cafeteria“ ohne Ort
@@ -126,20 +126,20 @@ nonisolated enum SiriMensa {
             let offen = cafeterien.filter { venue in zeiten(venue).map { $0.oeffnet <= minuten && minuten < $0.schliesst } ?? false }
             if offen.count == 1 { return .eine(offen[0], keineOffen: false) }
             if offen.count > 1 {
-                return frage(offen) { "offen bis " + HeuteUhr.uhrzeit(minuten: zeiten($0)?.schliesst ?? 0) }
+                return frage(offen) { siriText("siri.mensa.rueckfrage.offenBis \(HeuteUhr.uhrzeit(minuten: zeiten($0)?.schliesst ?? 0))") }
             }
             let spaeter = cafeterien.compactMap { venue in zeiten(venue).flatMap { $0.oeffnet > minuten ? (venue, $0.oeffnet) : nil } }
             if let fruehestes = spaeter.map(\.1).min() {
                 let kandidaten = spaeter.filter { $0.1 == fruehestes }.map(\.0)
                 if kandidaten.count == 1 { return .eine(kandidaten[0], keineOffen: false) }
-                return frage(kandidaten) { _ in "öffnet um " + HeuteUhr.uhrzeit(minuten: fruehestes) }
+                return frage(kandidaten) { _ in siriText("siri.mensa.rueckfrage.oeffnetUm \(HeuteUhr.uhrzeit(minuten: fruehestes))") }
             }
         }
         if minuten < P.abendessenEnde {
             let orte = P.abendessenOrte(snapshot: snapshot, tag: EventKalender.berlinDatum(jetzt)).filter(cafeterien.contains)
             if orte.count == 1 { return .eine(orte[0], keineOffen: false) }
             if orte.count > 1 {
-                return frage(orte) { _ in "Abendessen bis " + HeuteUhr.uhrzeit(minuten: P.abendessenEnde) }
+                return frage(orte) { _ in siriText("siri.mensa.rueckfrage.abendessenBis \(HeuteUhr.uhrzeit(minuten: P.abendessenEnde))") }
             }
         }
         let kandidaten = cafeterien.map { ($0, P.naechsterOeffnungstag(snapshot: snapshot, mensaID: $0.rawValue, jetzt: jetzt)) }
@@ -172,7 +172,7 @@ nonisolated enum SiriMensa {
         /// Alles aus dem App-Filter außer der Stufe: „nur Bio und ohne Milch“.
         var zusatz: String {
             let teile = (filter?.summaryParts ?? []).map { $0.prefix(1).lowercased() + $0.dropFirst() }
-            return teile.isEmpty ? "" : ", " + teile.joined(separator: " und ")
+            return teile.isEmpty ? "" : ", " + teile.joined(separator: siriText("siri.und"))
         }
 
         func anzeige(_ venue: MensaVenue, _ zeit: Date) -> Anzeige {
@@ -183,12 +183,23 @@ nonisolated enum SiriMensa {
         }
     }
 
+    /// Welche Mahlzeit gemeint ist. Daran hängt, wie der Satz in jeder Sprache beginnt.
+    private enum Art: Equatable {
+        case mittagJetzt
+        case mittagSpaeter
+        case abendBeginn
+        case abendLaeuft
+        case mittagMorgen
+        case mittagWochentag(String)
+
+        var abend: Bool { self == .abendBeginn || self == .abendLaeuft }
+    }
+
     /// Die Mahlzeit einer Anzeige: wie Siri sie nennt und wie die Karte sie beschriftet.
     private nonisolated struct Mahlzeit {
-        /// „Zum Mittag“, „Heute Mittag“, „Zum Abendessen“, „Morgen Mittag“
-        var anfang: String
-        /// „ab 11 Uhr“, „bis 19:30 Uhr“
-        var zeit: String?
+        var art: Art
+        /// Wann es beginnt („ab“) oder endet („bis“), in Minuten; `nil`, wenn der Plan es nicht sagt.
+        var uhr: Int?
         var ort: MensaVenue
         /// Steht vor dem Satz: „Heute gibt es nichts mehr.“
         var vorsatz: String?
@@ -198,11 +209,70 @@ nonisolated enum SiriMensa {
         /// „heute“, „morgen“ oder „Montag“, für „Für heute ist der Speiseplan noch nicht da.“
         var tagwort: String
         var istHeute: Bool
-        var abend: Bool
+        var abend: Bool { art.abend }
         /// „Mittagsangebot“ oder „Abendangebot“, wenn der Fuß sonst nichts zu sagen hat.
-        var angebot: String { abend ? "Abendangebot" : "Mittagsangebot" }
+        var angebot: String { abend ? siriText("siri.mensa.abendangebot") : siriText("Mittagsangebot") }
 
-        var heuteZusatz: String { istHeute && !anfang.hasPrefix("Heute") ? " heute" : "" }
+        /// „ heute“, wenn die Mahlzeit heute ist und der Name es nicht schon sagt („Heute Mittag“).
+        var heuteZusatz: String { istHeute && art != .mittagSpaeter ? siriText("siri.mensa.heuteZusatz") : "" }
+
+        /// Die Mahlzeit nach „für“: „Zum Mittag“ (englisch „lunch“).
+        var fuer: String {
+            switch art {
+            case .mittagJetzt: siriText("siri.mensa.mahlzeit.mittagJetzt")
+            case .mittagSpaeter: siriText("siri.mensa.mahlzeit.mittagSpaeter")
+            case .abendBeginn, .abendLaeuft: siriText("siri.mensa.mahlzeit.abend")
+            case .mittagMorgen: siriText("siri.mensa.mahlzeit.mittagMorgen")
+            case .mittagWochentag(let tag): siriText("siri.mensa.mahlzeit.mittagWochentag \(tag)")
+            }
+        }
+
+        /// Die Mahlzeit als Satzanfang: „Morgen Mittag“, „Heute Abend“.
+        var name: String {
+            switch art {
+            case .mittagJetzt: siriText("siri.mensa.name.mittagJetzt")
+            case .mittagSpaeter: siriText("siri.mensa.name.mittagSpaeter")
+            case .abendBeginn, .abendLaeuft: siriText("siri.mensa.name.abend")
+            case .mittagMorgen: siriText("siri.mensa.name.mittagMorgen")
+            case .mittagWochentag(let tag): siriText("siri.mensa.name.mittagWochentag \(tag)")
+            }
+        }
+
+        /// Beginn des Satzes bis zum Ort, für „es gibt …“ (`verb == nil`) oder „es passt/passen …“ (`verb`).
+        /// Deutsch: „Zum Mittag gibt es ab 11 Uhr in Ehrenberg“. Englisch: „Lunch today starts at 11 am at Ehrenberg:“.
+        func einleitung(verb: String? = nil) -> String {
+            let v = verb ?? "", u = uhr.map(SiriSprache.uhr) ?? "", i = ort.sprechOrt, s = ort.sprechSubjekt
+            let gibt = verb == nil
+            switch art {
+            case .mittagJetzt:
+                return gibt ? siriText("siri.mensa.gibt.mittagJetzt \(i) \(s)")
+                            : siriText("siri.mensa.passt.mittagJetzt \(v) \(i) \(s)")
+            case .mittagSpaeter where uhr != nil:
+                return gibt ? siriText("siri.mensa.gibt.mittagSpaeter \(u) \(i) \(s)")
+                            : siriText("siri.mensa.passt.mittagSpaeter \(v) \(u) \(i) \(s)")
+            case .mittagSpaeter:
+                return gibt ? siriText("siri.mensa.gibt.mittagSpaeterOhneZeit \(i) \(s)")
+                            : siriText("siri.mensa.passt.mittagSpaeterOhneZeit \(v) \(i) \(s)")
+            case .abendBeginn:
+                return gibt ? siriText("siri.mensa.gibt.abendBeginn \(u) \(i) \(s)")
+                            : siriText("siri.mensa.passt.abendBeginn \(v) \(u) \(i) \(s)")
+            case .abendLaeuft:
+                return gibt ? siriText("siri.mensa.gibt.abendLaeuft \(u) \(i) \(s)")
+                            : siriText("siri.mensa.passt.abendLaeuft \(v) \(u) \(i) \(s)")
+            case .mittagMorgen where uhr != nil:
+                return gibt ? siriText("siri.mensa.gibt.mittagMorgen \(u) \(i) \(s)")
+                            : siriText("siri.mensa.passt.mittagMorgen \(v) \(u) \(i) \(s)")
+            case .mittagMorgen:
+                return gibt ? siriText("siri.mensa.gibt.mittagMorgenOhneZeit \(i) \(s)")
+                            : siriText("siri.mensa.passt.mittagMorgenOhneZeit \(v) \(i) \(s)")
+            case .mittagWochentag(let tag) where uhr != nil:
+                return gibt ? siriText("siri.mensa.gibt.mittagWochentag \(u) \(i) \(s) \(tag)")
+                            : siriText("siri.mensa.passt.mittagWochentag \(v) \(u) \(i) \(s) \(tag)")
+            case .mittagWochentag(let tag):
+                return gibt ? siriText("siri.mensa.gibt.mittagWochentagOhneZeit \(i) \(s) \(tag)")
+                            : siriText("siri.mensa.passt.mittagWochentagOhneZeit \(v) \(i) \(s) \(tag)")
+            }
+        }
     }
 
     // MARK: Antwort
@@ -230,34 +300,38 @@ nonisolated enum SiriMensa {
         switch anzeige.phase {
         case .morgen where zeiten.map({ minuten < $0.oeffnet }) ?? true:
             return Mahlzeit(
-                anfang: "Heute Mittag", zeit: zeiten.map { "ab " + SiriSprache.uhr($0.oeffnet) }, ort: venue, vorsatz: vorsatz,
-                kicker: anzeige.kicker, tagwort: "heute", istHeute: true, abend: false
+                art: .mittagSpaeter, uhr: zeiten?.oeffnet, ort: venue, vorsatz: vorsatz,
+                kicker: anzeige.kicker, tagwort: siriText("siri.tag.heute"), istHeute: true
             )
         case .morgen, .mittag:
             return Mahlzeit(
-                anfang: "Zum Mittag", ort: venue, vorsatz: vorsatz,
-                nachsatz: zeiten.map { "Geöffnet bis \(SiriSprache.uhr($0.schliesst))." },
-                kicker: anzeige.kicker, tagwort: "heute", istHeute: true, abend: false
+                art: .mittagJetzt, ort: venue, vorsatz: vorsatz,
+                nachsatz: zeiten.map { siriText("siri.mensa.nachsatzOffenBis \(SiriSprache.uhr($0.schliesst))") },
+                kicker: anzeige.kicker, tagwort: siriText("siri.tag.heute"), istHeute: true
             )
         case .nachmittag, .abend:
             let ort = P.abendessenOrt(snapshot: k.snapshot, mensaID: venue.rawValue, jetzt: rechenzeit) ?? venue
             let laeuft = anzeige.phase == .abend
             let zeit = laeuft ? P.abendessenEnde : P.abendessenBeginn
+            let uhr = HeuteUhr.uhrzeit(minuten: zeit)
             return Mahlzeit(
-                anfang: "Zum Abendessen", zeit: (laeuft ? "bis " : "ab ") + SiriSprache.uhr(zeit), ort: ort, vorsatz: vorsatz,
-                kicker: "Abendessen · " + (laeuft ? "bis " : "ab ") + HeuteUhr.uhrzeit(minuten: zeit),
-                tagwort: "heute", istHeute: true, abend: true
+                art: laeuft ? .abendLaeuft : .abendBeginn, uhr: zeit, ort: ort, vorsatz: vorsatz,
+                kicker: laeuft ? siriText("siri.mensa.kicker.abendBis \(uhr)") : siriText("siri.mensa.kicker.abendAb \(uhr)"),
+                tagwort: siriText("siri.tag.heute"), istHeute: true
             )
         case .nacht, .geschlossen:
             let (_, datum, oeffnet) = P.naechsterOeffnungstag(snapshot: k.snapshot, mensaID: venue.rawValue, jetzt: k.jetzt)
+            let morgen = SiriSprache.istMorgen(datum, jetzt: k.jetzt)
             let wort = SiriSprache.tagwort(datum, jetzt: k.jetzt)
             let standard = anzeige.phase == .nacht
-                ? "Heute gibt es nichts mehr."
-                : "\(SiriSprache.satzanfang(venue.sprechSubjekt)) hat heute zu."
+                ? siriText("siri.mensa.heuteNichtsMehr")
+                : siriText("siri.mensa.hatHeuteZu \(SiriSprache.satzanfang(venue.sprechSubjekt))")
+            let kopf = morgen ? siriText("siri.mensa.kicker.mittagMorgen") : siriText("siri.mensa.kicker.mittagWochentag \(wort)")
+            let ab = oeffnet.map { siriText("siri.mensa.kicker.zeitAb \(HeuteUhr.uhrzeit(minuten: $0))") } ?? ""
             return Mahlzeit(
-                anfang: "\(wort) Mittag", zeit: oeffnet.map { "ab " + SiriSprache.uhr($0) }, ort: venue, vorsatz: vorsatz ?? standard,
-                kicker: "Mittag " + (wort == "Morgen" ? "morgen" : wort) + (oeffnet.map { " · ab " + HeuteUhr.uhrzeit(minuten: $0) } ?? ""),
-                tagwort: wort == "Morgen" ? "morgen" : wort, istHeute: false, abend: false
+                art: morgen ? .mittagMorgen : .mittagWochentag(wort), uhr: oeffnet, ort: venue, vorsatz: vorsatz ?? standard,
+                kicker: kopf + ab,
+                tagwort: morgen ? siriText("siri.tag.morgenKlein") : wort, istHeute: false
             )
         }
     }
@@ -270,7 +344,7 @@ nonisolated enum SiriMensa {
 
         // Kein Plan (oder der Plan hat in dieser Mahlzeit keine Gerichte).
         if anzeige.planTag == nil || ohneFilter == 0 {
-            return SiriMensaAntwort(sagt: "\(vorsatz)Für \(mahlzeit.tagwort) ist der Speiseplan noch nicht da.", karte: nil)
+            return SiriMensaAntwort(sagt: vorsatz + siriText("siri.mensa.keinPlan \(mahlzeit.tagwort)"), karte: nil)
         }
 
         let standardKarte = karte(anzeige, mahlzeit, k)
@@ -278,36 +352,35 @@ nonisolated enum SiriMensa {
         // Der Filter lässt nichts durch.
         if anzeige.zeilen.isEmpty {
             if let ernaehrung = k.frage.ernaehrung {
-                var sagt = "\(vorsatz)\(mahlzeit.anfang) gibt es\(mahlzeit.heuteZusatz) nichts \(ernaehrung.nichts)."
+                var sagt = vorsatz + siriText("siri.mensa.nichtsErnaehrung \(mahlzeit.fuer) \(mahlzeit.heuteZusatz) \(ernaehrung.nichts)")
                 if let (naechste, naechsteMahlzeit) = naechsteMitPassendem(anzeige.phase, venue: venue, kontext: k) {
-                    let name = naechsteMahlzeit.abend ? "Heute Abend" : naechsteMahlzeit.anfang
-                    sagt += " \(name) \(naechsteMahlzeit.ort.sprechOrt): \(SiriSprache.namen(naechste.zeilen))."
+                    sagt += " " + siriText("siri.mensa.naechsteMahlzeit \(naechsteMahlzeit.name) \(naechsteMahlzeit.ort.sprechOrt) \(SiriSprache.namen(naechste.zeilen))")
                     return SiriMensaAntwort(sagt: sagt, karte: karte(naechste, naechsteMahlzeit, k))
                 }
                 return SiriMensaAntwort(sagt: sagt, karte: standardKarte)
             }
-            let sagt = "\(vorsatz)\(mahlzeit.anfang) passt\(mahlzeit.heuteZusatz) nichts zu deinem Filter. "
-                + "Ohne Filter gibt es \(SiriSprache.gerichteAnzahl(ohneFilter))."
+            let sagt = vorsatz + siriText("siri.mensa.passtNichts \(mahlzeit.fuer) \(mahlzeit.heuteZusatz)")
+                + " " + siriText("siri.mensa.ohneFilterGibt \(ohneFilter)")
             return SiriMensaAntwort(sagt: sagt, karte: standardKarte)
         }
 
-        let zeit = mahlzeit.zeit.map { " " + $0 } ?? ""
-        let ort = mahlzeit.ort.sprechOrt
         let liste = SiriSprache.gerichte(anzeige.zeilen)
         // Hat der Plan mehr passende Gerichte als genannt werden, heißt es „zum Beispiel“.
-        let trenner = anzeige.gesamt > anzeige.zeilen.count ? ", zum Beispiel " : ": "
+        let trenner = anzeige.gesamt > anzeige.zeilen.count ? siriText("siri.mensa.zumBeispiel") : ": "
 
         var haupt: String
         if anzeige.filterung != nil {
             if let ernaehrung = k.frage.ernaehrung {
-                haupt = "\(mahlzeit.anfang) gibt es\(zeit) \(ort) \(ernaehrung.gerichte(anzeige.gesamt))\(k.zusatz)\(trenner)\(liste)."
+                haupt = "\(mahlzeit.einleitung()) \(ernaehrung.gerichte(anzeige.gesamt))\(k.zusatz)\(trenner)\(liste)."
             } else {
-                let verb = anzeige.gesamt == 1 ? "passt" : "passen"
-                let anzahl = anzeige.gesamt == 1 ? "ein Gericht" : "\(SiriSprache.zahl(anzeige.gesamt)) Gerichte"
-                haupt = "\(mahlzeit.anfang) \(verb)\(zeit) \(ort) \(anzahl) zu deinem Filter\(trenner)\(liste)."
+                let verb = anzeige.gesamt == 1 ? siriText("siri.mensa.verbPasstEins") : siriText("siri.mensa.verbPasstMehr")
+                let anzahl = anzeige.gesamt == 1
+                    ? siriText("siri.mensa.passendEins")
+                    : siriText("siri.mensa.passendMehr \(SiriSprache.zahl(anzeige.gesamt))")
+                haupt = "\(mahlzeit.einleitung(verb: verb)) \(anzahl)\(trenner)\(liste)."
             }
         } else {
-            haupt = "\(mahlzeit.anfang) gibt es\(zeit) \(ort) \(liste)."
+            haupt = "\(mahlzeit.einleitung()) \(liste)."
         }
         let nachsatz = mahlzeit.nachsatz.map { " " + $0 } ?? ""
         return SiriMensaAntwort(sagt: vorsatz + haupt + nachsatz, karte: standardKarte)
@@ -331,8 +404,9 @@ nonisolated enum SiriMensa {
                 var naechste = mahlzeit(anzeige, venue: venue, kontext: k, rechenzeit: zeit, vorsatz: nil)
                 if minuten == P.abendessenBeginn {
                     // Zum Beginn rechnet die Anzeige schon „läuft“; die Vorschau auf das Abendessen heißt „ab 16:30“.
-                    naechste.zeit = "ab " + SiriSprache.uhr(minuten)
-                    naechste.kicker = "Abendessen · ab " + HeuteUhr.uhrzeit(minuten: minuten)
+                    naechste.art = .abendBeginn
+                    naechste.uhr = minuten
+                    naechste.kicker = siriText("siri.mensa.kicker.abendAb \(HeuteUhr.uhrzeit(minuten: minuten))")
                 }
                 return (anzeige, naechste)
             }
@@ -345,14 +419,14 @@ nonisolated enum SiriMensa {
         var fuss = mahlzeit.angebot
         if let filterung = anzeige.filterung {
             if let ernaehrung = k.frage.ernaehrung {
-                filterzeile = ([ernaehrung.bezeichnung + " – aus deiner Frage"] + (k.filter?.summaryParts ?? [])).joined(separator: " · ")
-                fuss = "Ohne Filter: " + SiriSprache.gerichteAnzahl(filterung.ohneFilterAnzahl)
+                filterzeile = ([siriText("siri.mensa.ausDeinerFrage \(ernaehrung.bezeichnung)")] + (k.filter?.summaryParts ?? [])).joined(separator: " · ")
+                fuss = siriText("siri.mensa.fussOhneFilter \(SiriSprache.gerichteAnzahl(filterung.ohneFilterAnzahl))")
             } else {
-                filterzeile = "Gefiltert: " + filterung.kurztext
+                filterzeile = siriText("siri.mensa.gefiltert \(filterung.kurztext)")
                 fuss = filterung.ohneFilterText
             }
         } else if anzeige.gesamt > anzeige.zeilen.count {
-            fuss = "+\(anzeige.gesamt - anzeige.zeilen.count) weitere Gerichte"
+            fuss = siriText("siri.mensa.weitereGerichte \(anzeige.gesamt - anzeige.zeilen.count)")
         }
         return SiriMensaKarte(
             kicker: mahlzeit.kicker,
@@ -376,25 +450,26 @@ extension Ernaehrung {
     /// „Vegetarisch“, „Vegan“ (Karte).
     nonisolated var bezeichnung: String {
         switch self {
-        case .vegetarisch: "Vegetarisch"
-        case .vegan: "Vegan"
+        case .vegetarisch: siriText("siri.ernaehrung.vegetarisch")
+        case .vegan: siriText("siri.ernaehrung.vegan")
         }
     }
 
     /// „nichts Vegetarisches“ (Satz).
     nonisolated var nichts: String {
         switch self {
-        case .vegetarisch: "Vegetarisches"
-        case .vegan: "Veganes"
+        case .vegetarisch: siriText("siri.ernaehrung.nichts.vegetarisch")
+        case .vegan: siriText("siri.ernaehrung.nichts.vegan")
         }
     }
 
     /// „ein vegetarisches Gericht“, „zwei vegetarische Gerichte“.
     nonisolated func gerichte(_ anzahl: Int) -> String {
-        let (einzahl, mehrzahl) = switch self {
-        case .vegetarisch: ("vegetarisches", "vegetarische")
-        case .vegan: ("veganes", "vegane")
+        switch (self, anzahl == 1) {
+        case (.vegetarisch, true): siriText("siri.ernaehrung.eins.vegetarisch")
+        case (.vegan, true): siriText("siri.ernaehrung.eins.vegan")
+        case (.vegetarisch, false): siriText("siri.ernaehrung.mehr.vegetarisch \(SiriSprache.zahl(anzahl))")
+        case (.vegan, false): siriText("siri.ernaehrung.mehr.vegan \(SiriSprache.zahl(anzahl))")
         }
-        return anzahl == 1 ? "ein \(einzahl) Gericht" : "\(SiriSprache.zahl(anzahl)) \(mehrzahl) Gerichte"
     }
 }
