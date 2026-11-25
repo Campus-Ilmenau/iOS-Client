@@ -2,6 +2,27 @@
 
 Alle nennenswerten Änderungen an der Campus-Ilmenau-App. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/). Der Stand wurde aus der Git-Historie (2026-10-26 bis 2026-11-11) zusammengestellt.
 
+## [1.0.0] – Build 7
+
+### Neu
+- Englisch: Die App gibt es jetzt auf Deutsch und Englisch. Sie folgt der Sprache des Geräts (ist sie weder Deutsch noch Englisch, gilt Deutsch). Unter „Mehr“ → „Sprache“ lässt sie sich umstellen, ohne Neustart. Datum, Uhrzeit, Zahlen und Preise bleiben in der Schreibweise Deutschlands.
+- Englisch auch in den Widgets, auf der Apple Watch, auf dem iPad und in Siri (Sätze, Karten, Kurzbefehle). Die englischen Siri-Texte sind noch nicht von einem Menschen geprüft.
+- Mensa: Die Gerichte des heutigen Tages kommen auf Englisch, sobald das Backend sie freigibt. Übersetzte Titel tragen im Detail den Hinweis „Maschinell übersetzt“. Gerichte für morgen und später bleiben deutsch, bis ihr Tag da ist.
+- Heute: Die Mensa-Kachel öffnet den Speiseplan und das Gericht, bei fehlendem Angebot steht ein Hinweis.
+- Bibliothek: Die Merkliste hat Wischflächen in Zeilenhöhe (iPhone und iPad).
+- Die Basis-URL der API hängt von der Build-Konfiguration ab: Debug spricht den Dev-Stand, Release die Produktion.
+
+### Geändert
+- Der Allergen-Filter arbeitet mit den Kürzeln der API (`Wz`, `Mi` …) statt mit den angezeigten Namen. Ein gespeicherter Filter wird beim ersten Start umgestellt. Vorher hätte er bei englischen Namen nichts mehr ausgeschlossen.
+- Der Speicher der Widgets merkt sich die Sprache. Ein Stand in einer anderen Sprache wird nicht angezeigt, bis er neu geladen ist.
+
+### Behoben
+- Bibliothek: Auf dem iPad schob „Entfernen“ in der Merkliste die Karte bei offener Seitenleiste zu weit.
+- Merkliste, Titelstatus und Fehlermeldungen des Katalogs standen teils fest auf Deutsch.
+
+### Zu prüfen
+- Release-Builds sprechen die Produktion. Dort liefert `lang=en` noch `translated: false`, die Gerichte erscheinen deshalb bis zur Freischaltung auf Deutsch.
+
 ## [1.0.0] – Build 6
 
 ### Behoben
