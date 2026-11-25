@@ -1,6 +1,6 @@
 # Siri auf Englisch: Entwurf zur Durchsicht
 
-Stand: Entwurf, nicht geprüft. Alles hier ist von Claude formuliert und wartet auf deine Durchsicht.
+Stand: **umgesetzt** (Tabelle „Shared“, Schlüssel `siri.…` in `Shared/Shared.xcstrings`, Sätze in `Shared/Siri*.swift`), aber **nicht von einem Menschen geprüft**. Alles hier ist von Claude formuliert und wartet auf deine Durchsicht. Preise stehen in der Schreibweise der Region Deutschland („2,90 €“), nicht als „€2.90“.
 
 ## Was schon in den Katalogen steht
 
