@@ -566,9 +566,9 @@ final class LibrarySearchModel {
         guard isStale else { return nil }
         let base = "der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben."
         if let staleSince {
-            return "Stand von \(Self.timeText(staleSince)) – \(base)"
+            return LocalizedStringResource("Stand von \(Self.timeText(staleSince)) – \(base)").inAppSprache
         }
-        return "Der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben."
+        return LocalizedStringResource("Der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben.").inAppSprache
     }
 
     /// Fortsetzung im Gesamtkatalog anbieten, weil der Verbund nicht rechtzeitig geantwortet hat.

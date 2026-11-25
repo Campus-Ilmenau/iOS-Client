@@ -80,7 +80,7 @@ struct GemerkterTitel: Codable, Identifiable, Equatable, Hashable {
 
     /// Titel für die Anzeige; solange er unbekannt ist, die Nummer.
     var anzeigeTitel: String {
-        titel.isEmpty ? "Titel \(id.replacingOccurrences(of: "med_", with: ""))" : titel
+        titel.isEmpty ? LocalizedStringResource("Titel \(id.replacingOccurrences(of: "med_", with: ""))").inAppSprache : titel
     }
 
     var mediaType: LibraryMediaType { LibraryMediaType(code: medientyp) }

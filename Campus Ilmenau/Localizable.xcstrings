@@ -7380,6 +7380,356 @@
           }
         }
       }
+    },
+    "Alle Exemplare ausgeliehen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All copies on loan"
+          }
+        }
+      }
+    },
+    "Der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The catalogue is responding slowly. Availability may have changed."
+          }
+        }
+      }
+    },
+    "Der Titel wird von der Merkliste entfernt. Das lässt sich nicht rückgängig machen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The title will be removed from the saved list. This cannot be undone."
+          }
+        }
+      }
+    },
+    "Im Campusnetz oder über VPN lesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read on the campus network or via VPN"
+          }
+        }
+      }
+    },
+    "Im Lesesaal, nicht ausleihbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In the reading room, not for loan"
+          }
+        }
+      }
+    },
+    "Im UB-Katalog siehst du den aktuellen Stand." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The UB catalogue shows the current status."
+          }
+        }
+      }
+    },
+    "Im UB-Katalog siehst du die Exemplare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The UB catalogue shows the copies."
+          }
+        }
+      }
+    },
+    "Im UB-Katalog siehst du, wann es zurück ist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The UB catalogue shows when it is due back."
+          }
+        }
+      }
+    },
+    "Das Exemplar steht im Regal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The copy is on the shelf"
+          }
+        }
+      }
+    },
+    "%lld von %lld Exemplaren stehen im Regal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld copies are on the shelf"
+          }
+        }
+      }
+    },
+    "Frühestens zurück am %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earliest return: %@"
+          }
+        }
+      }
+    },
+    "Merkliste geleert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved list cleared"
+          }
+        }
+      }
+    },
+    "Noch keine Titel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No titles yet"
+          }
+        }
+      }
+    },
+    "Nur vor Ort nutzbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For use in the library only"
+          }
+        }
+      }
+    },
+    "Ohne Rückgabedatum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No return date"
+          }
+        }
+      }
+    },
+    "Online verfügbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available online"
+          }
+        }
+      }
+    },
+    "Ungültige Suche." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid search."
+          }
+        }
+      }
+    },
+    "Verfügbarkeit gerade nicht abrufbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Availability not available right now"
+          }
+        }
+      }
+    },
+    "auf diesem iPhone und auf deiner Apple Watch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on this iPhone and your Apple Watch"
+          }
+        }
+      }
+    },
+    "nur auf diesem iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on this iPhone only"
+          }
+        }
+      }
+    },
+    "Stand von %@ – der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As of %@ – the catalogue is responding slowly. Availability may have changed."
+          }
+        }
+      }
+    },
+    "Stand von %@ – %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As of %1$@ – %2$@"
+          }
+        }
+      }
+    },
+    "der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the catalogue is responding slowly. Availability may have changed."
+          }
+        }
+      }
+    },
+    "Rückgabe war am %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was due back on %@"
+          }
+        }
+      }
+    },
+    "Rückgabe bis %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due back by %@"
+          }
+        }
+      }
+    },
+    "%@ ist gesperrt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is locked"
+          }
+        }
+      }
+    },
+    "Entsperre dein %@ einmal mit dem Code und versuche es dann erneut." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock your %@ once with the passcode, then try again."
+          }
+        }
+      }
+    },
+    "Alle %lld Titel werden von der Merkliste entfernt. Das lässt sich nicht rückgängig machen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All %lld titles will be removed from the saved list. This cannot be undone."
+          }
+        }
+      }
+    },
+    "„%@“ entfernt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” removed"
+          }
+        }
+      }
+    },
+    "„%@“ gefunden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” found"
+          }
+        }
+      }
+    },
+    "„%@“ wieder offen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” open again"
+          }
+        }
+      }
+    },
+    "%@ · %lld gefunden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld found"
+          }
+        }
+      }
+    },
+    "%@ · zuletzt gemerkt zuerst" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · most recently saved first"
+          }
+        }
+      }
+    },
+    "Titel %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title %@"
+          }
+        }
+      }
+    },
+    "Zu viele Titel für eine Abfrage: %lld (höchstens %lld)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too many titles for one request: %1$lld (at most %2$lld)."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

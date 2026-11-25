@@ -260,27 +260,27 @@ enum LibraryAPIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Ungültige API-URL"
+            return LocalizedStringResource("Ungültige API-URL").inAppSprache
         case .invalidResponse:
-            return "Ungültige Server-Antwort"
+            return LocalizedStringResource("Ungültige Server-Antwort").inAppSprache
         case .httpError(let statusCode):
-            return "HTTP-Fehler: \(statusCode)"
+            return LocalizedStringResource("HTTP-Fehler: \(statusCode)").inAppSprache
         case .invalidQuery(let issues):
-            return issues.first?.message ?? "Ungültige Suche."
+            return issues.first?.message ?? LocalizedStringResource("Ungültige Suche.").inAppSprache
         case .tooManyIDs(let count):
-            return "Zu viele Titel für eine Abfrage: \(count) (höchstens \(LibraryCatalogService.maxAvailabilityIDs))."
+            return LocalizedStringResource("Zu viele Titel für eine Abfrage: \(count) (höchstens \(LibraryCatalogService.maxAvailabilityIDs)).").inAppSprache
         case .badRequest(_, let message):
             return message
         case .notFound:
-            return "Titel nicht gefunden"
+            return LocalizedStringResource("Titel nicht gefunden").inAppSprache
         case .catalogUnavailable:
-            return "Katalog gerade nicht erreichbar"
+            return LocalizedStringResource("Katalog gerade nicht erreichbar").inAppSprache
         case .apiError(_, let code, let message, _):
-            return "API-Fehler (\(code)): \(message)"
+            return LocalizedStringResource("API-Fehler (\(code)): \(message)").inAppSprache
         case .decodingError(let error):
-            return "Fehler beim Dekodieren: \(error.localizedDescription)"
+            return LocalizedStringResource("Fehler beim Dekodieren: \(error.localizedDescription)").inAppSprache
         case .networkError(let error):
-            return "Netzwerk-Fehler: \(error.localizedDescription)"
+            return LocalizedStringResource("Netzwerk-Fehler: \(error.localizedDescription)").inAppSprache
         }
     }
 

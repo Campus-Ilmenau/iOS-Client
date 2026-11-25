@@ -152,28 +152,28 @@ extension LibraryMediaDetail {
             } else {
                 subtitle = "\(overview.availableCount) von \(total) Exemplaren stehen im Regal"
             }
-            return LibraryStatusBlock(title: "Ausleihbar", subtitle: subtitle, tone: .green)
+            return LibraryStatusBlock(title: LocalizedStringResource("Ausleihbar").inAppSprache, subtitle: subtitle, tone: .green)
 
         case .onLoan:
             var parts: [String] = []
             if let due = overview.earliestDueDate { parts.append("Frühestens zurück am \(BibliothekFormat.shortDate(due))") }
             if overview.totalQueue > 0 { parts.append(LibraryItem.queueText(overview.totalQueue)) }
             return LibraryStatusBlock(
-                title: items.count > 1 ? "Alle Exemplare ausgeliehen" : "Ausgeliehen",
+                title: items.count > 1 ? LocalizedStringResource("Alle Exemplare ausgeliehen").inAppSprache : LocalizedStringResource("Ausgeliehen").inAppSprache,
                 subtitle: parts.isEmpty ? "Im UB-Katalog siehst du, wann es zurück ist." : parts.joined(separator: " · "),
                 tone: .neutral
             )
 
         case .referenceOnly:
-            return LibraryStatusBlock(title: "Nur vor Ort nutzbar", subtitle: "Im Lesesaal, nicht ausleihbar", tone: .blue)
+            return LibraryStatusBlock(title: LocalizedStringResource("Nur vor Ort nutzbar").inAppSprache, subtitle: LocalizedStringResource("Im Lesesaal, nicht ausleihbar").inAppSprache, tone: .blue)
 
         case .online:
-            return LibraryStatusBlock(title: "Online verfügbar", subtitle: "Im Campusnetz oder über VPN lesen", tone: .green)
+            return LibraryStatusBlock(title: LocalizedStringResource("Online verfügbar").inAppSprache, subtitle: LocalizedStringResource("Im Campusnetz oder über VPN lesen").inAppSprache, tone: .green)
 
         case .unknown:
             return LibraryStatusBlock(
-                title: "Verfügbarkeit gerade nicht abrufbar",
-                subtitle: "Im UB-Katalog siehst du den aktuellen Stand.",
+                title: LocalizedStringResource("Verfügbarkeit gerade nicht abrufbar").inAppSprache,
+                subtitle: LocalizedStringResource("Im UB-Katalog siehst du den aktuellen Stand.").inAppSprache,
                 tone: .neutral
             )
         }
@@ -370,9 +370,9 @@ final class LibraryTitleModel {
     var staleNotice: String? {
         guard isStale else { return nil }
         if let fetched = media.fetchedAt {
-            return "Stand von \(LibrarySearchModel.timeText(fetched)) – der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben."
+            return LocalizedStringResource("Stand von \(LibrarySearchModel.timeText(fetched)) – der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben.").inAppSprache
         }
-        return "Der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben."
+        return LocalizedStringResource("Der Katalog antwortet gerade langsam. Verfügbarkeit kann sich geändert haben.").inAppSprache
     }
 
     /// Inhaltsverzeichnis und Klappentext zeigen nur, wenn `/features` es erlaubt.

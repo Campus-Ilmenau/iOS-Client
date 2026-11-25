@@ -6,7 +6,7 @@ struct BibMerklisteView: View {
     let service: LibraryCatalogService
     let coverLoader: LibraryCoverLoader
     /// Beschriftung des Zurück-Knopfs: „Bibliothek“ oder, wenn man aus einem Titel kam, „Titel“.
-    var backTitle = "Bibliothek"
+    var backTitle = LocalizedStringResource("Bibliothek").inAppSprache
     /// Ohne Zurück-Knopf, wenn die Merkliste ein eigenes Ziel der Seitenleiste ist (iPad).
     var mitZurueck = true
     /// Previews legen fest, ob eine Watch bereit ist; sonst entscheidet `WatchVerbindung`.
@@ -50,7 +50,7 @@ struct BibMerklisteView: View {
     init(
         service: LibraryCatalogService,
         coverLoader: LibraryCoverLoader,
-        backTitle: String = "Bibliothek",
+        backTitle: String = LocalizedStringResource("Bibliothek").inAppSprache,
         mitZurueck: Bool = true,
         status: BibMerklisteStatus? = nil,
         loadsStatus: Bool = true,
@@ -209,10 +209,10 @@ struct BibMerklisteView: View {
     private var summary: String {
         let anzahl = eintraege.count
         let gefunden = merkliste.anzahlGefunden
-        let titel = anzahl == 1 ? "1 Titel" : "\(anzahl) Titel"
-        if anzahl == 0 { return "Noch keine Titel" }
-        if gefunden > 0 { return "\(titel) · \(gefunden) gefunden" }
-        return anzahl == 1 ? titel : "\(titel) · zuletzt gemerkt zuerst"
+        let titel = LocalizedStringResource("\(anzahl) Titel").inAppSprache
+        if anzahl == 0 { return LocalizedStringResource("Noch keine Titel").inAppSprache }
+        if gefunden > 0 { return LocalizedStringResource("\(titel) · \(gefunden) gefunden").inAppSprache }
+        return anzahl == 1 ? titel : LocalizedStringResource("\(titel) · zuletzt gemerkt zuerst").inAppSprache
     }
 
     // MARK: - Liste
@@ -267,7 +267,7 @@ struct BibMerklisteView: View {
 
     private var fussnote: some View {
         // Mit gekoppelter Uhr und installierter Watch-App liegt die Liste auch dort.
-        let ort = (watchBereit ?? WatchVerbindung.shared.istWatchBereit) ? "auf diesem iPhone und auf deiner Apple Watch" : "nur auf diesem iPhone"
+        let ort = (watchBereit ?? WatchVerbindung.shared.istWatchBereit) ? LocalizedStringResource("auf diesem iPhone und auf deiner Apple Watch").inAppSprache : LocalizedStringResource("nur auf diesem iPhone").inAppSprache
         return Text("Nach links wischen: gefunden. Nach rechts wischen: entfernen. „Gefunden“ bleibt, bis du es zurücknimmst. Die Merkliste liegt \(ort), eine Anmeldung ist nicht nötig. Die Verfügbarkeit kann bis zu 5 Minuten alt sein.")
             .font(.caption)
             .foregroundStyle(Color(.textTertiary))
@@ -366,7 +366,7 @@ struct BibMerklisteView: View {
         if warGewaehlt {
             auswahlID = MerklisteAuswahlRegel.nachEntfernen(eintrag.id, offen: offen, gefunden: gefunden)
         }
-        show(MerklisteToast(message: "„\(eintrag.anzeigeTitel)“ entfernt", undo: .entfernt(removed)))
+        show(MerklisteToast(message: LocalizedStringResource("„\(eintrag.anzeigeTitel)“ entfernt").inAppSprache, undo: .entfernt(removed)))
     }
 
     /// Hakt ab oder nimmt zurück; die Zeile wandert mit Animation in den anderen Abschnitt.
@@ -380,7 +380,7 @@ struct BibMerklisteView: View {
         if warGewaehlt {
             auswahlID = MerklisteAuswahlRegel.nachAbhaken(eintrag.id, offen: offen, gefunden: alteGefundene)
         }
-        let text = gefunden ? "„\(eintrag.anzeigeTitel)“ gefunden" : "„\(eintrag.anzeigeTitel)“ wieder offen"
+        let text = gefunden ? LocalizedStringResource("„\(eintrag.anzeigeTitel)“ gefunden").inAppSprache : LocalizedStringResource("„\(eintrag.anzeigeTitel)“ wieder offen").inAppSprache
         show(MerklisteToast(message: text, undo: .gefunden(vorher)))
     }
 
@@ -402,7 +402,7 @@ struct BibMerklisteView: View {
     private func leeren() {
         withAnimation { merkliste.alleEntfernen() }
         auswahlID = nil
-        show(MerklisteToast(message: "Merkliste geleert", undo: nil))
+        show(MerklisteToast(message: LocalizedStringResource("Merkliste geleert").inAppSprache, undo: nil))
     }
 
     private func show(_ newToast: MerklisteToast) {
@@ -412,8 +412,9 @@ struct BibMerklisteView: View {
 
     private var clearMessage: String {
         let count = eintraege.count
-        let first = count == 1 ? "Der Titel wird" : "Alle \(count) Titel werden"
-        return "\(first) von der Merkliste entfernt. Das lässt sich nicht rückgängig machen."
+        return count == 1
+            ? LocalizedStringResource("Der Titel wird von der Merkliste entfernt. Das lässt sich nicht rückgängig machen.").inAppSprache
+            : LocalizedStringResource("Alle \(count) Titel werden von der Merkliste entfernt. Das lässt sich nicht rückgängig machen.").inAppSprache
     }
 
     // MARK: - Laden

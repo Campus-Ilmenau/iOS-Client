@@ -57,8 +57,8 @@ enum BibliotheksausweisZugang {
             ))
         case .biometryLockout:
             return .hinweis(Hinweis(
-                titel: "\(name) ist gesperrt",
-                text: "Entsperre dein \(geraet) einmal mit dem Code und versuche es dann erneut."
+                titel: LocalizedStringResource("\(name) ist gesperrt").inAppSprache,
+                text: LocalizedStringResource("Entsperre dein \(geraet) einmal mit dem Code und versuche es dann erneut.").inAppSprache
             ))
         default:
             return .abgebrochen

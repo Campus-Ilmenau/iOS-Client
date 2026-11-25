@@ -140,9 +140,9 @@ struct BibliothekDetailBlatt: View {
     }
 
     private func rueckgabeText(_ info: BibliothekLoanInfo) -> String {
-        guard let due = info.dueDate else { return "Ohne Rückgabedatum" }
+        guard let due = info.dueDate else { return LocalizedStringResource("Ohne Rückgabedatum").inAppSprache }
         let datum = BibliothekFormat.shortDate(due)
-        return info.isOverdue ? "Rückgabe war am \(datum)" : "Rückgabe bis \(datum)"
+        return info.isOverdue ? LocalizedStringResource("Rückgabe war am \(datum)").inAppSprache : LocalizedStringResource("Rückgabe bis \(datum)").inAppSprache
     }
 
     private func chipVariant(_ info: BibliothekLoanInfo) -> Chip.Variant {
