@@ -106,12 +106,12 @@ struct WatchStartView: View {
     /// „3 im Regal · 1 gefunden“; ohne Einträge „Noch nichts gemerkt“.
     private var merklisteZeile: String {
         let merkliste = verbindung.merkliste
-        guard !merkliste.eintraege.isEmpty else { return "Noch nichts gemerkt" }
+        guard !merkliste.eintraege.isEmpty else { return LocalizedStringResource("Noch nichts gemerkt").inAppSprache }
         return merkliste.anzeige.zusammenfassung
     }
 
     private func mensaZeile(_ jetzt: Date) -> String {
-        guard !daten.hatKeinenSpeiseplan else { return "Noch keine Daten" }
+        guard !daten.hatKeinenSpeiseplan else { return LocalizedStringResource("Noch keine Daten", table: "Shared").inAppSprache }
         return UhrMensaAnzeige.erstelle(
             snapshot: daten.snapshot, mensa: daten.mensa(einstellungen: verbindung.einstellungen, jetzt: jetzt),
             einstellungen: verbindung.einstellungen, jetzt: jetzt
