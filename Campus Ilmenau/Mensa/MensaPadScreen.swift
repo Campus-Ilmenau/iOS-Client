@@ -414,7 +414,7 @@ struct MensaPadScreen: View {
 
     private func untertitel(_ venue: MensaVenue, gerichte: Int) -> String {
         var text = MensaFormatting.dayLabel(selectedDay, now: now)
-        if venue.hasMealtimes { text += mealtime == .dinner ? " · Abendessen" : " · Mittag" }
+        if venue.hasMealtimes { text += mealtime == .dinner ? LocalizedStringResource(" · Abendessen").inAppSprache : LocalizedStringResource(" · Mittag").inAppSprache }
         if filter.isActive, loadState == .loaded {
             text += gerichte == 0 ? " · keins passend" : " · \(gerichte) passend"
         }

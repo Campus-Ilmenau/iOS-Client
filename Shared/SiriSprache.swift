@@ -1,10 +1,24 @@
 import Foundation
 
-/// Ein Satz oder Satzteil für Siri aus dem Katalog (Tabelle „Shared“, Schlüssel `siri.…`). Der Schlüssel steht im
-/// Aufruf, die Werte in `Shared/Shared.xcstrings`; Platzhalter (`%@`, `%lld`) füllt die Interpolation, im Katalog
-/// lässt sich mit `%2$@` umstellen, wenn die Wortfolge einer Sprache es braucht.
-nonisolated func siriText(_ schluessel: String.LocalizationValue) -> String {
-    LocalizedStringResource(schluessel, table: "Shared").inAppSprache
+/// Schlüssel eines Satzes oder Satzteils im Katalog (Tabelle „Shared“). Ein eigener Typ statt `String.LocalizationValue`,
+/// damit der Compiler die Schlüssel nicht in den Katalog jedes Targets kopiert: Sie stehen nur in `Shared.xcstrings`.
+nonisolated struct SiriSchluessel: ExpressibleByStringInterpolation {
+    let wert: String.LocalizationValue
+
+    init(stringLiteral value: String) {
+        wert = String.LocalizationValue(value)
+    }
+
+    init(stringInterpolation: String.LocalizationValue.StringInterpolation) {
+        wert = String.LocalizationValue(stringInterpolation: stringInterpolation)
+    }
+}
+
+/// Ein Satz oder Satzteil für Siri aus dem Katalog (Tabelle „Shared“, Schlüssel `siri.…`). Die Werte stehen in
+/// `Shared/Shared.xcstrings`; Platzhalter (`%@`, `%lld`) füllt die Interpolation, im Katalog lässt sich mit `%2$@`
+/// umstellen, wenn die Wortfolge einer Sprache es braucht.
+nonisolated func siriText(_ schluessel: SiriSchluessel) -> String {
+    LocalizedStringResource(schluessel.wert, table: "Shared").inAppSprache
 }
 
 /// Bausteine für die gesprochenen Sätze von Siri: Uhrzeiten, Orte, Zahlwörter und die Gerichteliste.

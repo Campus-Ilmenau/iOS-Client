@@ -134,7 +134,7 @@ struct MensaOpeningHoursContent: View {
     private func todayLine(_ venue: MensaVenue, hours: [OpeningHour]) -> String {
         guard !hours.isEmpty else { return "–" }
         let line = MensaOpeningHours.todayText(for: hours, now: now)
-        return venue.hasMealtimes ? line + " · Mittag und Abendessen" : line
+        return venue.hasMealtimes ? line + LocalizedStringResource(" · Mittag und Abendessen").inAppSprache : line
     }
 
     private func statusChip(hours: [OpeningHour]) -> Chip? {

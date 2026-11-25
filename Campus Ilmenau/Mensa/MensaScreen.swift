@@ -538,7 +538,7 @@ private struct MensaVenuePage: View {
     private var subtitle: String {
         let dayText = MensaFormatting.dayLabel(day, now: now)
         guard venue.hasMealtimes else { return dayText }
-        return dayText + (mealtime == .dinner ? " · Abendessen" : " · Mittag")
+        return dayText + (mealtime == .dinner ? LocalizedStringResource(" · Abendessen").inAppSprache : LocalizedStringResource(" · Mittag").inAppSprache)
     }
 
     @ViewBuilder

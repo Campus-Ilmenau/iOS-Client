@@ -38,18 +38,18 @@ enum MensaStatus {
             return Info(text: "Geschlossen", variant: .dangerSoft)
         }
         if venue.hasMealtimes, mealtime == .dinner {
-            return Info(text: "Bis \(clock(hours.closesAt)) Uhr", variant: .neutral)
+            return Info(text: LocalizedStringResource("Bis \(clock(hours.closesAt)) Uhr").inAppSprache, variant: .neutral)
         }
         guard isToday else {
-            return Info(text: "\(short(hours.opensAt))–\(short(hours.closesAt)) Uhr", variant: .neutral)
+            return Info(text: LocalizedStringResource("\(short(hours.opensAt))–\(short(hours.closesAt)) Uhr").inAppSprache, variant: .neutral)
         }
         if nowMinutes < opens {
-            return Info(text: "Ab \(clock(hours.opensAt)) Uhr", variant: .neutral)
+            return Info(text: LocalizedStringResource("Ab \(clock(hours.opensAt)) Uhr").inAppSprache, variant: .neutral)
         }
         if closes - nowMinutes <= 30 {
             return Info(text: "Gleich zu", variant: .warning)
         }
-        return Info(text: "Geöffnet · \(short(hours.opensAt))–\(short(hours.closesAt)) Uhr", variant: .green)
+        return Info(text: LocalizedStringResource("Geöffnet · \(short(hours.opensAt))–\(short(hours.closesAt)) Uhr").inAppSprache, variant: .green)
     }
 
     private static func weekdayKey(_ weekday: Int) -> String {

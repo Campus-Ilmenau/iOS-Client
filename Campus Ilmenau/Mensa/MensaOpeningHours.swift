@@ -36,15 +36,15 @@ enum MensaOpeningHours {
 
     /// Heutige Zeit, z. B. „11:00–14:00 Uhr“; „geschlossen“ ohne Eintrag.
     static func todayText(for hours: [OpeningHour], now: Date, calendar: Calendar = .current) -> String {
-        range(for: weekdayKey(now, calendar: calendar), in: hours).map { "\($0) Uhr" } ?? "heute geschlossen"
+        range(for: weekdayKey(now, calendar: calendar), in: hours).map { LocalizedStringResource("\($0) Uhr").inAppSprache } ?? LocalizedStringResource("heute geschlossen").inAppSprache
     }
 
     /// Abendessen der Cafeteria Ehrenberg: Die API nennt keinen Beginn, nur das Ende der Öffnungszeit.
     static func dinnerText(for hours: [OpeningHour]) -> String? {
         guard let weekday = hours.first(where: { $0.weekday.lowercased() == "mon" }) else { return nil }
-        var text = "bis \(weekday.closesAt) Uhr"
+        var text = LocalizedStringResource("bis \(weekday.closesAt) Uhr").inAppSprache
         if let friday = hours.first(where: { $0.weekday.lowercased() == "fri" }), friday.closesAt != weekday.closesAt {
-            text += ", Freitag bis \(friday.closesAt) Uhr"
+            text += LocalizedStringResource(", Freitag bis \(friday.closesAt) Uhr").inAppSprache
         }
         return text
     }
